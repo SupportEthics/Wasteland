@@ -69,7 +69,7 @@
 
   /* ---------- base hub ---------- */
   #base-head{display:flex;gap:12px;align-items:center;margin-bottom:10px}
-  #base-head img{height:60px;filter:drop-shadow(0 4px 4px #000a)}
+  #base-head img,#base-head canvas{height:60px;filter:drop-shadow(0 4px 4px #000a)}
   #base-head b{display:block;font-size:14px;letter-spacing:2px}
   #base-head span{display:block;font-size:10px;color:var(--dim);margin-top:2px}
   #base-head .chev{margin-left:auto;color:var(--dim);font-size:18px}
@@ -161,8 +161,8 @@
   /* armory */
   .paperdoll{position:relative;height:250px;margin-bottom:8px;background:
     radial-gradient(ellipse at center,#23252f 0%,#0d0e12 75%);border:2px solid var(--line);border-radius:10px}
-  .paperdoll img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:190px;
-    filter:drop-shadow(0 5px 5px #000a)}
+  .paperdoll img,.paperdoll canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    height:200px;filter:drop-shadow(0 5px 5px #000a)}
   .slot{position:absolute;width:46px;height:46px;border-radius:8px;background:#14151c;
     border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px}
   .slot.filled{border-color:var(--blue)}
@@ -222,7 +222,7 @@
   .wcard{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px;
     text-align:center}
   .wcard.sel{border-color:var(--rust2);box-shadow:0 0 14px #c9743a44}
-  .wcard img{height:110px;filter:drop-shadow(0 4px 4px #000a)}
+  .wcard img,.wcard canvas{height:110px;filter:drop-shadow(0 4px 4px #000a)}
   .wcard b{display:block;font-size:13px;letter-spacing:1px;margin-top:6px}
   .wcard span{display:block;font-size:10px;color:var(--dim)}
   .wcard .lv{margin-top:5px;font-size:10px;color:var(--green);font-weight:bold}
@@ -272,8 +272,8 @@
     <h2 class="hdr">HAVEN OUTPOST</h2>
     <div class="body">
       <button class="card" id="base-head" onclick="nav('wardens')" style="width:100%">
-        <img id="home-hero" class="px" src="assets/ranger.webp" alt="">
-        <span><b id="home-name">RANGER</b><span id="home-class">Piercing shots · Lv 14</span></span>
+        <canvas id="home-prev" width="64" height="80"></canvas>
+        <span><b id="home-name">DRIFTER</b><span id="home-class">road leathers · scrap pistol · Lv 14</span></span>
         <span class="chev">›</span>
       </button>
       <button class="btn rust" id="battle-btn" onclick="startBattle()">⚔ THE GATE — ENTER THE WASTES<small>Chapter 3 · Dead City · costs 1 ⚡ energy</small></button>
@@ -352,7 +352,7 @@
     <h2 class="hdr">ARMORY</h2>
     <div class="body">
       <div class="paperdoll">
-        <img class="px" id="gear-hero" src="assets/ranger.webp" alt="">
+        <canvas id="gear-prev" width="160" height="220"></canvas>
         <div class="slot filled" style="left:10px;top:12px">🔫</div>
         <div class="slot filled" style="left:10px;top:100%;transform:translateY(-58px)">🥾</div>
         <div class="slot leg"    style="left:10px;top:50%;transform:translateY(-23px)">🧥</div>
@@ -457,19 +457,11 @@
     <div class="topbar"><div class="pill">🧩 shards</div></div>
     <h2 class="hdr">BARRACKS</h2>
     <div class="body">
-      <div class="wgrid">
-        <button class="wcard sel" id="w-ranger" onclick="pickHero('ranger','RANGER','Piercing shots · Lv 14')">
-          <img class="px" src="assets/ranger.webp" alt=""><b>RANGER</b><span>starts with Scrap Pistol</span><div class="lv">Lv 14 · equipped</div></button>
-        <button class="wcard" id="w-brute" onclick="pickHero('brute','BRUTE','Melee sweep · Lv 9')">
-          <img class="px" src="assets/brute.webp" alt=""><b>BRUTE</b><span>starts with Nail Bat orbit</span><div class="lv">Lv 9</div></button>
-        <button class="wcard" id="w-scout" onclick="pickHero('scout','SCOUT','Dual pistols · Lv 6')">
-          <img class="px" src="assets/scout.webp" alt=""><b>SCOUT</b><span>starts with twin shots</span><div class="lv">Lv 6</div></button>
-        <button class="wcard" id="w-medic" onclick="toast('Collect 30/80 shards to unlock — shards drop from Warden Caches')">
-          <img class="px lock" src="assets/medic.webp" alt=""><b>MEDIC 🔒</b><span>starts with Turret Drone</span><div class="lv" style="color:var(--dim)">30/80 🧩</div></button>
-      </div>
+      <div class="wgrid" id="dgrid"></div>
       <div class="card" style="margin-top:10px;font-size:11px;color:var(--dim)">
-        Survivors are modular skins over one shared top-down rig — each just changes the
-        jacket/scarf colours, starting weapon and stat spread.</div>
+        Five takes on the Warden, all drawn on one shared top-down rig — same boots,
+        same walk, different silhouette, gear and starting weapon. Pick one and it's
+        who you play in the arena.</div>
     </div>
     <div class="navbar"></div>
   </div>
@@ -519,7 +511,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const state = {hero:'ranger', energy:3, screen:'title', adReason:null};
+const state = {design:'drifter', energy:3, screen:'title', adReason:null};
 
 /* ---------- navigation ---------- */
 const NAV = [
@@ -547,7 +539,6 @@ function toast(msg){
   const t=$('toast'); t.textContent=msg; t.classList.add('on');
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200);
 }
-const IMG_SRC = k => 'assets/'+k+'.webp';
 
 /* =========================================================
    BATTLE — true top-down canvas game
@@ -556,13 +547,7 @@ const IMG_SRC = k => 'assets/'+k+'.webp';
    ========================================================= */
 const cv=$('cv'), ctx=cv.getContext('2d');
 const WORLD=1400, PR=13;
-// hero skins: jacket / trim(scarf,bandana) / hair
-const SKINS={
-  ranger:{jacket:'#3d4432',trim:'#8a2f24',hair:'#4a342a'},
-  brute:{jacket:'#4a3528',trim:'#a03428',hair:'#2a2018'},
-  scout:{jacket:'#2b2b33',trim:'#8a2f24',hair:'#1c1c22'},
-  medic:{jacket:'#3a4a5a',trim:'#d8cbb0',hair:'#4a342a'},
-};
+// main-character rigs are defined below in RIGS (five designs, one shared skeleton)
 const FOE_TYPES=[
   {k:'sham',  w:.50, r:12, hp:2, s:55 },   // shambler: basic infected swarm
   {k:'crawl', w:.25, r:8,  hp:1, s:130},   // crawler: fast, low, scuttles
@@ -709,9 +694,9 @@ function splat(x,y,col){                                            // gore stai
   }
   c.globalAlpha=1;
 }
-function rim(rx,ry){                                                // top-left rim light
-  ctx.strokeStyle='rgba(255,214,150,.30)'; ctx.lineWidth=1.6;
-  ctx.beginPath(); ctx.ellipse(0,0,rx-.8,ry-.8,0,Math.PI*1.05,Math.PI*1.75); ctx.stroke();
+function rim(c,rx,ry){                                              // top-left rim light
+  c.strokeStyle='rgba(255,214,150,.30)'; c.lineWidth=1.6;
+  c.beginPath(); c.ellipse(0,0,rx-.8,ry-.8,0,Math.PI*1.05,Math.PI*1.75); c.stroke();
 }
 
 /* ---------- tiny vector-art renderers (all drawn facing up, rotated to aim) ---------- */
@@ -719,43 +704,169 @@ function shadow(x,y,rx,ry){
   ctx.fillStyle='rgba(0,0,0,.32)';
   ctx.beginPath(); ctx.ellipse(x,y+rx*.62,rx,ry??rx*.45,0,0,7); ctx.fill();
 }
-function drawPlayer(p){
-  const sk=SKINS[state.hero]||SKINS.ranger;
-  shadow(p.x,p.y,13);
-  ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.aim+Math.PI/2);
-  const st=Math.sin(p.feet)*4*(p.moving?1:0);
-  ctx.fillStyle='#1c1814';                                          // stepping boots
-  ctx.beginPath(); ctx.ellipse(-5,2+st,3,4.5,0,0,7); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(5,2-st,3,4.5,0,0,7); ctx.fill();
-  ctx.fillStyle=sk.jacket; ctx.strokeStyle='#14100c'; ctx.lineWidth=2;  // torso
-  ctx.beginPath(); ctx.ellipse(0,0,9.5,12,0,0,7); ctx.fill(); ctx.stroke();
-  rim(9.5,12);
-  ctx.fillStyle='#14100c';                                          // shoulders
-  ctx.beginPath(); ctx.arc(-8.5,-2,4,0,7); ctx.fill();
-  ctx.beginPath(); ctx.arc(8.5,-2,4,0,7); ctx.fill();
-  ctx.fillStyle='#3c3c44';                                          // gun barrel
-  ctx.fillRect(3.6,-20,3.4,13);
-  ctx.fillStyle='#23232a'; ctx.fillRect(3.1,-9,4.4,4);
-  if(p.flash>0){                                                    // muzzle flash + glow
-    const fa=Math.min(1,p.flash*14), fc=sim.radium?'#b8f04c':'#ffd76a';
-    ctx.globalCompositeOperation='lighter';
-    const mg=ctx.createRadialGradient(5.3,-22,1,5.3,-22,16);
+/* ---------- main-character rigs: five designs, one shared skeleton ---------- */
+function boots(c,st,w,l,dx,dy){
+  c.fillStyle='#1c1814';
+  c.beginPath(); c.ellipse(-(dx||5),(dy||2)+st,w||3,l||4.5,0,0,7); c.fill();
+  c.beginPath(); c.ellipse((dx||5),(dy||2)-st,w||3,l||4.5,0,0,7); c.fill();
+}
+const RIGS={
+  drifter:{name:'DRIFTER',desc:'road leathers · red scarf · scrap pistol',muzzle:[5.3,-22],flashCol:'#ffd76a',
+    draw(c,st){
+      boots(c,st);
+      c.fillStyle='#3d4432'; c.strokeStyle='#14100c'; c.lineWidth=2;
+      c.beginPath(); c.ellipse(0,0,9.5,12,0,0,7); c.fill(); c.stroke();
+      rim(c,9.5,12);
+      c.fillStyle='#14100c';
+      c.beginPath(); c.arc(-8.5,-2,4,0,7); c.fill();
+      c.beginPath(); c.arc(8.5,-2,4,0,7); c.fill();
+      c.fillStyle='#3c3c44'; c.fillRect(3.6,-20,3.4,13);
+      c.fillStyle='#23232a'; c.fillRect(3.1,-9,4.4,4);
+      c.fillStyle='#8a2f24';
+      c.beginPath(); c.ellipse(0,-5.5,6.5,3.4,0,0,7); c.fill();
+      c.fillStyle='#b98a62'; c.strokeStyle='#14100c'; c.lineWidth=1.4; c.beginPath(); c.arc(0,-3,5.4,0,7); c.fill(); c.stroke();
+      c.fillStyle='#4a342a'; c.beginPath(); c.arc(0,-1.6,5.4,Math.PI*.15,Math.PI*.85); c.fill();
+    }},
+  warlord:{name:'WARLORD',desc:'welded plate · hazard stripes · heavy cannon',muzzle:[7.5,-26],flashCol:'#ffb056',
+    draw(c,st){
+      boots(c,st,4,5,6,2.5);
+      c.fillStyle='#6b4a30'; c.strokeStyle='#241708'; c.lineWidth=1.8;   // bedroll
+      c.beginPath(); c.roundRect(-8,7,16,5.5,3); c.fill(); c.stroke();
+      c.fillStyle='#4a453e'; c.strokeStyle='#15120e'; c.lineWidth=2;     // chest plate
+      c.beginPath(); c.ellipse(0,0,12,12.5,0,0,7); c.fill(); c.stroke();
+      rim(c,12,12.5);
+      c.fillStyle='#c9743a';                                            // hazard chevrons
+      c.fillRect(-1.9,-9,3.8,3.6); c.fillRect(-1.9,-3.2,3.8,3.6); c.fillRect(-1.9,2.6,3.8,3.6);
+      c.fillStyle='#5c5650'; c.strokeStyle='#15120e';                    // pauldrons
+      c.beginPath(); c.arc(-11,-2,6.4,0,7); c.fill(); c.stroke();
+      c.beginPath(); c.arc(11,-2,5,0,7); c.fill(); c.stroke();
+      c.fillStyle='#15120e';                                             // spikes
+      [[-14,-8],[-8,-9.5]].forEach(([sx,sy])=>{ c.beginPath();
+        c.moveTo(sx-2,sy+4); c.lineTo(sx,sy-3); c.lineTo(sx+2,sy+4); c.fill(); });
+      c.fillStyle='#2f2f36'; c.fillRect(5,-22,5,16);                     // cannon
+      c.fillStyle='#1c1c22'; c.fillRect(3.8,-25,7.4,3.6);                // muzzle brake
+      c.fillStyle='#23232a'; c.fillRect(4.4,-8,6,5.4);                   // mag box
+      c.fillStyle='#6e6862'; c.strokeStyle='#15120e'; c.lineWidth=2;     // welded helm
+      c.beginPath(); c.arc(0,-3,6.2,0,7); c.fill(); c.stroke();
+      c.strokeStyle='rgba(20,16,12,.5)'; c.lineWidth=1.2;
+      c.beginPath(); c.moveTo(0,-9); c.lineTo(0,3); c.stroke();
+      c.fillStyle='#0e0c0a'; c.fillRect(-4,-7.4,8,2.6);                  // visor slit
+    }},
+  stalker:{name:'STALKER',desc:'hooded cloak · tattered cape · crossbow',muzzle:[4.7,-17],flashCol:'#d8cbb0',
+    draw(c,st){
+      c.fillStyle='#3f4a33'; c.strokeStyle='#1b2114'; c.lineWidth=1.6;   // tattered cape
+      c.beginPath(); c.moveTo(-9,-1); c.lineTo(-11,9); c.lineTo(-6,7); c.lineTo(-4,14.5);
+      c.lineTo(0,9); c.lineTo(3,15); c.lineTo(7,7.5); c.lineTo(10,9.5); c.lineTo(9,-1);
+      c.closePath(); c.fill(); c.stroke();
+      boots(c,st);
+      c.fillStyle='#55503f'; c.strokeStyle='#14100c'; c.lineWidth=2;     // leathers
+      c.beginPath(); c.ellipse(0,0,9,11,0,0,7); c.fill(); c.stroke();
+      rim(c,9,11);
+      c.save(); c.translate(-6,4.5); c.rotate(.5);                       // quiver
+      c.fillStyle='#4a342a'; c.strokeStyle='#1b120a'; c.lineWidth=1.4;
+      c.beginPath(); c.roundRect(-2.6,-7,5.2,13,2.4); c.fill(); c.stroke();
+      c.fillStyle='#d8cbb0';
+      [-1.6,.3,2.1].forEach(bx=>{ c.beginPath(); c.arc(bx,-7.8,1,0,7); c.fill(); });
+      c.restore();
+      c.fillStyle='#4a342a'; c.fillRect(3.2,-15,3,13);                   // crossbow stock
+      c.fillStyle='#6b4a30'; c.strokeStyle='#1b120a'; c.lineWidth=1.2;
+      c.beginPath(); c.roundRect(-2.4,-14.6,13.6,2.8,1.4); c.fill(); c.stroke(); // limbs
+      c.strokeStyle='rgba(216,203,176,.6)'; c.lineWidth=1;               // string
+      c.beginPath(); c.moveTo(-1.8,-13.2); c.lineTo(10.6,-13.2); c.stroke();
+      c.fillStyle='#5c6647'; c.strokeStyle='#242b1a'; c.lineWidth=2;     // pointed hood
+      c.beginPath(); c.moveTo(0,-12);
+      c.quadraticCurveTo(7.2,-8,5.6,-1); c.quadraticCurveTo(3.4,3.6,0,3.6);
+      c.quadraticCurveTo(-3.4,3.6,-5.6,-1); c.quadraticCurveTo(-7.2,-8,0,-12);
+      c.closePath(); c.fill(); c.stroke();
+      c.strokeStyle='rgba(20,24,12,.55)'; c.lineWidth=1.2;               // hood crease
+      c.beginPath(); c.moveTo(0,-10.5); c.lineTo(0,2); c.stroke();
+    }},
+  tinker:{name:'TINKER',desc:'brass pack · antenna rig · shoulder turret',muzzle:[5.3,-19],flashCol:'#ffd76a',
+    draw(c,st){
+      c.strokeStyle='#8a8578'; c.lineWidth=1.6;                          // antenna
+      c.beginPath(); c.moveTo(5,9); c.lineTo(11,-3); c.stroke();
+      c.fillStyle='rgba(127,208,255,.25)'; c.beginPath(); c.arc(11,-3,4.2,0,7); c.fill();
+      c.fillStyle='#7fd0ff'; c.beginPath(); c.arc(11,-3,1.9,0,7); c.fill();
+      c.fillStyle='#8a5a28'; c.strokeStyle='#241708'; c.lineWidth=1.8;   // brass pack
+      c.beginPath(); c.arc(0,7.5,7.5,0,7); c.fill(); c.stroke();
+      c.fillStyle='#d8a24c';
+      [[-4.5,4.5],[4.5,4.5],[-4.5,10.5],[4.5,10.5]].forEach(([qx,qy])=>{
+        c.beginPath(); c.arc(qx,qy,1,0,7); c.fill(); });
+      c.fillStyle='#3f4a5a'; c.beginPath(); c.arc(0,7.5,2.8,0,7); c.fill();
+      boots(c,st);
+      c.fillStyle='#3f4a5a'; c.strokeStyle='#14100c'; c.lineWidth=2;     // denim jacket
+      c.beginPath(); c.ellipse(0,0,9,11,0,0,7); c.fill(); c.stroke();
+      rim(c,9,11);
+      c.strokeStyle='#241708'; c.lineWidth=2.4;                          // pack strap
+      c.beginPath(); c.moveTo(-6.6,-6.4); c.lineTo(6,8); c.stroke();
+      c.fillStyle='#2f2f36'; c.fillRect(-9.9,-14.5,3,11);                // shoulder turret
+      c.fillStyle='#8a5a28'; c.strokeStyle='#241708'; c.lineWidth=1.4;
+      c.beginPath(); c.arc(-8.4,-3.6,3.6,0,7); c.fill(); c.stroke();
+      c.fillStyle='#3c3c44'; c.fillRect(3.6,-17,3.4,11);                 // pistol
+      c.fillStyle='#23232a'; c.fillRect(3.1,-7.4,4.4,3.6);
+      c.fillStyle='#b98a62'; c.strokeStyle='#14100c'; c.lineWidth=1.4; c.beginPath(); c.arc(0,-3,5.4,0,7); c.fill(); c.stroke();
+      c.fillStyle='#6b4a30'; c.beginPath(); c.arc(0,-1.6,5.4,Math.PI*.15,Math.PI*.85); c.fill();
+      c.fillStyle='#e0a83c'; c.strokeStyle='#241708'; c.lineWidth=1;     // goggles pushed up
+      c.beginPath(); c.arc(-2.4,-4.4,2,0,7); c.fill(); c.stroke();
+      c.beginPath(); c.arc(2.4,-4.4,2,0,7); c.fill(); c.stroke();
+    }},
+  plague:{name:'PLAGUE',desc:'gasmask · twin chem tanks · sprayer',muzzle:[5.7,-20],flashCol:'#b8f04c',
+    draw(c,st){
+      c.fillStyle='#4a5a3a'; c.strokeStyle='#1a2112'; c.lineWidth=1.8;   // chem tanks
+      c.beginPath(); c.roundRect(-8.4,3.5,6,12,3); c.fill(); c.stroke();
+      c.beginPath(); c.roundRect(2.4,3.5,6,12,3); c.fill(); c.stroke();
+      c.fillStyle='rgba(184,240,76,.22)';
+      c.beginPath(); c.arc(-5.4,9,5,0,7); c.fill();
+      c.beginPath(); c.arc(5.4,9,5,0,7); c.fill();
+      c.fillStyle='#b8f04c';                                             // glowing vials
+      c.fillRect(-6.9,7,3,4); c.fillRect(3.9,7,3,4);
+      boots(c,st);
+      c.fillStyle='#6b5a3a'; c.strokeStyle='#241f14'; c.lineWidth=2;     // waxed canvas coat
+      c.beginPath(); c.ellipse(0,0,9.5,11.5,0,0,7); c.fill(); c.stroke();
+      rim(c,9.5,11.5);
+      c.strokeStyle='#241f14'; c.lineWidth=2;                            // cross straps + hose
+      c.beginPath(); c.moveTo(-6.5,-6); c.lineTo(6.5,7); c.stroke();
+      c.beginPath(); c.moveTo(6.5,-6); c.lineTo(-6.5,7); c.stroke();
+      c.beginPath(); c.moveTo(6.2,-7); c.quadraticCurveTo(14,1,5.4,8); c.stroke();
+      c.fillStyle='#3a352d'; c.fillRect(4,-17,3.4,11);                   // sprayer
+      c.fillStyle='#8a8578';                                             // nozzle cone
+      c.beginPath(); c.moveTo(3.2,-17); c.lineTo(5.7,-21.5); c.lineTo(8.2,-17); c.fill();
+      c.fillStyle='#55503f'; c.strokeStyle='#242b1a'; c.lineWidth=2;     // hood
+      c.beginPath(); c.arc(0,-3.2,6.3,0,7); c.fill(); c.stroke();
+      c.fillStyle='#3a352d'; c.strokeStyle='#1a170f'; c.lineWidth=1.4;   // mask snout
+      c.beginPath(); c.ellipse(0,-8.4,3.2,4.6,0,0,7); c.fill(); c.stroke();
+      c.fillStyle='#8a8578';                                             // filter cans
+      c.beginPath(); c.arc(-4.7,-5.6,2.6,0,7); c.fill(); c.stroke();
+      c.beginPath(); c.arc(4.7,-5.6,2.6,0,7); c.fill(); c.stroke();
+      c.fillStyle='#1a170f';
+      c.beginPath(); c.arc(-4.7,-5.6,1,0,7); c.fill();
+      c.beginPath(); c.arc(4.7,-5.6,1,0,7); c.fill();
+    }},
+};
+const RIG_ORDER=['drifter','warlord','stalker','tinker','plague'];
+function drawRigAt(c,key,o){
+  const s=o.scale||1, rig=RIGS[key]||RIGS.drifter;
+  c.save(); c.translate(o.x,o.y);
+  c.fillStyle='rgba(0,0,0,.32)';
+  c.beginPath(); c.ellipse(0,8*s,13*s,6*s,0,0,7); c.fill();
+  c.rotate((o.aim??-Math.PI/2)+Math.PI/2); c.scale(s,s);
+  const st=Math.sin(o.feet||0)*4*(o.moving?1:0);
+  rig.draw(c,st);
+  if(o.flash>0){                                                   // muzzle flash + glow
+    const fa=Math.min(1,o.flash*14), fc=o.radium?'#b8f04c':rig.flashCol;
+    const [mx,my]=rig.muzzle;
+    c.globalCompositeOperation='lighter';
+    const mg=c.createRadialGradient(mx,my,1,mx,my,16);
     mg.addColorStop(0,fc); mg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.globalAlpha=fa*.55; ctx.fillStyle=mg;
-    ctx.beginPath(); ctx.arc(5.3,-22,16,0,7); ctx.fill();
-    ctx.globalAlpha=fa; ctx.fillStyle=fc;
-    ctx.beginPath(); ctx.moveTo(5.3,-27); ctx.lineTo(2,-19); ctx.lineTo(8.6,-19); ctx.fill();
-    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+    c.globalAlpha=fa*.55; c.fillStyle=mg;
+    c.beginPath(); c.arc(mx,my,16,0,7); c.fill();
+    c.globalAlpha=fa; c.fillStyle=fc;
+    c.beginPath(); c.moveTo(mx,my-5); c.lineTo(mx-3.3,my+3); c.lineTo(mx+3.3,my+3); c.fill();
+    c.globalAlpha=1; c.globalCompositeOperation='source-over';
   }
-  ctx.fillStyle=sk.trim;                                            // scarf
-  ctx.beginPath(); ctx.ellipse(0,-5.5,6.5,3.4,0,0,7); ctx.fill();
-  ctx.fillStyle='#b98a62';                                          // head
-  ctx.beginPath(); ctx.arc(0,-3,5.4,0,7); ctx.fill();
-  ctx.fillStyle=sk.hair;                                            // hair (back of head)
-  ctx.beginPath(); ctx.arc(0,-1.6,5.4,Math.PI*.15,Math.PI*.85); ctx.fill();
-  if(p.hurtT>0){ ctx.fillStyle=`rgba(255,60,40,${Math.min(.7,p.hurtT*4)})`;
-    ctx.beginPath(); ctx.arc(0,-2,14,0,7); ctx.fill(); }
-  ctx.restore();
+  if(o.hurtT>0){ c.fillStyle=`rgba(255,60,40,${Math.min(.7,o.hurtT*4)})`;
+    c.beginPath(); c.arc(0,-2,14,0,7); c.fill(); }
+  c.restore();
 }
 function drawFoe(f){
   const wob=Math.sin(sim.t*4+f.seed)*.14;
@@ -769,7 +880,7 @@ function drawFoe(f){
     ctx.beginPath(); ctx.moveTo(5,-4);  ctx.lineTo(7,-15+rch);  ctx.stroke();
     ctx.fillStyle='#5e6b4a'; ctx.strokeStyle='#232a1a'; ctx.lineWidth=2; // ragged torso
     ctx.beginPath(); ctx.ellipse(0,0,8.5,10.5,0,0,7); ctx.fill(); ctx.stroke();
-    rim(8.5,10.5);
+    rim(ctx,8.5,10.5);
     ctx.fillStyle='#46523a'; ctx.beginPath(); ctx.ellipse(-3,3,3,4,0,0,7); ctx.fill();
     ctx.fillStyle='#8a9b6a'; ctx.beginPath(); ctx.arc(0,-3,4.8,0,7); ctx.fill(); // bald head
     ctx.fillStyle='#2a3320'; ctx.beginPath(); ctx.arc(-1.5,-5,1,0,7); ctx.arc(2,-4,1.2,0,7); ctx.fill();
@@ -788,7 +899,7 @@ function drawFoe(f){
     ctx.beginPath(); ctx.arc(0,0,17*pu,0,7); ctx.fill();
     ctx.fillStyle='#75884c'; ctx.strokeStyle='#39441f'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(0,0,13.5*pu,0,7); ctx.fill(); ctx.stroke();
-    rim(13.5*pu,13.5*pu);
+    rim(ctx,13.5*pu,13.5*pu);
     ctx.fillStyle='#5d7038';
     ctx.beginPath(); ctx.ellipse(-4,4,4.5,3.4,.4,0,7); ctx.fill();
     ctx.beginPath(); ctx.ellipse(5,-2,3.5,2.6,-.4,0,7); ctx.fill();
@@ -798,7 +909,7 @@ function drawFoe(f){
   }else if(f.k==='raid'){
     ctx.fillStyle='#37312d'; ctx.strokeStyle='#16120e'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.ellipse(0,0,8.5,11,0,0,7); ctx.fill(); ctx.stroke();
-    rim(8.5,11);
+    rim(ctx,8.5,11);
     ctx.fillStyle='#16120e';
     ctx.beginPath(); ctx.arc(-7.5,-2,3.4,0,7); ctx.fill();
     ctx.beginPath(); ctx.arc(7.5,-2,3.4,0,7); ctx.fill();
@@ -810,7 +921,7 @@ function drawFoe(f){
   }else if(f.k==='behe'){
     ctx.fillStyle='#4a4440'; ctx.strokeStyle='#1e1a17'; ctx.lineWidth=3; // iron bulk
     ctx.beginPath(); ctx.arc(0,0,26,0,7); ctx.fill(); ctx.stroke();
-    rim(26,26);
+    rim(ctx,26,26);
     ctx.fillStyle='#5c5650';                                            // pauldrons
     ctx.beginPath(); ctx.arc(-21,-4,11,0,7); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.arc(21,-4,11,0,7); ctx.fill(); ctx.stroke();
@@ -1119,7 +1230,8 @@ function render(){
   });
   // entities sorted by depth
   const ents=[...p.foes.map(f=>({y:f.y,d:()=>drawFoe(f)})),
-              {y:p.py,d:()=>drawPlayer({x:p.px,y:p.py,aim:p.aim,feet:p.feet,moving:p.moving,flash:p.flash,hurtT:p.hurtT})}];
+              {y:p.py,d:()=>drawRigAt(ctx,state.design,{x:p.px,y:p.py,aim:p.aim,feet:p.feet,
+                moving:p.moving,flash:p.flash,hurtT:p.hurtT,scale:1,radium:p.radium})}];
   if(p.w.drone) ents.push({y:p.w.drone.y+900,d:()=>drawDrone(p.w.drone)}); // drone flies above all
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
   // orbiting bats above bodies
@@ -1318,23 +1430,73 @@ function confirmBuy(){
   toast('Purchase simulated — '+$('sheet-item').textContent);
 }
 
-/* ---------- barracks ---------- */
-function pickHero(key,name,sub){
-  state.hero=key;
-  $('home-hero').src=IMG_SRC(key);
-  $('gear-hero').src=IMG_SRC(key);
-  $('home-name').textContent=name;
-  $('home-class').textContent=sub;
-  document.querySelectorAll('.wcard').forEach(c=>c.classList.remove('sel'));
-  $('w-'+key).classList.add('sel');
-  toast(name+' equipped');
+/* ---------- barracks: character design picker ---------- */
+function renderPreview(cv2,key,scale){
+  const c=cv2.getContext('2d');
+  c.clearRect(0,0,cv2.width,cv2.height);
+  drawRigAt(c,key,{x:cv2.width/2,y:cv2.height*.58,aim:-Math.PI/2,
+    feet:0,moving:false,flash:0,hurtT:0,scale});
 }
+function buildBarracks(){
+  $('dgrid').innerHTML = RIG_ORDER.map(k=>
+    `<button class="wcard${k===state.design?' sel':''}" id="d-${k}" onclick="pickDesign('${k}')">
+       <canvas width="96" height="116"></canvas>
+       <b>${RIGS[k].name}</b><span>${RIGS[k].desc}</span>
+       <div class="lv">${k===state.design?'equipped':'&nbsp;'}</div>
+     </button>`).join('');
+  RIG_ORDER.forEach(k=>renderPreview($('d-'+k).querySelector('canvas'),k,2.2));
+}
+function pickDesign(k){
+  state.design=k;
+  document.querySelectorAll('#dgrid .wcard').forEach(w=>{
+    w.classList.remove('sel'); w.querySelector('.lv').innerHTML='&nbsp;'; });
+  $('d-'+k).classList.add('sel');
+  $('d-'+k).querySelector('.lv').textContent='equipped';
+  $('home-name').textContent=RIGS[k].name;
+  $('home-class').textContent=RIGS[k].desc+' · Lv 14';
+  renderPreview($('home-prev'),k,1.55);
+  renderPreview($('gear-prev'),k,4.4);
+  toast(RIGS[k].name+' equipped');
+}
+buildBarracks();
+renderPreview($('home-prev'),'drifter',1.55);
+renderPreview($('gear-prev'),'drifter',4.4);
 
 /* ---------- armory ---------- */
 function selItem(el,name){
   document.querySelectorAll('.item').forEach(i=>i.classList.remove('sel'));
   el.classList.add('sel');
   $('sel-name').textContent=name;
+}
+
+/* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
+if(location.search.includes('sheet')){
+  const ph=document.getElementById('phone');
+  ph.innerHTML=''; ph.style.width='100vw'; ph.style.height='100dvh';
+  const sc=document.createElement('canvas');
+  sc.width=innerWidth*2; sc.height=innerHeight*2;
+  sc.style.cssText='width:100%;height:100%';
+  ph.appendChild(sc);
+  const c=sc.getContext('2d'); c.scale(2,2);
+  c.fillStyle='#14151c'; c.fillRect(0,0,innerWidth,innerHeight);
+  c.textAlign='center';
+  c.fillStyle='#d8cbb0'; c.font='bold 20px "Courier New",monospace';
+  c.fillText('WASTELAND WARDEN — MAIN CHARACTER DESIGNS',innerWidth/2,36);
+  const cw=innerWidth/RIG_ORDER.length;
+  RIG_ORDER.forEach((k,i)=>{
+    const cx=cw*(i+.5);
+    drawRigAt(c,k,{x:cx,y:innerHeight*.44,aim:-Math.PI/2,feet:0,moving:false,
+      flash:0,hurtT:0,scale:Math.min(cw/34,5.6)});
+    drawRigAt(c,k,{x:cx,y:innerHeight*.78,aim:-Math.PI/2,feet:0,moving:false,
+      flash:0,hurtT:0,scale:1});                                   // in-game scale
+    c.fillStyle='#e08c4a'; c.font='bold 15px "Courier New",monospace';
+    c.fillText(RIGS[k].name,cx,innerHeight*.66);
+    c.fillStyle='#8b8574'; c.font='10px "Courier New",monospace';
+    const words=RIGS[k].desc.split(' · ');
+    words.forEach((w,j)=>c.fillText(w,cx,innerHeight*.66+16+j*13));
+    c.fillStyle='#8b8574'; c.font='10px "Courier New",monospace';
+    c.fillText('in-game scale',cx,innerHeight*.85);
+  });
 }
 
 markNav();
