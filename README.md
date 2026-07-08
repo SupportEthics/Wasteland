@@ -1,16 +1,17 @@
 # Wasteland Warden
 
-A post-apocalyptic **action roguelite (survivor-like)** for iOS/Android — free-to-play with hybrid monetization (rewarded ads + in-app purchases + season pass).
+A **top-down wasteland auto-shooter** (Survivor.io-style) for iOS/Android — the player only moves, the weapons fire themselves. Free-to-play with hybrid monetization (rewarded ads + in-app purchases + season pass).
 
-> *Vampire Survivors meets Mad Max: one thumb, ten minutes, a thousand mutants.*
+> *The survivor moves; the weapons and abilities do the visual work.*
 
 ## What's in this repo (concept phase)
 
 | Path | Contents |
 |---|---|
-| [`docs/RESEARCH.md`](docs/RESEARCH.md) | Market research: genre revenue data, hybrid ads+IAP benchmarks, comparable titles (Survivor.io $500M+), and why this direction was chosen. |
-| [`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md) | Game design v0.1: core loop, meta systems, full monetization map (ad placements + IAP catalog), MVP scope, KPIs. |
-| [`mockup/index.html`](mockup/index.html) | **Interactive mock-up** — a clickable phone-framed prototype of every screen (title → lobby → battle → level-up draft → ad revive → results → gear → crates → shop → wardens), with every ad/IAP touchpoint labelled. |
+| [`docs/DIRECTION_BRIEF.md`](docs/DIRECTION_BRIEF.md) | **The canonical direction brief**: top-down auto-shooter format, animation budget, weapon families & evolutions, enemy roles, base hub rooms, prototype scope, data-driven architecture. |
+| [`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md) | Game design v0.2 implementing the brief: run loop, launch weapons/enemies, base hub, full monetization map (ad placements + IAP catalog), KPIs. |
+| [`docs/RESEARCH.md`](docs/RESEARCH.md) | Market research: genre revenue data, hybrid ads+IAP benchmarks, comparable titles (Survivor.io $500M+). |
+| [`mockup/index.html`](mockup/index.html) | **Interactive mock-up** — playable auto-shooter sim (swarms, auto-fire, orbiting bats, molotov zones, drone, shock field, XP magnet, damage numbers, weapon evolution, boss) plus base hub, armory, workshop, shop; every ad/IAP touchpoint labelled. |
 | [`assets/art/`](assets/art) | Source pixel art: title screen, 4 survivor heroes, 5 enemy types (individual transparent sprites in `sprites/`), isometric arena. |
 
 ## Viewing the mock-up
