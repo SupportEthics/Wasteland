@@ -72,8 +72,7 @@
   #home-stage{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;
     justify-content:flex-end;background:
     linear-gradient(#0d0e12cc,#0d0e1266 30%,#0d0e12ee 85%),url(assets/arena.webp) center 40%/220% no-repeat}
-  #home-hero{height:34%;max-height:240px;filter:drop-shadow(0 6px 6px #000a);
-    animation:idle 2.4s infinite ease-in-out}
+  #home-hero{height:34%;max-height:240px;filter:drop-shadow(0 6px 6px #000a)}
   #home-name{font-size:15px;font-weight:bold;letter-spacing:2px;margin-top:6px}
   #home-class{font-size:11px;color:var(--dim);margin-bottom:8px}
   .chapter{margin:0 12px 10px;display:flex;align-items:center;gap:10px}
@@ -99,18 +98,11 @@
   #timer{letter-spacing:2px}
   #field{position:absolute;inset:0;z-index:2;pointer-events:none}
   .actor-w{position:absolute;transform:translate(-50%,-50%)}
-  .actor-w img{display:block;filter:drop-shadow(0 4px 3px #000b);transform-origin:50% 92%;
-    animation:idle 1.6s infinite ease-in-out}
-  .actor-w img.walking{animation:walk .45s infinite linear}
-  .actor-w.foe-w img{animation:walk .6s infinite linear}
-  @keyframes idle{
-    0%,100%{transform:scaleX(var(--flip,1)) translateY(0)}
-    50%{transform:scaleX(var(--flip,1)) translateY(-3px)}}
-  @keyframes walk{
-    0%,100%{transform:scaleX(var(--flip,1)) rotate(-5deg) translateY(0)}
-    25%{transform:scaleX(var(--flip,1)) rotate(0deg) translateY(-4px)}
-    50%{transform:scaleX(var(--flip,1)) rotate(5deg) translateY(0)}
-    75%{transform:scaleX(var(--flip,1)) rotate(0deg) translateY(-4px)}}
+  /* 4-frame walk-cycle sprite sheets, driven by steps() — no tweened bobbing */
+  .spr{background-repeat:no-repeat;background-position:0 0;image-rendering:pixelated;
+    transform:scaleX(var(--flip,1));filter:drop-shadow(0 4px 3px #000b)}
+  .spr.walking,.foe-w .spr{animation:sheet var(--spd,.55s) steps(4) infinite}
+  @keyframes sheet{from{background-position:0 0}to{background-position:var(--sw) 0}}
   .slash{position:absolute;width:26px;height:26px;border-radius:50%;
     background:radial-gradient(#fff8,#e08c4a00 70%);animation:hit .5s infinite}
   @keyframes hit{50%{opacity:.1;transform:scale(1.6)}}
@@ -300,7 +292,7 @@
       <div class="actor-w" id="hero-w" style="left:50%;top:52%">
         <div class="slash" style="left:-16px;top:34%"></div>
         <div class="slash" style="right:-16px;top:58%;animation-delay:.25s"></div>
-        <img id="b-hero" class="px" src="assets/ranger.webp" alt="" style="height:76px">
+        <div id="b-hero" class="spr" style="--spd:.45s"></div>
       </div>
     </div>
     <div id="joyhint">drag anywhere to move —<br>your Warden fires automatically</div>
@@ -538,12 +530,28 @@ let bTimers=[], secs=598, kills=0, lvl=1;
 function clearB(){ bTimers.forEach(clearTimeout); bTimers=[]; clearInterval(tick); clearInterval(stepT); }
 let tick, stepT;
 
+/* sprite-sheet plumbing: 4-frame walk cycles generated from the source art */
+const SPRITES={
+  ranger:{fw:120,fh:276}, brute:{fw:120,fh:260}, scout:{fw:120,fh:315}, medic:{fw:120,fh:290},
+  raider:{fw:120,fh:277}, shambler:{fw:120,fh:276}, crawler:{fw:120,fh:152},
+  juggernaut:{fw:120,fh:210}, sporewalker:{fw:120,fh:261},
+};
+const IMG_SRC = k => 'assets/'+k+'.webp';
+const SHEET_SRC = k => 'assets/sheet_'+k+'.webp';
+function setSprite(el,k,dispH){
+  const s=SPRITES[k], w=Math.round(s.fw*dispH/s.fh);
+  el.style.width=w+'px'; el.style.height=dispH+'px';
+  el.style.backgroundImage=`url(${SHEET_SRC(k)})`;
+  el.style.backgroundSize=(w*4)+'px '+dispH+'px';
+  el.style.setProperty('--sw',(-w*4)+'px');
+}
+
 const FOE_TYPES=[
-  {k:'shambler',   h:64, s:.16},
-  {k:'raider',     h:64, s:.20},
-  {k:'crawler',    h:44, s:.34},
-  {k:'sporewalker',h:64, s:.18},
-  {k:'juggernaut', h:92, s:.09, boss:true},
+  {k:'shambler',   h:66, s:.16, spd:'.8s'},
+  {k:'raider',     h:66, s:.20, spd:'.5s'},
+  {k:'crawler',    h:44, s:.34, spd:'.32s'},
+  {k:'sporewalker',h:66, s:.18, spd:'.75s'},
+  {k:'juggernaut', h:96, s:.09, spd:'1.1s', boss:true},
 ];
 const run={hx:50, hy:52, vx:0, vy:0, foes:[]};
 
@@ -559,10 +567,15 @@ function buildFoes(){
   FOE_TYPES.forEach((t,i)=>{
     const el=document.createElement('div');
     el.className='actor-w foe-w';
-    el.innerHTML=`<img class="px" src="assets/${t.k}.webp" alt="" style="height:${t.h}px;animation-delay:-${i*.13}s">`;
+    const spr=document.createElement('div');
+    spr.className='spr';
+    spr.style.setProperty('--spd',t.spd);
+    spr.style.animationDelay=(-i*.17)+'s';
+    setSprite(spr,t.k,t.h);
+    el.appendChild(spr);
     $('field').appendChild(el);
     const p=t.boss?{x:44,y:16}:spawnPoint();
-    run.foes.push({...t, x:p.x, y:p.y, el, img:el.querySelector('img')});
+    run.foes.push({...t, x:p.x, y:p.y, el, img:spr});
   });
 }
 function placeActor(el,x,y){ el.style.left=x+'%'; el.style.top=y+'%'; }
@@ -606,7 +619,7 @@ function startBattle(){
   state.energy--; $('c-energy').textContent=state.energy;
   secs=598; kills=0; lvl=1;
   run.hx=50; run.hy=52; run.vx=0; run.vy=0;
-  $('b-hero').src = `assets/${state.hero}.webp`;
+  setSprite($('b-hero'), state.hero, 80);
   placeActor($('hero-w'),run.hx,run.hy);
   buildFoes();
   $('lvl-ov').classList.remove('on'); $('death-ov').classList.remove('on');
@@ -734,8 +747,8 @@ function confirmBuy(){
 /* ---------- wardens ---------- */
 function pickHero(key,name,sub){
   state.hero=key;
-  $('home-hero').src=`assets/${key}.webp`;
-  $('gear-hero').src=`assets/${key}.webp`;
+  $('home-hero').src=IMG_SRC(key);
+  $('gear-hero').src=IMG_SRC(key);
   $('home-name').textContent=name;
   $('home-class').textContent=sub;
   document.querySelectorAll('.wcard').forEach(c=>c.classList.remove('sel'));
