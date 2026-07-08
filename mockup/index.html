@@ -926,8 +926,11 @@ function drawRigAt(c,key,o){
 }
 function drawFoe(f){
   const t=sim.t, flip=sim.px<f.x?-1:1, c=ctx;
+  let sOff=f.r*1.22, sW=f.r*1.1;
+  if(f.k==='crawl'){ sOff=f.r*1.5; sW=f.r*1.45; }
+  if(f.k==='bloat'){ sOff=f.r*1.02; sW=f.r*1.28; }
   c.fillStyle='rgba(0,0,0,.30)';
-  c.beginPath(); c.ellipse(f.x,f.y+f.r*1.22,f.r*1.1,f.r*.44,0,0,7); c.fill();
+  c.beginPath(); c.ellipse(f.x,f.y+sOff,sW,sW*.4,0,0,7); c.fill();
   c.save(); c.translate(f.x,f.y);
   c.rotate(Math.sin(t*7+f.seed)*.06);
   c.scale(flip*1.25,1.25*(1+Math.sin(t*9+f.seed)*.03));   // squash & stretch
@@ -946,29 +949,57 @@ function drawFoe(f){
     ell(c,3.2,-2.4,1.7,2.2,'#14100c',1);                                       // open mouth
     dot(c,3.2,-3.1,.8,'#7d4a3c');                                              // tongue-ish
   }else if(f.k==='crawl'){
-    const st=Math.sin(t*16+f.seed)*1.2;
-    ell(c,-4.5,7+st,2,2.2,'#1c1814',1.4); ell(c,4.5,7-st,2,2.2,'#1c1814',1.4);
-    ell2(c,0,2.5,7,5.2,'#6e8250','#93aa6e');                                   // low spiky blob
-    spikeT(c,-3.5,-2,1.8,3.8); spikeT(c,.5,-2.6,1.8,4.4); spikeT(c,4.2,-1.8,1.6,3.4);
-    gloss(c,-1,1,5,.09);
-    eyes(c,2.4,.8,2.8,f.seed,false);
-    c.strokeStyle='#14100c'; c.lineWidth=1.3;                                  // angry brow
-    c.beginPath(); c.moveTo(1,-1); c.lineTo(3.4,-.2); c.stroke();
-    c.beginPath(); c.moveTo(6.4,-.6); c.lineTo(4.6,0); c.stroke();
+    const ph=t*9+f.seed, hop=Math.abs(Math.sin(ph))*2.8, sq=Math.sin(ph)>0?1:.92;
+    const spl=hop*.35;                                                         // legs splay mid-hop
+    ell(c,-4.8-spl,8,1.9,2,'#3f4f28',1.4); ell(c,4.8+spl,8,1.9,2,'#3f4f28',1.4);
+    ell(c,-7.2-spl,6,1.7,1.9,'#3f4f28',1.4); ell(c,7.2+spl,6,1.7,1.9,'#3f4f28',1.4);
+    c.save(); c.translate(0,-hop); c.scale(1,sq);
+    c.fillStyle='#4c6030'; c.beginPath();                                      // tail barb
+    c.moveTo(-7,2); c.lineTo(-11.5,-.5); c.lineTo(-7,-1.5); c.closePath(); c.fill(); O(c,1.5);
+    ell2(c,0,1.5,8.2,6.4,'#5d7240','#84a05c');                                 // dome body
+    ell(c,.8,5.2,5,2.3,'#a3b87b',.01);                                         // pale belly
+    spikeT(c,-4.6,-3.4,2.2,4.8,'#33421f','#57703a');                           // back spikes
+    spikeT(c,.4,-4.4,2.4,5.8,'#33421f','#57703a');
+    spikeT(c,5,-2.8,1.9,4.2,'#33421f','#57703a');
+    gloss(c,-1.5,-.5,5.5,.1);
+    dot(c,-3.4,3.4,1,'#4c6030'); dot(c,-2.8,2.9,.4,'#a3b87b');                 // wart
+    eyes(c,2,-0.6,3.4,f.seed,false);
+    c.strokeStyle='#14100c'; c.lineWidth=1.4;                                  // furious brows
+    c.beginPath(); c.moveTo(.6,-2.6); c.lineTo(3.2,-1.6); c.stroke();
+    c.beginPath(); c.moveTo(7,-2); c.lineTo(4.6,-1.4); c.stroke();
+    c.beginPath(); c.moveTo(1.4,2.6); c.lineTo(3.2,1.9); c.lineTo(4.9,2.6); c.stroke(); // underbite
+    c.fillStyle='#e8ddc4';                                                     // snaggle teeth
+    c.beginPath(); c.moveTo(1.8,2.6); c.lineTo(2.5,1.4); c.lineTo(3.2,2.4); c.fill();
+    c.beginPath(); c.moveTo(4,2.3); c.lineTo(4.7,1.2); c.lineTo(5.3,2.4); c.fill();
+    c.restore();
   }else if(f.k==='bloat'){
-    const pu=1+Math.sin(t*5+f.seed)*.05;
-    circ2(c,0,1,12*pu,'#556e38','#71904a');
-    ell(c,0,6.5*pu,7.5,4.4,'#8aa55e',0.01);                                    // pale belly
-    c.fillStyle='rgba(184,240,76,.10)'; c.beginPath(); c.arc(0,1,14*pu,0,7); c.fill();
-    [[-8,-6.5,4.6],[-3,-9.5,5.4],[3,-9.8,5.4],[8,-6.5,4.6]].forEach(([sx,sy,sh])=>
-      spikeT(c,sx,sy*pu,2.2,sh));
-    dot(c,-4,3,1.7,'#556e38'); dot(c,6,6,1.4,'#556e38');                       // warts
-    dot(c,-4.6,2.4,.6,'#8aa55e'); gloss(c,-3,-3,8,.08);
-    eyes(c,-1,-1,5,f.seed,false);
-    c.strokeStyle='#14100c'; c.lineWidth=1.4;                                  // frown + brows
-    c.beginPath(); c.arc(1.6,5,2.6,Math.PI*1.15,Math.PI*1.85); c.stroke();
-    c.beginPath(); c.moveTo(-2.6,-3.4); c.lineTo(-.2,-2.4); c.stroke();
-    c.beginPath(); c.moveTo(5.6,-2.8); c.lineTo(3.2,-2); c.stroke();
+    const pu=1+Math.sin(t*4.5+f.seed)*.045;
+    ell(c,-7,12.8,2.7,2.2,'#3f4f28',1.5); ell(c,7,12.8,2.7,2.2,'#3f4f28',1.5);  // feet nubs
+    c.fillStyle=`rgba(184,240,76,${.07+Math.abs(Math.sin(t*2.2+f.seed))*.06})`;  // sickly aura
+    c.beginPath(); c.ellipse(0,3,15.5*pu,12.5*pu,0,0,7); c.fill();
+    ell2(c,0,3,13.5*pu,10.6*pu,'#4c6330','#6f8f48');                             // grounded dome
+    ell(c,0,9.4,9.2,4.2,'#93ab66',.01);                                          // belly band
+    c.strokeStyle='rgba(20,16,12,.3)'; c.lineWidth=1.2;                          // belly segments
+    c.beginPath(); c.moveTo(-8.4,7.6); c.quadraticCurveTo(0,9.6,8.4,7.6); c.stroke();
+    c.beginPath(); c.moveTo(-7,10.4); c.quadraticCurveTo(0,12.2,7,10.4); c.stroke();
+    spikeT(c,-9.4,-3.6*pu,2.6,5.6,'#33421f','#57703a');                          // spike crown
+    spikeT(c,-4.2,-7.2*pu,2.8,6.8,'#33421f','#57703a');
+    spikeT(c,1.4,-8*pu,3,7.2,'#33421f','#57703a');
+    spikeT(c,6.8,-6*pu,2.6,5.8,'#33421f','#57703a');
+    spikeT(c,10.6,-2.4*pu,2.1,4.6,'#33421f','#57703a');
+    gloss(c,-3.5,-2,9,.09);
+    dot(c,-6.5,5.5,1.8,'#4c6330'); dot(c,-5.8,4.8,.6,'#93ab66');                 // warts
+    dot(c,8.8,2.4,1.4,'#4c6330'); dot(c,8.3,1.9,.5,'#93ab66');
+    eyes(c,-1.4,-1.4,5.6,f.seed,false);
+    c.strokeStyle='#14100c'; c.lineWidth=1.7;                                    // heavy brows
+    c.beginPath(); c.moveTo(-3.6,-4.2); c.lineTo(-.6,-2.8); c.stroke();
+    c.beginPath(); c.moveTo(6.6,-3.4); c.lineTo(3.8,-2.4); c.stroke();
+    c.beginPath(); c.arc(1.4,6.2,3.2,Math.PI*1.12,Math.PI*1.88); c.stroke();     // wide frown
+    c.fillStyle='#e8ddc4';                                                       // lower fangs
+    c.beginPath(); c.moveTo(-1.4,3.6); c.lineTo(-.5,1.8); c.lineTo(.4,3.5); c.fill();
+    c.beginPath(); c.moveTo(2.6,3.4); c.lineTo(3.5,1.7); c.lineTo(4.3,3.4); c.fill();
+    const dr=(t*1.4+f.seed)%1;                                                   // toxic drool
+    dot(c,4.6,4.6+dr*3.4,1.1*(1-dr*.5),'#b8f04c');
   }else if(f.k==='raid'){
     const st=Math.sin(t*9+f.seed)*1.6;
     ell(c,-3.4,9+st,2.3,3,'#1c1814',1.6); ell(c,3.4,9-st,2.3,3,'#1c1814',1.6);
