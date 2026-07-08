@@ -11,7 +11,7 @@ A **top-down wasteland auto-shooter** (Survivor.io-style) for iOS/Android — th
 | [`docs/DIRECTION_BRIEF.md`](docs/DIRECTION_BRIEF.md) | **The canonical direction brief**: top-down auto-shooter format, animation budget, weapon families & evolutions, enemy roles, base hub rooms, prototype scope, data-driven architecture. |
 | [`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md) | Game design v0.2 implementing the brief: run loop, launch weapons/enemies, base hub, full monetization map (ad placements + IAP catalog), KPIs. |
 | [`docs/RESEARCH.md`](docs/RESEARCH.md) | Market research: genre revenue data, hybrid ads+IAP benchmarks, comparable titles (Survivor.io $500M+). |
-| [`mockup/index.html`](mockup/index.html) | **Interactive mock-up** — playable auto-shooter sim (swarms, auto-fire, orbiting bats, molotov zones, drone, shock field, XP magnet, damage numbers, weapon evolution, boss) plus base hub, armory, workshop, shop; every ad/IAP touchpoint labelled. |
+| [`mockup/index.html`](mockup/index.html) | **Playable prototype** — a real 20-wave run: player HP and contact damage, XP scraps that level you into 1-of-3 upgrade drafts, weapon levels + Radium evolution, scaling waves with elites, killable bosses at waves 10 and 20, medkits, ad revive, ultimate, base hub, armory, workshop, shop; every ad/IAP touchpoint labelled. |
 | [`assets/art/`](assets/art) | Source pixel art: title screen, 4 survivor heroes, 5 enemy types (individual transparent sprites in `sprites/`), isometric arena. |
 
 ## Viewing the mock-up
