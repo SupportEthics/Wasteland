@@ -157,6 +157,16 @@
   .item canvas{width:30px;height:30px}
   .slot canvas{width:26px;height:26px}
   .recipe canvas{width:14px;height:14px;vertical-align:-3px}
+  .loot canvas{width:14px;height:14px;vertical-align:-2px}
+  .pill canvas{width:13px;height:13px;vertical-align:-2px}
+  .forge-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-top:1px dashed #2a2c37;font-size:11px}
+  .forge-row canvas{width:18px;height:18px;flex-shrink:0}
+  .forge-row .fi{flex:1;min-width:0}
+  .forge-row .fi b{display:block;font-size:11px}
+  .forge-row .fi em{font-style:normal;color:var(--dim);font-size:10px}
+  .forge-row .pricebtn{flex-shrink:0}
+  .forge-row .pricebtn small{display:block;font-size:9px;opacity:.8}
+  .forge-row .pricebtn.dim{opacity:.45}
   #reveal-card canvas{width:60px;height:60px}
 
   /* glossy battle HUD */
@@ -409,6 +419,9 @@
       <div class="loot"><span>⚙️ Scrap (gear XP)</span><b id="loot-scrap">0</b></div>
       <div class="loot"><span>🗝 Crate keys</span><b id="loot-keys">×0</b></div>
       <div class="loot"><span>🧩 Warden shards</span><b id="loot-shards">×0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="parts"></canvas> Weapon parts</span><b id="loot-parts">×0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="core"></canvas> Power cores</span><b id="loot-cores">×0</b></div>
+      <div id="loot-weaps"></div>
       <div id="chests" style="margin-top:10px"></div>
       <button class="btn gold" style="margin:12px 0 8px" onclick="adFlow('claim2x')">📺 CLAIM ×2 <span class="tag ad">AD</span><small>double everything — one 30s ad</small></button>
       <button class="btn grey" onclick="claimPlain()">CLAIM<small>non-payers may see an interstitial here (capped)</small></button>
@@ -422,14 +435,17 @@
     <div class="body">
       <div class="paperdoll">
         <canvas id="gear-prev" width="160" height="220"></canvas>
-        <div class="slot filled" style="left:10px;top:12px"><canvas width="48" height="48" data-ic="pistol"></canvas></div>
+        <div class="slot filled" style="left:10px;top:12px"><canvas id="slot-weap" width="48" height="48" data-ic="pistol"></canvas></div>
         <div class="slot filled" style="left:10px;top:100%;transform:translateY(-58px)"><canvas width="48" height="48" data-ic="boots"></canvas></div>
         <div class="slot leg"    style="left:10px;top:50%;transform:translateY(-23px)"><canvas width="48" height="48" data-ic="duster"></canvas></div>
         <div class="slot filled" style="right:10px;top:12px"><canvas width="48" height="48" data-ic="gasmask"></canvas></div>
         <div class="slot"        style="right:10px;top:50%;transform:translateY(-23px)"><canvas width="48" height="48" data-ic="gloves"></canvas></div>
         <div class="slot filled" style="right:10px;top:100%;transform:translateY(-58px)"><canvas width="48" height="48" data-ic="charm"></canvas></div>
       </div>
-      <div class="invgrid" id="inv"></div>
+      <b style="font-size:11px;letter-spacing:1px;color:var(--dim)">WEAPONS — found in runs or crafted</b>
+      <div class="invgrid" id="warms" style="margin:4px 0 8px"></div>
+      <b style="font-size:11px;letter-spacing:1px;color:var(--dim)">GEAR</b>
+      <div class="invgrid" id="inv" style="margin-top:4px"></div>
       <div class="card" style="margin-bottom:8px">
         <b id="sel-name" style="font-size:12px;letter-spacing:1px">—</b>
         <span id="sel-stats" style="display:block;font-size:11px;color:var(--dim);margin-top:3px">—</span>
@@ -438,6 +454,9 @@
         <button class="btn rust" onclick="armUpgrade()">UPGRADE<small id="upg-cost">—</small></button>
         <button class="btn grey" onclick="armMerge()">MERGE 3→1<small id="merge-hint">—</small></button>
       </div>
+      <div id="weap-panel" style="display:none">
+        <button class="btn green" id="equip-btn" onclick="equipSel()">EQUIP</button>
+      </div>
       <div class="card" id="arm-bonus" style="margin-top:8px;font-size:11px;color:var(--dim)">—</div>
     </div>
     <div class="navbar"></div>
@@ -445,7 +464,7 @@
 
   <!-- WORKSHOP -->
   <div class="screen" id="s-crates">
-    <div class="topbar"><div class="pill">🗝 <span class="w-keys">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div><div class="pill">🪙 <span class="w-coins">0</span></div></div>
+    <div class="topbar"><div class="pill">🗝 <span class="w-keys">0</span></div><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="parts"></canvas> <span class="w-parts">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="core"></canvas> <span class="w-cores">0</span></div></div>
     <h2 class="hdr">WORKSHOP</h2>
     <div class="body">
       <div class="card crate">
@@ -467,6 +486,11 @@
         </div>
       </div>
       <div id="pity">Pity: guaranteed <b>LEGENDARY</b> within <b id="pity-n">27</b> more opens · odds shown in-game (platform compliance)</div>
+      <div class="card" style="margin-bottom:10px">
+        <b style="font-size:12px;letter-spacing:1px">CRAFTING FORGE</b>
+        <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 4px">weapon parts &amp; power cores drop (rarely) from kills, elites and bosses — forge them into new guns and gear</span>
+        <div id="forge"></div>
+      </div>
       <div class="card" style="margin-bottom:10px">
         <b style="font-size:12px;letter-spacing:1px">MERGE RECIPES</b>
         <div class="recipe"><canvas width="36" height="36" data-ic="pistol"></canvas> Scrap Pistol <span class="to">+ <canvas width="36" height="36" data-ic="scope"></canvas> Scope →</span><span class="evoname"><canvas width="36" height="36" data-ic="radium"></canvas> Radium Blaster</span></div>
@@ -618,6 +642,8 @@ function go(name){
   $('s-'+name).classList.add('on');
   state.screen = name;
   $('info-btn').style.display = (name==='battle'||name==='title') ? 'none':'block';
+  if(name==='gear'&&typeof renderArmory==='function') renderArmory();
+  if(name==='crates'&&typeof renderForge==='function') renderForge();
   markNav();
 }
 function nav(name){ sfx('ui'); go(name); }
@@ -639,6 +665,7 @@ const DEFAULT_SAVE={
   plague:false, noads:false, starter:false, pass:false, freeDay:'',
   rooms:{medbay:{hp:0,heal:0},garage:{rate:0,power:0},generator:{dmg:0,spd:0,xpg:0}},
   stats:{kills:0,waves:0,crates:0}, mclaimed:{},
+  mats:{parts:0,cores:0}, weapons:['pistol'], equip:'pistol',
   items:[
     {ic:'radium',n:'Radium Blaster',r:3,cnt:1,lv:6},
     {ic:'duster',n:'Spiked Duster',r:2,cnt:1,lv:3},
@@ -657,6 +684,9 @@ function loadSave(){
   if(!SAVE.stage) SAVE.stage=1;
   if(!SAVE.selStage) SAVE.selStage=1;
   if(SAVE.sound===undefined){ SAVE.sound=true; SAVE.music=true; }
+  if(!SAVE.mats) SAVE.mats={parts:0,cores:0};
+  if(!SAVE.weapons) SAVE.weapons=['pistol'];
+  if(!SAVE.equip) SAVE.equip='pistol';
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -666,7 +696,8 @@ loadSave();
 const fmtN=n=>Math.round(n).toLocaleString('en-GB');
 function renderWallet(){
   const M={coins:SAVE.coins,gems:SAVE.gems,keys:SAVE.keys,scrap:SAVE.scrap,
-    shards:SAVE.shards,energy:SAVE.energy};
+    shards:SAVE.shards,energy:SAVE.energy,
+    parts:SAVE.mats?SAVE.mats.parts:0,cores:SAVE.mats?SAVE.mats.cores:0};
   for(const k in M) document.querySelectorAll('.w-'+k).forEach(el=>el.textContent=fmtN(M[k]));
 }
 function regenEnergy(){                              // 1 energy per 45s of real time
@@ -750,6 +781,25 @@ function renderArmory(){
   inv.innerHTML=SAVE.items.map((it,i)=>
     `<div class="item r-${'crel'[it.r]}${i===state.selItem?' sel':''}" onclick="selArm(${i})"><canvas width="60" height="60" data-ic="${it.ic}"></canvas>${it.cnt>1?`<span class="n">×${it.cnt}</span>`:''}</div>`).join('');
   paintAll(inv);
+  const wa=$('warms');
+  if(wa){ wa.innerHTML=SAVE.weapons.map(id=>{ const d=WEAPON_DEFS[id];
+      return `<div class="item r-${'crel'[d.r]}${state.selW===id?' sel':''}" onclick="selWeap('${id}')"><canvas width="60" height="60" data-ic="${d.ic}"></canvas>${SAVE.equip===id?'<span class="n" style="color:var(--green)">EQ</span>':''}</div>`;
+    }).join('');
+    paintAll(wa); }
+  const sw=$('slot-weap');
+  if(sw){ sw.dataset.ic=equippedDef().ic; paintIcon(sw,equippedDef().ic); }
+  if(state.selW){
+    const d=WEAPON_DEFS[state.selW];
+    $('sel-name').textContent=`${d.n} · ${RN[d.r]}`;
+    $('sel-stats').textContent=`${d.d} · dmg ×${d.dmg}${d.pellets>1?` · ${d.pellets} pellets`:''}${d.pierce?` · pierce ${d.pierce}`:''}${d.chain?' · chain arc':''} · ${(1/d.cd).toFixed(1)} shots/s`;
+    $('gear-panel').style.display='none'; $('weap-panel').style.display='block';
+    $('equip-btn').innerHTML=SAVE.equip===state.selW
+      ?'EQUIPPED<small>your warden carries this into every run</small>'
+      :'EQUIP<small>your warden will use this gun</small>';
+    $('arm-bonus').textContent=`Weapon drops are rare in runs — craft more in the Workshop forge`;
+    return;
+  }
+  $('gear-panel').style.display=''; $('weap-panel').style.display='none';
   const it=SAVE.items[state.selItem];
   $('sel-name').textContent=`${it.n} · ${RN[it.r]}`;
   $('sel-stats').textContent=`ATK +${it.lv*8} · Lv ${it.lv} · owned ×${it.cnt}`;
@@ -757,7 +807,15 @@ function renderArmory(){
   $('merge-hint').textContent = it.r>=3?'max rarity':(it.cnt>=3?`${RN[it.r]} ×3 → ${RN[it.r+1]}`:`need ×3 (have ×${it.cnt})`);
   $('arm-bonus').textContent=`Gear bonus in runs: +${(armoryDmgBonus()*100).toFixed(1)}% damage (sum of item levels)`;
 }
-function selArm(i){ state.selItem=i; renderArmory(); }
+function selArm(i){ state.selItem=i; state.selW=null; renderArmory(); }
+function selWeap(id){ state.selW=id; renderArmory(); }
+function equipSel(){
+  if(!state.selW) return;
+  SAVE.equip=state.selW; save(); sfx('pick'); renderArmory();
+  renderPreview($('gear-prev'),state.design,4.4,equippedDef().gun);
+  renderPreview($('home-prev'),state.design,1.55,equippedDef().gun);
+  toast(`Equipped ${WEAPON_DEFS[state.selW].n}`);
+}
 function armUpgrade(){
   const it=SAVE.items[state.selItem], cc=180+it.lv*120;
   if(SAVE.coins<cc||SAVE.scrap<8){ toast(`Need ${fmtN(cc)} 🪙 + 8 ⚙️`); return; }
@@ -952,6 +1010,65 @@ const ICONS={
     c.fillStyle='#d8cbb0'; c.beginPath(); c.ellipse(0,1,9.5,11,0,0,7); c.fill(); O(c,1.8);
     c.fillStyle='#3a4a5a'; c.beginPath(); c.ellipse(0,1,6,4,0,0,7); c.fill(); O(c,1.4);
     dot(c,0,1,2.2,'#14100c'); dot(c,.9,.2,.8,'#e4e7ee'); },
+  smg(c){ c.save(); c.rotate(-.12);
+    c.fillStyle='#44444e'; c.beginPath(); c.roundRect(-12,-5,21,6.5,2.4); c.fill(); O(c,1.8);
+    c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(-10.5,-4,17,1.8);
+    c.fillStyle='#23232a'; c.fillRect(9,-4.4,3.4,3.6);
+    c.fillStyle='#2c2c33'; c.beginPath(); c.roundRect(-1,1.5,5,9,1.6); c.fill(); O(c,1.5);
+    c.fillStyle='#3a2f22'; c.beginPath(); c.roundRect(-10,1.5,5.5,8,2); c.fill(); O(c,1.5);
+    c.restore(); },
+  shotgun(c){ c.save(); c.rotate(-.15);
+    c.fillStyle='#4a3a28'; c.beginPath(); c.roundRect(-13,-2,10,5,2); c.fill(); O(c,1.6);
+    c.fillStyle='#3c3c44'; c.beginPath(); c.roundRect(-4,-4.5,17,4,2); c.fill(); O(c,1.8);
+    c.fillStyle='#54545e'; c.beginPath(); c.roundRect(-4,-.5,13,3.6,1.8); c.fill(); O(c,1.6);
+    c.fillStyle='#5a4432'; c.beginPath(); c.roundRect(1,-.2,6,3.2,1.4); c.fill(); O(c,1.3);
+    c.fillStyle='rgba(255,255,255,.15)'; c.fillRect(-2.5,-3.8,14,1.4);
+    c.restore(); },
+  rifle(c){ c.save(); c.rotate(-.35);
+    c.fillStyle='#4a3a28'; c.beginPath(); c.roundRect(-14,-1.5,9,4.5,2); c.fill(); O(c,1.6);
+    c.fillStyle='#3c3c44'; c.beginPath(); c.roundRect(-6,-3,20,3.4,1.6); c.fill(); O(c,1.7);
+    c.fillStyle='#23232a'; c.fillRect(12.5,-2.8,3,2.6);
+    c.fillStyle='#2c2c33'; c.beginPath(); c.roundRect(-2,-6.5,8,3,1.4); c.fill(); O(c,1.4);
+    c.fillStyle='#7fd0ff'; c.beginPath(); c.ellipse(5.4,-5,1.1,1.3,0,0,7); c.fill();
+    c.fillStyle='#3a2f22'; c.beginPath(); c.roundRect(-3,.8,4.4,6.5,1.6); c.fill(); O(c,1.4);
+    c.restore(); },
+  tesla(c){ c.save(); c.rotate(-.15);
+    c.fillStyle='rgba(127,208,255,.18)'; c.beginPath(); c.arc(4,-2,9,0,7); c.fill();
+    c.fillStyle='#3c4450'; c.beginPath(); c.roundRect(-11,-4.5,17,6,2.4); c.fill(); O(c,1.8);
+    c.strokeStyle='#7fd0ff'; c.lineWidth=1.6;
+    [0,3,6].forEach(x=>{ c.beginPath(); c.ellipse(x,-1.5,1.6,3.4,0,0,7); c.stroke(); });
+    c.fillStyle='#23232a'; c.fillRect(6,-3.6,3.4,4);
+    dot(c,10.6,-1.6,1.8,'#aee6ff'); dot(c,10.1,-2.1,.7,'#ffffff');
+    c.fillStyle='#3a2f22'; c.beginPath(); c.roundRect(-9,1.5,5,8,2); c.fill(); O(c,1.5);
+    c.restore(); },
+  rail(c){ c.save(); c.rotate(-.15);
+    c.fillStyle='#2f333d'; c.beginPath(); c.roundRect(-13,-3.5,24,4.5,2); c.fill(); O(c,1.8);
+    c.fillStyle='#e0a83c'; c.fillRect(-9,-2.9,16,1.2);
+    c.fillStyle='#54545e'; c.beginPath(); c.roundRect(-6,-6,9,3,1.4); c.fill(); O(c,1.4);
+    c.fillStyle='#d8dbe2'; c.beginPath(); c.moveTo(11,-3.6); c.lineTo(16.5,-1.2); c.lineTo(11,1);
+    c.closePath(); c.fill(); O(c,1.3);
+    c.fillStyle='#3a2f22'; c.beginPath(); c.roundRect(-10,1,5,8.5,2); c.fill(); O(c,1.5);
+    c.restore(); },
+  dual(c){ c.save(); c.translate(-4,3); c.scale(.75,.75); ICONS.pistol(c); c.restore();
+    c.save(); c.translate(6,-4); c.scale(-.75,.75); ICONS.pistol(c); c.restore(); },
+  parts(c){
+    c.fillStyle='#8a8f99'; c.beginPath();
+    for(let i=0;i<6;i++){ const a=i*Math.PI/3+.26, x=-4+Math.cos(a)*7.5, y=-4+Math.sin(a)*7.5;
+      i?c.lineTo(x,y):c.moveTo(x,y); }
+    c.closePath(); c.fill(); O(c,1.8);
+    c.fillStyle='#23232a'; c.beginPath(); c.arc(-4,-4,3.2,0,7); c.fill();
+    c.strokeStyle='#c9963f'; c.lineWidth=2;
+    c.beginPath();
+    for(let i=0;i<=12;i++){ const x=1+i*.9, y=7+Math.sin(i*1.8)*2.6; i?c.lineTo(x,y):c.moveTo(x,y); }
+    c.stroke();
+    c.fillStyle='#c9ccd4'; c.beginPath(); c.roundRect(5,-10,3,9,1.4); c.fill(); O(c,1.2);
+    c.fillStyle='#8a8f99'; c.fillRect(3.6,-12.5,5.8,3); O(c,1.2); },
+  core(c){ c.fillStyle='rgba(127,208,255,.2)'; c.beginPath(); c.arc(0,0,13,0,7); c.fill();
+    circ2(c,0,0,8.5,'#2c3e50','#3d5a74',1.8);
+    dot(c,0,0,4,'#7fd0ff'); dot(c,-1.2,-1.4,1.4,'#e8f8ff');
+    c.strokeStyle='#7fd0ff'; c.lineWidth=1.4;
+    c.beginPath(); c.arc(0,0,11,.4,1.6); c.stroke();
+    c.beginPath(); c.arc(0,0,11,Math.PI+.4,Math.PI+1.6); c.stroke(); },
   coin(c){ circ2(c,0,0,11,'#a8752c','#eebb55',1.8);
     c.strokeStyle='#a8752c'; c.lineWidth=1.6;
     c.beginPath(); c.arc(0,0,7.4,0,7); c.stroke();
@@ -1153,6 +1270,51 @@ function renderSndBtn(){
   const p=$('pause-snd'); if(p) p.textContent = ic+'  SOUND: '+(SAVE.sound&&SAVE.music?'ALL ON':(SAVE.sound?'SFX ONLY':'MUTED'));
 }
 
+/* ---------- weapons & crafting ---------- */
+const WEAPON_DEFS={
+  pistol:{id:'pistol',n:'Scrap Pistol',ic:'pistol',gun:'pistol',r:0,dmg:1,cd:.55,range:260,pellets:1,spread:0,pierce:0,spd:380,d:'balanced starter sidearm'},
+  smg:{id:'smg',n:'Junk SMG',ic:'smg',gun:'smg',r:1,dmg:.65,cd:.26,range:240,pellets:1,spread:.16,pierce:0,spd:430,d:'sprays fast and a little wild'},
+  shotgun:{id:'shotgun',n:'Pipe Shotgun',ic:'shotgun',gun:'shotgun',r:1,dmg:.9,cd:.85,range:185,pellets:4,spread:.36,pierce:0,spd:350,d:'4-pellet blast at close range'},
+  rifle:{id:'rifle',n:'Hunter Rifle',ic:'rifle',gun:'rifle',r:2,dmg:3.1,cd:1.05,range:370,pellets:1,spread:0,pierce:1,spd:580,d:'slow heavy rounds that punch through'},
+  tesla:{id:'tesla',n:'Tesla Carbine',ic:'tesla',gun:'tesla',r:2,dmg:1.25,cd:.44,range:285,pellets:1,spread:.05,pierce:0,spd:470,chain:1,d:'bolts arc to a second target'},
+  rail:{id:'rail',n:'Rail Javelin',ic:'rail',gun:'rail',r:3,dmg:3.4,cd:.88,range:400,pellets:1,spread:0,pierce:3,spd:760,d:'a spike that shoots through everything'},
+};
+const DROP_WEAPONS=[['smg',.5],['shotgun',.32],['rifle',.18]];
+const CRAFT=[
+  {id:'shotgun',w:1,parts:6,cores:0,coins:400},
+  {id:'rifle',w:1,parts:10,cores:1,coins:900},
+  {id:'tesla',w:1,parts:14,cores:2,coins:1600},
+  {id:'rail',w:1,parts:22,cores:4,coins:3000},
+  {id:'g_plate',n:'Tin Plate',item:'Tin Plate',ic:'plate',parts:4,cores:0,coins:250,d:'+1 copy for merging'},
+  {id:'g_duster',n:'Spiked Duster',item:'Spiked Duster',ic:'duster',parts:8,cores:1,coins:700,d:'+1 copy for merging'},
+];
+function equippedDef(){
+  return WEAPON_DEFS[(SAVE.weapons||[]).includes(SAVE.equip)?SAVE.equip:'pistol']||WEAPON_DEFS.pistol;
+}
+function renderForge(){
+  const el=$('forge'); if(!el) return;
+  el.innerHTML=CRAFT.map((r,i)=>{
+    const def=r.w?WEAPON_DEFS[r.id]:null, n=def?def.n:r.n, ic=def?def.ic:r.ic;
+    const owned=def&&SAVE.weapons.includes(r.id);
+    const cost=`${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} 🪙`;
+    return `<div class="forge-row"><canvas width="36" height="36" data-ic="${ic}"></canvas><span class="fi"><b>${n}</b><em>${def?def.d:r.d}</em></span>
+      <button class="pricebtn${owned?' dim':''}" onclick="craftIt(${i})">${owned?'OWNED':'CRAFT'}${owned?'':`<small>${cost}</small>`}</button></div>`;
+  }).join('');
+  paintAll(el);
+}
+function craftIt(i){
+  const r=CRAFT[i], def=r.w?WEAPON_DEFS[r.id]:null;
+  if(def&&SAVE.weapons.includes(r.id)){ toast('Already built — equip it in the Armory'); return; }
+  if(SAVE.mats.parts<r.parts||SAVE.mats.cores<r.cores||SAVE.coins<r.coins){
+    toast(`Need ${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} 🪙`); return; }
+  SAVE.mats.parts-=r.parts; SAVE.mats.cores-=r.cores; SAVE.coins-=r.coins;
+  if(def){ SAVE.weapons.push(r.id); showReveal(def.ic,def.n.toUpperCase(),'★ '+RN[def.r]+' ★',RCOL[def.r]); }
+  else{ const it=SAVE.items.find(x=>x.n===r.item); if(it) it.cnt++;
+    showReveal(r.ic,r.n.toUpperCase()+' +1','★ CRAFTED ★',RCOL[1]); }
+  sfx('evolve'); save(); renderWallet(); renderForge(); renderArmory();
+  toast(`🔧 Crafted ${def?def.n:r.n}`);
+}
+
 /* ---------- stages ---------- */
 const STAGE_NAMES=['DEAD CITY','RUST FLATS','SPORE MIRE','ASH STEPPE','GLASS DESERT','BLACKOUT ZONE'];
 const stageName=s=>STAGE_NAMES[(s-1)%STAGE_NAMES.length]+(s>STAGE_NAMES.length?' '+(Math.floor((s-1)/STAGE_NAMES.length)+1):'');
@@ -1203,6 +1365,8 @@ function bankLoot(m){
   const L=state.lastLoot;
   if(!L){ save(); renderWallet(); go('home'); return; }
   SAVE.coins+=L.coins*m; SAVE.scrap+=L.scrap*m; SAVE.keys+=L.keys*m; SAVE.shards+=L.shards*m;
+  SAVE.mats.parts+=(L.parts||0)*m; SAVE.mats.cores+=(L.cores||0)*m;
+  (L.weapons||[]).forEach(id=>{ if(!SAVE.weapons.includes(id)) SAVE.weapons.push(id); });
   state.lastLoot=null; save(); renderWallet(); sfx('coin');
   go('home');
   toast(`Banked +${fmtN(L.coins*m)} 🪙 · +${L.scrap*m} ⚙️${m>1?' — DOUBLED!':''}`);
@@ -1544,6 +1708,27 @@ const GUNS={
     c.fillStyle='#8a8578'; c.beginPath(); c.moveTo(13,-2.6); c.lineTo(17,0); c.lineTo(13,2.6);
     c.closePath(); c.fill(); O(c,1.4);
     dot(c,10,0,1.2,'#b8f04c'); },{len:17}),
+  smg:Object.assign(c=>{ c.fillStyle='#2f2f36'; c.beginPath(); c.roundRect(2,-1.8,12,3.6,1.6); c.fill(); O(c,1.6);
+    c.fillStyle='rgba(255,255,255,.16)'; c.fillRect(3,-1.3,10,1);
+    c.fillStyle='#1c1c22'; c.fillRect(5,1.4,2.6,4.2);
+    c.fillStyle='#23232a'; c.fillRect(13.5,-1.2,2.4,2.4); },{len:16}),
+  shotgun:Object.assign(c=>{ c.fillStyle='#4a342a'; c.beginPath(); c.roundRect(1,-1.6,5,3.2,1.2); c.fill(); O(c,1.4);
+    c.fillStyle='#2f2f36'; c.beginPath(); c.roundRect(4,-2.2,13,2.6,1.2); c.fill(); O(c,1.6);
+    c.fillStyle='#3f3f48'; c.beginPath(); c.roundRect(6,-.2,8,2.2,1); c.fill(); O(c,1.3);
+    c.fillStyle='rgba(255,255,255,.14)'; c.fillRect(5,-1.8,11,.8); },{len:17}),
+  rifle:Object.assign(c=>{ c.fillStyle='#4a342a'; c.beginPath(); c.roundRect(1,-1.6,5,3.4,1.2); c.fill(); O(c,1.4);
+    c.fillStyle='#2f2f36'; c.beginPath(); c.roundRect(4,-1.7,16,3,1.3); c.fill(); O(c,1.6);
+    c.fillStyle='#1c1c22'; c.beginPath(); c.roundRect(8,-3.6,4,2,1); c.fill();
+    c.fillStyle='rgba(255,255,255,.15)'; c.fillRect(5,-1.2,13,.9);
+    c.fillStyle='#1c1c22'; c.fillRect(19,-1.9,2.4,1.6); },{len:21}),
+  tesla:Object.assign(c=>{ c.fillStyle='#33404e'; c.beginPath(); c.roundRect(2,-2,12,4,1.8); c.fill(); O(c,1.6);
+    c.strokeStyle='#7fd0ff'; c.lineWidth=1.1;
+    [6,9,12].forEach(x=>{ c.beginPath(); c.ellipse(x,0,1,2.4,0,0,7); c.stroke(); });
+    dot(c,15,0,1.5,'#aee6ff'); },{len:16}),
+  rail:Object.assign(c=>{ c.fillStyle='#262a33'; c.beginPath(); c.roundRect(2,-1.9,16,3.8,1.6); c.fill(); O(c,1.6);
+    c.fillStyle='#e0a83c'; c.fillRect(4,-1,12,.9);
+    c.fillStyle='#d8dbe2'; c.beginPath(); c.moveTo(18,-2); c.lineTo(21.5,0); c.lineTo(18,2);
+    c.closePath(); c.fill(); O(c,1.2); },{len:22}),
 };
 const RIGS={
   drifter:{name:'DRIFTER',desc:'road leathers · red scarf · scrap pistol',flashCol:'#ffd76a',gun:'pistol',
@@ -1654,10 +1839,12 @@ function drawRigAt(c,key,o){
   c.save(); c.scale(flip,1); if(mv) c.rotate(st*.05);
   rig.draw(c,st,bob,o.seed||0);
   c.restore();
+  const GK=(o.gun&&GUNS[o.gun])?o.gun:rig.gun;
   c.save(); c.translate(0,2-bob); c.rotate(aim); if(flip<0) c.scale(1,-1);   // weapon aims freely
-  GUNS[rig.gun](c);
+  if(o.dual){ c.save(); c.translate(-1.5,-5); c.scale(.92,.92); GUNS[GK](c); c.restore(); }
+  GUNS[GK](c);
   if(o.flash>0){
-    const L=GUNS[rig.gun].len, fa=Math.min(1,o.flash*14), fc=o.radium?'#b8f04c':rig.flashCol;
+    const L=GUNS[GK].len, fa=Math.min(1,o.flash*14), fc=o.radium?'#b8f04c':rig.flashCol;
     c.globalCompositeOperation='lighter';
     const mg=c.createRadialGradient(L+3,0,1,L+3,0,13);
     mg.addColorStop(0,fc); mg.addColorStop(1,'rgba(0,0,0,0)');
@@ -1937,10 +2124,17 @@ function nearestFoe(maxD){
   sim.foes.forEach(f=>{ const d=Math.hypot(f.x-sim.px,f.y-sim.py); if(d<bd){bd=d;best=f;} });
   return best;
 }
-function fireShot(x,y,f,radium,dmgAdd){
-  const dx=f.x-x, dy=f.y-y, d=Math.hypot(dx,dy)||1, spd=radium?460:380;
-  sim.shots.push({x,y,vx:dx/d*spd,vy:dy/d*spd,life:.8,radium,
-    dmg:Math.round(((radium?3:1)*sim.dmgMul+(dmgAdd||0))*10)/10});
+function fireShot(x,y,f,radium,dmgAdd,plain){
+  const g=(plain||radium||!sim.gun)?WEAPON_DEFS.pistol:sim.gun;
+  const base=Math.atan2(f.y-y,f.x-x);
+  const pel=(radium||plain)?1:(g.pellets||1);
+  for(let i=0;i<pel;i++){
+    const off=(pel>1?(i-(pel-1)/2)*(g.spread||.3):0)+((g.spread&&pel===1)?rnd(-g.spread,g.spread):0);
+    const spd=radium?460:g.spd, a=base+off;
+    sim.shots.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:.8,radium,
+      pierce:(radium||plain)?0:(g.pierce||0),chain:(!radium&&!plain&&g.chain)?1:0,hit:null,
+      dmg:Math.round(((radium?3:g.dmg)*sim.dmgMul+(dmgAdd||0))*10)/10});
+  }
   sfx(radium?'radium':'shoot');
 }
 function foeHpScale(){ return (1+(sim.wave-1)*.14)*(1+(sim.stage-1)*.55); }
@@ -1993,6 +2187,22 @@ function dropPickups(f){
     sim.gems.push({x:f.x+rnd(-12,12),y:f.y+rnd(-9,9),born:sim.t,fly:false,kind:'xp'});
   if(!f.boss&&Math.random()<.06)
     sim.gems.push({x:f.x,y:f.y,born:sim.t,fly:false,kind:'med'});
+  if(f.boss){ sim.gems.push({x:f.x+14,y:f.y,born:sim.t,fly:false,kind:'core'});
+    sim.gems.push({x:f.x-14,y:f.y,born:sim.t,fly:false,kind:'parts'});
+    if(Math.random()<.45) dropWeapon(f.x,f.y-14); }
+  else if(f.elite){
+    if(Math.random()<.30) sim.gems.push({x:f.x,y:f.y-8,born:sim.t,fly:false,kind:'parts'});
+    if(Math.random()<.05) sim.gems.push({x:f.x,y:f.y-8,born:sim.t,fly:false,kind:'core'});
+    if(Math.random()<.06) dropWeapon(f.x,f.y-8); }
+  else{
+    if(Math.random()<.018) sim.gems.push({x:f.x,y:f.y-6,born:sim.t,fly:false,kind:'parts'});
+    if(Math.random()<.004) dropWeapon(f.x,f.y-6); }
+}
+function dropWeapon(x,y){
+  const tot=DROP_WEAPONS.reduce((a,w)=>a+w[1],0);
+  let r=Math.random()*tot, wid=DROP_WEAPONS[0][0];
+  for(const [id,wt] of DROP_WEAPONS){ if((r-=wt)<0){ wid=id; break; } }
+  sim.gems.push({x,y,born:sim.t,fly:false,kind:'weapon',wid});
 }
 function hitFoe(f,dmg,big){
   if(f.dead) return;
@@ -2039,7 +2249,7 @@ function addChip(ic,evo){
 /* ---------- level-up drafts (real choices with real effects) ---------- */
 function draftOptions(){
   const W=sim.w, out=[];
-  if(W.pistol.lv>=3&&W.scope&&!sim.radium)
+  if(W.pistol.lv>=3&&W.scope&&!sim.radium&&sim.gun.id==='pistol')
     out.push({id:'evolve',ic:'radium',n:'RADIUM BLASTER',d:'Scrap Pistol + Scope merge · irradiated shells, +200% damage',evo:1});
   const c=[];
   if(!W.molotov.lv) c.push({id:'molotov',ic:'molotov',n:'MOLOTOV',d:'Throws burning zones onto the ground',nw:1});
@@ -2048,7 +2258,8 @@ function draftOptions(){
   else if(W.drone.lv<4) c.push({id:'drone',ic:'drone',n:`DRONE LV ${W.drone.lv+1}`,d:'Faster fire rate'});
   if(!W.shock.lv) c.push({id:'shock',ic:'shock',n:'SHOCK FIELD',d:'Damage pulse around you',nw:1});
   else if(W.shock.lv<4) c.push({id:'shock',ic:'shock',n:`SHOCK LV ${W.shock.lv+1}`,d:'Bigger, harder pulse'});
-  if(W.pistol.lv<4) c.push({id:'pistol',ic:'pistol',n:`SCRAP PISTOL LV ${W.pistol.lv+1}`,d:'+18% fire rate'});
+  if(W.pistol.lv<4) c.push({id:'pistol',ic:sim.gun.ic,n:`${sim.gun.n.toUpperCase()} LV ${W.pistol.lv+1}`,d:'+18% fire rate'});
+  if(!sim.dual&&W.pistol.lv>=2) c.push({id:'dual',ic:'dual',n:'DUAL WIELD',d:'a second gun — two volleys per trigger',nw:1});
   if(W.orbit.lv<3) c.push({id:'orbit',ic:'bat',n:`NAIL BAT LV ${W.orbit.lv+1}`,d:'+1 orbiting bat'});
   if(!W.scope) c.push({id:'scope',ic:'scope',n:'TARGETING SCOPE',d:'+35% range · unlocks pistol evolution',nw:1});
   if(sim.dmgLv<4) c.push({id:'dmg',ic:'adren',n:'ADRENALINE',d:'+20% all damage'});
@@ -2081,6 +2292,7 @@ function applyDraft(id){
   else if(id==='drone'){ if(!W.drone.lv){ addChip('drone'); W.drone.x=sim.px; W.drone.y=sim.py-60; } W.drone.lv++; }
   else if(id==='shock'){ if(!W.shock.lv) addChip('shock'); W.shock.lv++; }
   else if(id==='pistol') W.pistol.lv++;
+  else if(id==='dual'){ sim.dual=true; addChip('dual'); toast('🔫🔫 DUAL WIELD'); }
   else if(id==='orbit') W.orbit.lv++;
   else if(id==='scope'){ W.scope=1; addChip('scope'); }
   else if(id==='dmg'){ sim.dmgLv++; sim.dmgMul*=1.2; }
@@ -2253,12 +2465,15 @@ function update(dt){
     }
   });
   battleEl.classList.toggle('low', p.hp/p.maxHp<.3);
-  // scrap pistol / radium blaster
-  const pcd=(p.radium?.3:.55*Math.pow(.85,p.w.pistol.lv-1));
+  // equipped gun / radium blaster
+  const pcd=(p.radium?.3:p.gun.cd*Math.pow(.85,p.w.pistol.lv-1))*(p.dual?.9:1);
   if(!p.dying && p.t-p.w.pistol.last>pcd){
-    const f=nearestFoe(p.w.scope?350:260);
+    const f=nearestFoe((p.radium?260:p.gun.range)*(p.w.scope?1.35:1));
     if(f){ p.w.pistol.last=p.t; p.flash=.07;
-      fireShot(p.px+Math.cos(p.aim)*20,p.py+Math.sin(p.aim)*20,f,p.radium); }
+      const mx=p.px+Math.cos(p.aim)*20, my=p.py+Math.sin(p.aim)*20;
+      fireShot(mx,my,f,p.radium);
+      if(p.dual) fireShot(mx-Math.sin(p.aim)*8,my+Math.cos(p.aim)*8,f,p.radium);
+    }
   }
   // turret drone
   if(p.w.drone.lv && !p.dying){
@@ -2267,7 +2482,7 @@ function update(dt){
     p.w.drone.x+=(tx-p.w.drone.x)*4*dt; p.w.drone.y+=(ty-p.w.drone.y)*4*dt;
     if(p.t-p.w.drone.last>.95*Math.pow(.82,p.w.drone.lv-1)*Math.pow(.9,SAVE.rooms.garage.rate)){
       const f=nearestFoe(320);
-      if(f){ p.w.drone.last=p.t; fireShot(p.w.drone.x,p.w.drone.y,f,false,SAVE.rooms.garage.power); } }
+      if(f){ p.w.drone.last=p.t; fireShot(p.w.drone.x,p.w.drone.y,f,false,SAVE.rooms.garage.power,true); } }
   }
   // orbiting nail bats
   p.orbA+=dt*4.5;
@@ -2319,7 +2534,15 @@ function update(dt){
     s.x+=s.vx*dt; s.y+=s.vy*dt; s.life-=dt;
     if(s.life<=0) return false;
     for(const f of p.foes){
-      if(!f.dead && Math.hypot(f.x-s.x,f.y-s.y)<f.r+4){ hitFoe(f,s.dmg,s.radium); return false; } }
+      if(!f.dead && !(s.hit&&s.hit.includes(f)) && Math.hypot(f.x-s.x,f.y-s.y)<f.r+4){
+        hitFoe(f,s.dmg,s.radium);
+        if(s.chain){ s.chain=0; let bf=null,bd=95;                       // tesla arc
+          for(const o of p.foes){ if(o!==f&&!o.dead){
+            const dd=Math.hypot(o.x-f.x,o.y-f.y); if(dd<bd){ bd=dd; bf=o; } } }
+          if(bf){ hitFoe(bf,Math.max(1,Math.round(s.dmg*.6))); addP(bf.x,bf.y,'#7fd0ff',6,90);
+            p.rings.push({x:bf.x,y:bf.y,r:6,max:34,col:'#7fd0ff',age:0}); } }
+        if(s.pierce>0){ s.pierce--; (s.hit=s.hit||[]).push(f); continue; }
+        return false; } }
     return true;
   });
   p.foes=p.foes.filter(f=>!f.dead);
@@ -2341,6 +2564,15 @@ function update(dt){
     if(g.fly){
       if(d<14){
         if(g.kind==='med'){ p.hp=Math.min(p.maxHp,p.hp+p.healAmt); dmgNum(p.px,p.py-24,'+'+p.healAmt,true); sfx('heal'); }
+        else if(g.kind==='parts'){ p.mats.parts++; dmgNum(p.px,p.py-24,'+1 PARTS',true); sfx('coin'); }
+        else if(g.kind==='core'){ p.mats.cores++; dmgNum(p.px,p.py-24,'+1 CORE',true); sfx('chest'); }
+        else if(g.kind==='weapon'){
+          if(SAVE.weapons.includes(g.wid)||p.wDrops.includes(g.wid)){
+            p.mats.parts+=2; dmgNum(p.px,p.py-24,'+2 PARTS',true); sfx('coin');
+            toast(`Duplicate ${WEAPON_DEFS[g.wid].n} → +2 parts`); }
+          else{ p.wDrops.push(g.wid); sfx('chest');
+            toast(`🔫 Found: ${WEAPON_DEFS[g.wid].n}! banked at run end`); }
+        }
         else{ p.xp++; sfx('gem'); }
         return false;
       }
@@ -2411,6 +2643,22 @@ function render(){
       ctx.fillStyle='#e8e4da'; ctx.beginPath(); ctx.roundRect(-4.2,-4.2,8.4,8.4,2); ctx.fill();
       ctx.shadowBlur=0; ctx.fillStyle='#c94f3a';
       ctx.fillRect(-1.2,-3,2.4,6); ctx.fillRect(-3,-1.2,6,2.4);
+    }else if(g.kind==='parts'){
+      ctx.shadowColor='#c9ccd4'; ctx.shadowBlur=6;
+      ctx.fillStyle='#8a8f99'; ctx.beginPath();
+      for(let i=0;i<6;i++){ const a=i*Math.PI/3, hx=Math.cos(a)*5, hy=Math.sin(a)*5;
+        i?ctx.lineTo(hx,hy):ctx.moveTo(hx,hy); }
+      ctx.closePath(); ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle='#2c2c33'; ctx.beginPath(); ctx.arc(0,0,2.1,0,7); ctx.fill();
+    }else if(g.kind==='core'){
+      ctx.shadowColor='#7fd0ff'; ctx.shadowBlur=8;
+      ctx.fillStyle='#3d5a74'; ctx.beginPath(); ctx.arc(0,0,4.6,0,7); ctx.fill();
+      ctx.shadowBlur=0; ctx.fillStyle='#aee6ff'; ctx.beginPath(); ctx.arc(-.8,-1,2,0,7); ctx.fill();
+    }else if(g.kind==='weapon'){
+      ctx.shadowColor='#ffd76a'; ctx.shadowBlur=9;
+      ctx.fillStyle='#5a4432'; ctx.beginPath(); ctx.roundRect(-6,-4.5,12,9,2); ctx.fill();
+      ctx.shadowBlur=0; ctx.strokeStyle='#e0a83c'; ctx.lineWidth=1.4; ctx.strokeRect(-6,-4.5,12,9);
+      ctx.beginPath(); ctx.moveTo(-6,0); ctx.lineTo(6,0); ctx.moveTo(0,-4.5); ctx.lineTo(0,4.5); ctx.stroke();
     }else{
       ctx.rotate(Math.PI/4);
       ctx.shadowColor='#86c232'; ctx.shadowBlur=7;
@@ -2436,7 +2684,8 @@ function render(){
                   ctx.save(); ctx.translate(p.px,p.py); ctx.rotate(dp*1.5);
                   ctx.translate(-p.px,-p.py); ctx.globalAlpha=1-dp*.55; }
                 drawRigAt(ctx,state.design,{x:p.px,y:p.py,aim:p.aim,feet:p.feet,
-                  moving:p.moving,flash:p.flash,hurtT:p.hurtT,scale:1.3,radium:p.radium,seed:2.7});
+                  moving:p.moving,flash:p.flash,hurtT:p.hurtT,scale:1.3,radium:p.radium,seed:2.7,
+                  gun:p.gun.gun,dual:p.dual});
                 ctx.globalAlpha=1; if(dyingSave) ctx.restore();
               }}];
   if(p.w.drone.lv) ents.push({y:p.w.drone.y+900,d:()=>drawDrone(p.w.drone)}); // drone flies above all
@@ -2547,7 +2796,7 @@ function refreshCards(){
   if(!sim) return;
   const W=sim.w;
   const slots=[
-    {ic:sim.radium?'radium':'pistol', t:sim.radium?'RADIUM':'PISTOL', lv:sim.radium?4:W.pistol.lv},
+    {ic:sim.radium?'radium':sim.gun.ic, t:sim.radium?'RADIUM':sim.gun.n.toUpperCase(), lv:sim.radium?4:W.pistol.lv},
     {ic:'bat', t:'NAIL BAT', lv:W.orbit.lv},
   ];
   if(W.molotov.lv) slots.push({ic:'molotov',t:'MOLOTOV',lv:W.molotov.lv});
@@ -2575,7 +2824,7 @@ function startBattle(){
   if(SAVE.energy<1){ toast('Out of energy — watch an ad or wait for regen'); return; }
   SAVE.energy--; SAVE.energyT=Date.now(); save(); renderWallet();
   kills=0; lvl=1;
-  $('wslots').innerHTML=''; addChip('pistol'); addChip('bat');
+  $('wslots').innerHTML=''; addChip(equippedDef().ic); addChip('bat');
   $('kills').textContent='0'; $('lvl').textContent='LV 1';
   $('xpfill').style.width='0%'; $('timer').textContent='00:00';
   $('s-battle').classList.remove('low');
@@ -2591,6 +2840,7 @@ function startBattle(){
        foes:[],shots:[],eshots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
+       gun:{...equippedDef()},dual:false,mats:{parts:0,cores:0},wDrops:[],
        radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+armoryDmgBonus(),
        spdMul:1+SAVE.rooms.generator.spd*.04,magnetR:110,dmgLv:0,bootLv:0,hpLv:0,magLv:0,
        hp:100+SAVE.rooms.medbay.hp*20,maxHp:100+SAVE.rooms.medbay.hp*20,
@@ -2618,7 +2868,8 @@ function endRun(won){
     : `fell on wave ${sim?sim.wave:0} · ${kills} kills · ${fmtT(sim?sim.t:0)}`;
   const w=sim?sim.wave:0, stg=sim?sim.stage:1, stgMul=1+(stg-1)*.3;
   state.lastLoot={coins:Math.round((40*w+kills*2)*stgMul), scrap:Math.round((8*w+Math.floor(kills/3))*stgMul),
-    keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0)};
+    keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0),
+    parts:sim?sim.mats.parts:0, cores:sim?sim.mats.cores:0, weapons:sim?[...sim.wDrops]:[]};
   state.chests=[10,20,30].map(mw=>({w:mw, rw:chestReward(mw/10,stg), claimed:false,
     earned:(sim?sim.milestones:[]).includes(mw)}));
   renderChests();
@@ -2634,6 +2885,11 @@ function endRun(won){
   $('loot-scrap').textContent=fmtN(state.lastLoot.scrap);
   $('loot-keys').textContent='×'+state.lastLoot.keys;
   $('loot-shards').textContent='×'+state.lastLoot.shards;
+  $('loot-parts').textContent='×'+state.lastLoot.parts;
+  $('loot-cores').textContent='×'+state.lastLoot.cores;
+  $('loot-weaps').innerHTML=state.lastLoot.weapons.map(id=>
+    `<div class="loot" style="border:1px solid var(--gold);border-radius:8px;padding:6px 8px"><span><canvas width="36" height="36" data-ic="${WEAPON_DEFS[id].ic}"></canvas> NEW WEAPON — ${WEAPON_DEFS[id].n}</span><b style="color:var(--gold)">FOUND</b></div>`).join('');
+  paintAll($('s-results'));
   SAVE.stats.kills+=kills; SAVE.stats.waves+=w; save();
   sim=null;
   startMusic('hub');
@@ -2643,7 +2899,9 @@ function endRun(won){
 window.__sim = () => sim ? {foes:sim.foes.length, shots:sim.shots.length, gems:sim.gems.length,
   kills, px:sim.px, py:sim.py, boss:sim.foes.some(f=>f.boss),
   wave:sim.wave, hp:sim.hp, xp:sim.xp, toSpawn:sim.toSpawn,
-  stage:sim.stage, milestones:sim.milestones.length} : null;
+  stage:sim.stage, milestones:sim.milestones.length,
+  gun:sim.gun.id, dual:!!sim.dual, parts:sim.mats.parts, cores:sim.mats.cores,
+  wDrops:sim.wDrops.length} : null;
 window.__test = {
   xp:n=>{ if(sim) sim.xp+=n; },
   hp:n=>{ if(sim) sim.hp=n; },
@@ -2767,12 +3025,12 @@ function confirmBuy(){
 }
 
 /* ---------- barracks: character design picker ---------- */
-function renderPreview(cv2,key,scale){
+function renderPreview(cv2,key,scale,gun){
   const c=cv2.getContext('2d');
   c.clearRect(0,0,cv2.width,cv2.height);
   drawRigAt.noBlink=true;
   drawRigAt(c,key,{x:cv2.width/2,y:cv2.height*.58,aim:-.45,
-    feet:0,moving:false,flash:0,hurtT:0,scale});
+    feet:0,moving:false,flash:0,hurtT:0,scale,gun});
   drawRigAt.noBlink=false;
 }
 function buildBarracks(){
@@ -2800,18 +3058,18 @@ function pickDesign(k){
   buildBarracks();
   $('home-name').textContent=RIGS[k].name;
   $('home-class').textContent=RIGS[k].desc+' · Lv 14';
-  renderPreview($('home-prev'),k,1.55);
-  renderPreview($('gear-prev'),k,4.4);
+  renderPreview($('home-prev'),k,1.55,equippedDef().gun);
+  renderPreview($('gear-prev'),k,4.4,equippedDef().gun);
   toast(RIGS[k].name+' equipped');
 }
 state.design = RIGS[SAVE.design] ? SAVE.design : 'drifter';
 buildBarracks();
-renderPreview($('home-prev'),state.design,1.55);
-renderPreview($('gear-prev'),state.design,4.4);
+renderPreview($('home-prev'),state.design,1.55,equippedDef().gun);
+renderPreview($('gear-prev'),state.design,4.4,equippedDef().gun);
 $('home-name').textContent=RIGS[state.design].name;
 $('home-class').textContent=RIGS[state.design].desc+' · Lv 14';
 renderWallet(); renderShop(); renderArmory(); renderPity(); renderStages();
-renderSndBtn(); paintAll(document);
+renderSndBtn(); renderForge(); paintAll(document);
 setInterval(()=>{ regenEnergy(); renderWallet(); },5000);
 
 /* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
