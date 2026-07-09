@@ -124,6 +124,12 @@
   #bossbar .bb{height:9px;margin-top:3px;background:#000c;border:2px solid #341a14;border-radius:6px;overflow:hidden}
   #bossbar .bb i{display:block;height:100%;width:100%;background:linear-gradient(#ff7a5a,#c9432e);transition:width .2s}
 
+  .pricebtn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;font-size:11px;
+    font-weight:bold;padding:5px 10px;color:var(--gold);margin-left:auto;flex-shrink:0}
+  .pricebtn:disabled{opacity:.35}
+  .wcard.locked canvas{filter:grayscale(1) brightness(.55)}
+  #room-ov,#radio-ov{justify-content:flex-start;padding-top:64px;overflow-y:auto}
+
   /* glossy battle HUD */
   #xpbar{height:14px;border-radius:8px;border:2px solid #0a0b0e;box-shadow:inset 0 2px 5px #000c}
   #xpfill{background:linear-gradient(#d2f18f,#86c232 45%,#5f8f1f);box-shadow:0 0 9px #86c23288}
@@ -300,10 +306,10 @@
   <!-- BASE HUB -->
   <div class="screen" id="s-home">
     <div class="topbar">
-      <div class="pill">🪙 <span id="c-coins">12,480</span><span class="plus">+</span></div>
-      <div class="pill">💎 <span id="c-gems">312</span><span class="plus" onclick="nav('shop')">+</span></div>
+      <div class="pill">🪙 <span class="w-coins">0</span></div>
+      <div class="pill">💎 <span class="w-gems">0</span><span class="plus" onclick="nav('shop')">+</span></div>
       <div class="spacer"></div>
-      <div class="pill">⚡ <span id="c-energy">3</span>/5 <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
+      <div class="pill">⚡ <span class="w-energy">5</span>/5 <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
     </div>
     <h2 class="hdr">HAVEN OUTPOST</h2>
     <div class="body">
@@ -317,10 +323,10 @@
         <button class="room" onclick="nav('gear')"><span class="ic">🔫</span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
         <button class="room" onclick="nav('crates')"><span class="ic">🔧</span><span><b>WORKSHOP</b><span>crates &amp; merge recipes</span></span></button>
         <button class="room" onclick="nav('wardens')"><span class="ic">🛏</span><span><b>BARRACKS</b><span>survivors &amp; skins</span></span></button>
-        <button class="room" onclick="toast('Med Bay — max HP, healing & revive upgrades (coming soon)')"><span class="ic">⛑</span><span><b>MED BAY</b><span>health &amp; revive upgrades</span></span></button>
-        <button class="room" onclick="adFlow('crate')"><span class="ic">📻</span><span><b>RADIO TOWER</b><span>daily missions · 📺 free crate <span class="tag ad">AD</span></span></span></button>
-        <button class="room" onclick="toast('Garage — drone & companion upgrades (coming soon)')"><span class="ic">🚗</span><span><b>GARAGE</b><span>drones &amp; companions</span></span></button>
-        <button class="room" onclick="toast('Generator — permanent core upgrade tree (coming soon)')"><span class="ic">⚡</span><span><b>GENERATOR</b><span>permanent core tree</span></span></button>
+        <button class="room" onclick="openRoom('medbay')"><span class="ic">⛑</span><span><b>MED BAY</b><span>health &amp; revive upgrades</span></span></button>
+        <button class="room" onclick="openRadio()"><span class="ic">📻</span><span><b>RADIO TOWER</b><span>daily missions · 📺 free crate <span class="tag ad">AD</span></span></span></button>
+        <button class="room" onclick="openRoom('garage')"><span class="ic">🚗</span><span><b>GARAGE</b><span>drone upgrades</span></span></button>
+        <button class="room" onclick="openRoom('generator')"><span class="ic">⚡</span><span><b>GENERATOR</b><span>permanent core tree</span></span></button>
         <button class="room" onclick="nav('shop')"><span class="ic">🛒</span><span><b>SUPPLY POST</b><span>bundles, gems &amp; pass <span class="tag iap">IAP</span></span></span></button>
       </div>
     </div>
@@ -333,7 +339,7 @@
     <div id="vig"></div>
     <div id="hud">
       <div id="xpwrap"><span id="lvl">LV 1</span><div id="xpbar"><div id="xpfill"></div></div></div>
-      <div id="bstats"><span id="timer">00:00</span><span id="wave">W 1/20</span><span>💀 <span id="kills">0</span></span><span onclick="endRun(false)">⏸</span></div>
+      <div id="bstats"><span id="timer">00:00</span><span id="wave">W 1/20</span><span>💀 <span id="kills">0</span></span><span onclick="openPause()">⏸</span></div>
       <div id="wslots"></div>
     </div>
     <div id="bosswarn">⚠ BEHEMOTH INCOMING ⚠</div>
@@ -366,10 +372,10 @@
     <div class="body">
       <div id="res-title">VICTORY</div>
       <div id="res-sub">Chapter 3</div>
-      <div class="loot"><span>🪙 Coins</span><b>1,240</b></div>
-      <div class="loot"><span>⚙️ Scrap (gear XP)</span><b>86</b></div>
-      <div class="loot"><span>🗝 Crate key</span><b>×1</b></div>
-      <div class="loot"><span>🧩 Ranger shards</span><b>×5</b></div>
+      <div class="loot"><span>🪙 Coins</span><b id="loot-coins">0</b></div>
+      <div class="loot"><span>⚙️ Scrap (gear XP)</span><b id="loot-scrap">0</b></div>
+      <div class="loot"><span>🗝 Crate keys</span><b id="loot-keys">×0</b></div>
+      <div class="loot"><span>🧩 Warden shards</span><b id="loot-shards">×0</b></div>
       <button class="btn gold" style="margin:12px 0 8px" onclick="adFlow('claim2x')">📺 CLAIM ×2 <span class="tag ad">AD</span><small>double everything — one 30s ad</small></button>
       <button class="btn grey" onclick="claimPlain()">CLAIM<small>non-payers may see an interstitial here (capped)</small></button>
     </div>
@@ -377,7 +383,7 @@
 
   <!-- ARMORY -->
   <div class="screen" id="s-gear">
-    <div class="topbar"><div class="pill">🪙 <span>12,480</span></div><div class="pill">⚙️ 341</div></div>
+    <div class="topbar"><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill">⚙️ <span class="w-scrap">0</span></div></div>
     <h2 class="hdr">ARMORY</h2>
     <div class="body">
       <div class="paperdoll">
@@ -389,31 +395,23 @@
         <div class="slot"        style="right:10px;top:50%;transform:translateY(-23px)">🧤</div>
         <div class="slot filled" style="right:10px;top:100%;transform:translateY(-58px)">🧿</div>
       </div>
-      <div class="invgrid">
-        <div class="item r-l sel" onclick="selItem(this,'Radium Blaster · LEGENDARY')">☢</div>
-        <div class="item r-e" onclick="selItem(this,'Spiked Duster · EPIC')">🧥</div>
-        <div class="item r-r" onclick="selItem(this,'Scrap Gasmask · RARE')">😷<span class="n">×2</span></div>
-        <div class="item r-r" onclick="selItem(this,'Runner Boots · RARE')">🥾<span class="n">×3</span></div>
-        <div class="item r-c" onclick="selItem(this,'Rag Gloves · COMMON')">🧤<span class="n">×2</span></div>
-        <div class="item r-c" onclick="selItem(this,'Bone Charm · COMMON')">🧿</div>
-        <div class="item r-r" onclick="selItem(this,'Nail Bat · RARE')">🏏</div>
-        <div class="item r-c" onclick="selItem(this,'Tin Plate · COMMON')">🛡</div>
-      </div>
+      <div class="invgrid" id="inv"></div>
       <div class="card" style="margin-bottom:8px">
-        <b id="sel-name" style="font-size:12px;letter-spacing:1px">Radium Blaster · LEGENDARY</b>
-        <span style="display:block;font-size:11px;color:var(--dim);margin-top:3px">ATK +142 · +12% pierce · Lv 6/40</span>
+        <b id="sel-name" style="font-size:12px;letter-spacing:1px">—</b>
+        <span id="sel-stats" style="display:block;font-size:11px;color:var(--dim);margin-top:3px">—</span>
       </div>
       <div id="gear-panel">
-        <button class="btn rust" onclick="toast('Upgraded! ATK +8 · −650 🪙')">UPGRADE<small>650 🪙 + 12 ⚙️</small></button>
-        <button class="btn grey" onclick="toast('Merge 3 identical → next rarity')">MERGE 3→1<small>RARE ×3 → EPIC</small></button>
+        <button class="btn rust" onclick="armUpgrade()">UPGRADE<small id="upg-cost">—</small></button>
+        <button class="btn grey" onclick="armMerge()">MERGE 3→1<small id="merge-hint">—</small></button>
       </div>
+      <div class="card" id="arm-bonus" style="margin-top:8px;font-size:11px;color:var(--dim)">—</div>
     </div>
     <div class="navbar"></div>
   </div>
 
   <!-- WORKSHOP -->
   <div class="screen" id="s-crates">
-    <div class="topbar"><div class="pill">🗝 <span id="c-keys">4</span></div><div class="pill">💎 <span>312</span></div></div>
+    <div class="topbar"><div class="pill">🗝 <span class="w-keys">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div><div class="pill">🪙 <span class="w-coins">0</span></div></div>
     <h2 class="hdr">WORKSHOP</h2>
     <div class="body">
       <div class="card crate">
@@ -430,11 +428,11 @@
         <div class="info"><b style="color:var(--gold)">WARDEN CACHE</b><span>Rare–Legendary gear, hero shards</span>
           <div class="row">
             <button class="btn gold" onclick="openCrate('cache')">OPEN ×1<small>1 🗝 or 300 💎</small></button>
-            <button class="btn gold" onclick="openCrate('cache')">OPEN ×10<small>9 🗝 (1 free)</small></button>
+            <button class="btn gold" onclick="openCrate('cache10')">OPEN ×10<small>9 🗝 or 2,700 💎</small></button>
           </div>
         </div>
       </div>
-      <div id="pity">Pity: guaranteed <b>LEGENDARY</b> within <b>27</b> more opens · odds shown in-game (platform compliance)</div>
+      <div id="pity">Pity: guaranteed <b>LEGENDARY</b> within <b id="pity-n">27</b> more opens · odds shown in-game (platform compliance)</div>
       <div class="card" style="margin-bottom:10px">
         <b style="font-size:12px;letter-spacing:1px">MERGE RECIPES</b>
         <div class="recipe">🔫 Scrap Pistol <span class="to">+ 🔭 Scope →</span><span class="evoname">☢ Radium Blaster</span></div>
@@ -455,26 +453,26 @@
 
   <!-- SHOP -->
   <div class="screen" id="s-shop">
-    <div class="topbar"><div class="pill">🪙 12,480</div><div class="pill">💎 <span>312</span></div></div>
+    <div class="topbar"><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div></div>
     <h2 class="hdr">SUPPLY POST</h2>
     <div class="body">
       <div class="banner">
         <b>⭐ WARDEN'S CONTRACT — SEASON 1</b> <span class="tag iap">IAP</span>
         <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 💎, 20 🗝</p>
-        <button class="btn gold" onclick="buy('Warden\'s Contract (Season 1)','£4.99')">UNLOCK · £4.99</button>
+        <button class="btn gold" id="sku-pass" onclick="buy('pass')">UNLOCK · £4.99</button>
       </div>
-      <button class="card wide" onclick="buy('Starter Bundle','£2.99')">
+      <button class="card wide" id="sku-starter" onclick="buy('starter')">
         <span class="big">🎒</span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 💎 + Rare weapon + 5 🗝 · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
-      <button class="card wide" onclick="buy('Remove Ads','£7.99')">
+      <button class="card wide" id="sku-noads" onclick="buy('noads')">
         <span class="big">🚫</span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly, no ad.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
       </button>
       <div class="shoprow">
-        <div class="sku"><div class="big">💎</div><b>500</b><button class="price" onclick="buy('500 Gems','£1.99')">£1.99</button></div>
-        <div class="sku"><div class="big">💰</div><b>2,800</b><button class="price" onclick="buy('2,800 Gems','£7.99')">£7.99</button></div>
-        <div class="sku"><div class="big">🏆</div><b>12,000</b><button class="price" onclick="buy('12,000 Gems','£24.99')">£24.99</button></div>
+        <div class="sku"><div class="big">💎</div><b>500</b><button class="price" onclick="buy('gems500')">£1.99</button></div>
+        <div class="sku"><div class="big">💰</div><b>2,800</b><button class="price" onclick="buy('gems2800')">£7.99</button></div>
+        <div class="sku"><div class="big">🏆</div><b>12,000</b><button class="price" onclick="buy('gems12000')">£24.99</button></div>
       </div>
-      <button class="card wide" onclick="buy('Crate Keys ×10','£4.99')">
+      <button class="card wide" id="sku-keys" onclick="buy('keys10')">
         <span class="big">🗝</span><span class="inf"><b>CRATE KEYS ×10 <span class="tag iap">IAP</span></b><span>Opens Warden Caches</span></span><span class="price" style="color:var(--gold);font-weight:bold">£4.99</span>
       </button>
     </div>
@@ -483,7 +481,7 @@
 
   <!-- BARRACKS -->
   <div class="screen" id="s-wardens">
-    <div class="topbar"><div class="pill">🧩 shards</div></div>
+    <div class="topbar"><div class="pill">🧩 <span class="w-shards">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div></div>
     <h2 class="hdr">BARRACKS</h2>
     <div class="body">
       <div class="wgrid" id="dgrid"></div>
@@ -493,6 +491,31 @@
         who you play in the arena.</div>
     </div>
     <div class="navbar"></div>
+  </div>
+
+  <!-- pause menu -->
+  <div class="overlay" id="pause-ov">
+    <div class="ov-title">PAUSED</div>
+    <div class="ov-sub" id="pause-sub"></div>
+    <button class="btn green" style="margin-bottom:10px" onclick="closePause()">RESUME</button>
+    <button class="btn grey" onclick="closePause();endRun(false)">GIVE UP — END RUN</button>
+  </div>
+
+  <!-- upgrade room -->
+  <div class="overlay" id="room-ov">
+    <div class="ov-title" id="room-title">MED BAY</div>
+    <div class="ov-sub" id="room-sub"></div>
+    <div id="room-rows"></div>
+    <button class="btn grey" style="margin-top:6px" onclick="$('room-ov').classList.remove('on')">CLOSE</button>
+  </div>
+
+  <!-- radio tower -->
+  <div class="overlay" id="radio-ov">
+    <div class="ov-title">📻 RADIO TOWER</div>
+    <div class="ov-sub">missions track lifetime progress across runs</div>
+    <div id="mission-rows"></div>
+    <button class="btn green" style="margin:8px 0 10px" onclick="adFlow('crate')">📺 FREE DAILY CRATE <span class="tag ad">AD</span></button>
+    <button class="btn grey" onclick="$('radio-ov').classList.remove('on')">CLOSE</button>
   </div>
 
   <!-- fake rewarded ad -->
@@ -540,7 +563,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const state = {design:'drifter', energy:3, screen:'title', adReason:null};
+const state = {design:'drifter', screen:'title', adReason:null, selItem:0, sku:null, room:null, lastLoot:null};
 
 /* ---------- navigation ---------- */
 const NAV = [
@@ -570,6 +593,220 @@ function toast(msg){
 }
 
 /* =========================================================
+   META: persistent save, wallet, shop, crates, armory,
+   upgrade rooms, missions — every button does something.
+   ========================================================= */
+const RN=['COMMON','RARE','EPIC','LEGENDARY'], RCOL=['#9aa','#5b8bd4','#a06bd4','#e0a83c'];
+const DEFAULT_SAVE={
+  coins:1200, gems:150, keys:3, scrap:120, shards:20,
+  energy:5, energyT:0, pity:27, design:'drifter',
+  plague:false, noads:false, starter:false, pass:false, freeDay:'',
+  rooms:{medbay:{hp:0,heal:0},garage:{rate:0,power:0},generator:{dmg:0,spd:0,xpg:0}},
+  stats:{kills:0,waves:0,crates:0}, mclaimed:{},
+  items:[
+    {i:'☢',n:'Radium Blaster',r:3,cnt:1,lv:6},
+    {i:'🧥',n:'Spiked Duster',r:2,cnt:1,lv:3},
+    {i:'😷',n:'Scrap Gasmask',r:1,cnt:2,lv:2},
+    {i:'🥾',n:'Runner Boots',r:1,cnt:3,lv:1},
+    {i:'🧤',n:'Rag Gloves',r:0,cnt:2,lv:1},
+    {i:'🧿',n:'Bone Charm',r:0,cnt:1,lv:1},
+    {i:'🏏',n:'Nail Bat',r:1,cnt:1,lv:2},
+    {i:'🛡',n:'Tin Plate',r:0,cnt:1,lv:1}],
+};
+let SAVE;
+function loadSave(){
+  try{ SAVE=JSON.parse(localStorage.getItem('ww_save')); }catch(e){ SAVE=null; }
+  if(!SAVE||!SAVE.rooms||!SAVE.items) SAVE=JSON.parse(JSON.stringify(DEFAULT_SAVE));
+  if(!SAVE.energyT) SAVE.energyT=Date.now();
+}
+function save(){ try{ localStorage.setItem('ww_save',JSON.stringify(SAVE)); }catch(e){} }
+loadSave();
+const fmtN=n=>Math.round(n).toLocaleString('en-GB');
+function renderWallet(){
+  const M={coins:SAVE.coins,gems:SAVE.gems,keys:SAVE.keys,scrap:SAVE.scrap,
+    shards:SAVE.shards,energy:SAVE.energy};
+  for(const k in M) document.querySelectorAll('.w-'+k).forEach(el=>el.textContent=fmtN(M[k]));
+}
+function regenEnergy(){                              // 1 energy per 45s of real time
+  const now=Date.now();
+  if(SAVE.energy>=5){ SAVE.energyT=now; return; }
+  let ch=false;
+  while(SAVE.energy<5 && now-SAVE.energyT>=45000){ SAVE.energy++; SAVE.energyT+=45000; ch=true; }
+  if(ch) save();
+}
+function spend(cur,amt){
+  const IC={coins:'🪙',gems:'💎',keys:'🗝',scrap:'⚙️',shards:'🧩'};
+  if(SAVE[cur]<amt){ toast(`Need ${fmtN(amt)} ${IC[cur]}`); return false; }
+  SAVE[cur]-=amt; save(); renderWallet(); return true;
+}
+
+/* ---------- shop ---------- */
+const SKUS={
+  gems500:{n:'500 Gems',p:'£1.99',apply:()=>SAVE.gems+=500},
+  gems2800:{n:'2,800 Gems',p:'£7.99',apply:()=>SAVE.gems+=2800},
+  gems12000:{n:'12,000 Gems',p:'£24.99',apply:()=>SAVE.gems+=12000},
+  keys10:{n:'Crate Keys ×10',p:'£4.99',apply:()=>SAVE.keys+=10},
+  noads:{n:'Remove Ads',p:'£7.99',once:'noads'},
+  starter:{n:'Starter Bundle',p:'£2.99',once:'starter',apply:()=>{SAVE.gems+=800;SAVE.keys+=5;}},
+  pass:{n:"Warden's Contract (Season 1)",p:'£4.99',once:'pass',apply:()=>{SAVE.gems+=1200;SAVE.keys+=20;}},
+};
+function renderShop(){
+  const mark=(id,owned)=>{ const el=$(id); if(!el) return;
+    el.classList.toggle('empty',owned);
+    if(owned&&!el.dataset.done){ el.dataset.done=1;
+      const b=el.querySelector('b'); if(b) b.innerHTML='✓ OWNED — '+b.innerHTML; } };
+  mark('sku-noads',SAVE.noads); mark('sku-starter',SAVE.starter);
+  if(SAVE.pass) $('sku-pass').textContent='✓ OWNED';
+}
+
+/* ---------- crates & pity ---------- */
+function renderPity(){ const el=$('pity-n'); if(el) el.textContent=SAVE.pity; }
+function grantItem(minR,maxR){
+  const pool=SAVE.items.filter(it=>it.r>=minR&&it.r<=maxR);
+  const it=pool[Math.floor(Math.random()*pool.length)];
+  it.cnt++; renderArmory();
+  return {icon:it.i,name:it.n.toUpperCase(),r:it.r};
+}
+function crateReward(tier){
+  const r=Math.random();
+  if(tier==='rusty'){
+    if(r<.45){ const a=150+Math.floor(Math.random()*250); SAVE.coins+=a; return {icon:'🪙',name:'+'+fmtN(a)+' COINS',r:0}; }
+    if(r<.75){ const a=15+Math.floor(Math.random()*30); SAVE.scrap+=a; return {icon:'⚙️',name:'+'+a+' SCRAP',r:0}; }
+    return grantItem(0,1);
+  }
+  SAVE.pity--;
+  let rw;
+  if(SAVE.pity<=0){ rw=grantItem(3,3); SAVE.pity=30; }
+  else if(r<.06){ rw=grantItem(3,3); SAVE.pity=30; }
+  else if(r<.40) rw=grantItem(1,2);
+  else if(r<.60){ const a=60+Math.floor(Math.random()*60); SAVE.scrap+=a; rw={icon:'⚙️',name:'+'+a+' SCRAP',r:1}; }
+  else if(r<.82){ const a=4+Math.floor(Math.random()*5); SAVE.shards+=a; rw={icon:'🧩',name:'+'+a+' SHARDS',r:2}; }
+  else { const a=40+Math.floor(Math.random()*50); SAVE.gems+=a; rw={icon:'💎',name:'+'+a+' GEMS',r:2}; }
+  return rw;
+}
+function spendCache(k,g){
+  if(SAVE.keys>=k){ SAVE.keys-=k; save(); renderWallet(); return true; }
+  if(SAVE.gems>=g){ SAVE.gems-=g; save(); renderWallet(); return true; }
+  toast(`Need ${k} 🗝 or ${fmtN(g)} 💎`); return false;
+}
+function finishCrate(n,rw){
+  SAVE.stats.crates+=n; save(); renderWallet(); renderPity();
+  showReveal(rw.icon,rw.name,'★ '+RN[rw.r]+' ★',RCOL[rw.r]);
+}
+function freeCrate(){
+  const day=new Date().toDateString();
+  if(SAVE.freeDay===day){ toast('Free crate already claimed today'); return; }
+  SAVE.freeDay=day;
+  finishCrate(1,crateReward('rusty'));
+}
+
+/* ---------- armory ---------- */
+const armoryDmgBonus=()=>SAVE.items.reduce((a,it)=>a+it.lv,0)*.004;
+function renderArmory(){
+  const inv=$('inv'); if(!inv) return;
+  inv.innerHTML=SAVE.items.map((it,i)=>
+    `<div class="item r-${'crel'[it.r]}${i===state.selItem?' sel':''}" onclick="selArm(${i})">${it.i}${it.cnt>1?`<span class="n">×${it.cnt}</span>`:''}</div>`).join('');
+  const it=SAVE.items[state.selItem];
+  $('sel-name').textContent=`${it.n} · ${RN[it.r]}`;
+  $('sel-stats').textContent=`ATK +${it.lv*8} · Lv ${it.lv} · owned ×${it.cnt}`;
+  $('upg-cost').textContent=`${fmtN(180+it.lv*120)} 🪙 + 8 ⚙️`;
+  $('merge-hint').textContent = it.r>=3?'max rarity':(it.cnt>=3?`${RN[it.r]} ×3 → ${RN[it.r+1]}`:`need ×3 (have ×${it.cnt})`);
+  $('arm-bonus').textContent=`Gear bonus in runs: +${(armoryDmgBonus()*100).toFixed(1)}% damage (sum of item levels)`;
+}
+function selArm(i){ state.selItem=i; renderArmory(); }
+function armUpgrade(){
+  const it=SAVE.items[state.selItem], cc=180+it.lv*120;
+  if(SAVE.coins<cc||SAVE.scrap<8){ toast(`Need ${fmtN(cc)} 🪙 + 8 ⚙️`); return; }
+  SAVE.coins-=cc; SAVE.scrap-=8; it.lv++;
+  save(); renderWallet(); renderArmory(); toast(`${it.n} → Lv ${it.lv}`);
+}
+function armMerge(){
+  const it=SAVE.items[state.selItem];
+  if(it.r>=3){ toast('Already legendary'); return; }
+  if(it.cnt<3){ toast(`Need ×3 to merge (have ×${it.cnt})`); return; }
+  it.cnt-=2; it.r++;
+  save(); renderArmory(); toast(`Merged! ${it.n} is now ${RN[it.r]}`);
+}
+
+/* ---------- upgrade rooms ---------- */
+const ROOMS={
+  medbay:{t:'⛑ MED BAY',d:'permanent survival upgrades',rows:[
+    {k:'hp',i:'❤️',n:'REINFORCED VITALS',d:'+20 max HP per level',max:5,cur:'coins',cost:l=>300+l*260},
+    {k:'heal',i:'💊',n:'FIELD STIMS',d:'medkits heal +10 per level',max:4,cur:'coins',cost:l=>250+l*220}]},
+  garage:{t:'🚗 GARAGE',d:'drone & companion tech',rows:[
+    {k:'rate',i:'🛸',n:'DRONE SERVOS',d:'drone fires 10% faster per level',max:4,cur:'scrap',cost:l=>60+l*50},
+    {k:'power',i:'🔩',n:'AP ROUNDS',d:'drone shots +1 damage per level',max:3,cur:'scrap',cost:l=>80+l*70}]},
+  generator:{t:'⚡ GENERATOR',d:'permanent core tree',rows:[
+    {k:'dmg',i:'💪',n:'OVERCHARGE',d:'+5% all damage per level',max:5,cur:'scrap',cost:l=>70+l*60},
+    {k:'spd',i:'👟',n:'SERVO LEGS',d:'+4% move speed per level',max:4,cur:'coins',cost:l=>280+l*240},
+    {k:'xpg',i:'🧠',n:'SCRAP LEARNING',d:'−4% XP needed per level',max:4,cur:'scrap',cost:l=>90+l*80}]},
+};
+function openRoom(key){
+  state.room=key;
+  $('room-title').textContent=ROOMS[key].t;
+  $('room-sub').textContent=ROOMS[key].d;
+  renderRoom(); $('room-ov').classList.add('on');
+}
+function renderRoom(){
+  const key=state.room, cfg=ROOMS[key];
+  $('room-rows').innerHTML=cfg.rows.map(rw=>{
+    const lv=SAVE.rooms[key][rw.k], maxed=lv>=rw.max, cost=rw.cost(lv);
+    return `<div class="skill" style="cursor:default"><span class="ic">${rw.i}</span>
+      <span><b>${rw.n} · ${lv}/${rw.max}</b><span>${rw.d}</span></span>
+      <button class="pricebtn" ${maxed?'disabled':''} onclick="roomUp('${rw.k}')">${maxed?'MAX':fmtN(cost)+' '+(rw.cur==='coins'?'🪙':'⚙️')}</button></div>`;
+  }).join('');
+}
+function roomUp(k){
+  const key=state.room, rw=ROOMS[key].rows.find(r=>r.k===k);
+  const lv=SAVE.rooms[key][k];
+  if(lv>=rw.max) return;
+  if(!spend(rw.cur,rw.cost(lv))) return;
+  SAVE.rooms[key][k]++; save(); renderRoom();
+  toast(`${rw.n} → LV ${lv+1}`);
+}
+
+/* ---------- radio tower missions ---------- */
+const MISSIONS=[
+  {k:'kills',n:'Exterminate 150 infected',goal:150,rl:'600 🪙',give:()=>SAVE.coins+=600},
+  {k:'waves',n:'Clear 15 waves (lifetime)',goal:15,rl:'3 🗝',give:()=>SAVE.keys+=3},
+  {k:'crates',n:'Open 5 supply crates',goal:5,rl:'80 ⚙️',give:()=>SAVE.scrap+=80},
+];
+function openRadio(){ renderRadio(); $('radio-ov').classList.add('on'); }
+function renderRadio(){
+  $('mission-rows').innerHTML=MISSIONS.map((m,i)=>{
+    const p=Math.min(SAVE.stats[m.k],m.goal), done=p>=m.goal, cl=SAVE.mclaimed[m.k];
+    return `<div class="skill" style="cursor:default"><span class="ic">📋</span>
+      <span><b>${m.n}</b><span>${fmtN(p)}/${fmtN(m.goal)} · reward ${m.rl}</span></span>
+      <button class="pricebtn" ${done&&!cl?'':'disabled'} onclick="claimMission(${i})">${cl?'DONE':'CLAIM'}</button></div>`;
+  }).join('');
+}
+function claimMission(i){
+  const m=MISSIONS[i];
+  if(SAVE.mclaimed[m.k]||SAVE.stats[m.k]<m.goal) return;
+  m.give(); SAVE.mclaimed[m.k]=true;
+  save(); renderWallet(); renderRadio(); toast('Mission reward claimed!');
+}
+
+/* ---------- pause ---------- */
+function openPause(){
+  if(!sim) return;
+  $('pause-sub').textContent=`wave ${sim.wave} · ${kills} kills · ${fmtT(sim.t)}`;
+  $('pause-ov').classList.add('on');
+}
+function closePause(){ $('pause-ov').classList.remove('on'); }
+
+/* ---------- run loot banking ---------- */
+function bankLoot(m){
+  const L=state.lastLoot;
+  if(!L){ go('home'); return; }
+  SAVE.coins+=L.coins*m; SAVE.scrap+=L.scrap*m; SAVE.keys+=L.keys*m; SAVE.shards+=L.shards*m;
+  state.lastLoot=null; save(); renderWallet();
+  go('home');
+  toast(`Banked +${fmtN(L.coins*m)} 🪙 · +${L.scrap*m} ⚙️${m>1?' — DOUBLED!':''}`);
+}
+
+
+/* =========================================================
    BATTLE — true top-down canvas game
    Procedural wasteland ground, camera follow, overhead
    characters drawn in code and rotating to face their target.
@@ -588,9 +825,10 @@ let sim=null, raf=null, lastTs=0, kills=0, lvl=1;
 
 function fmtT(s){ s=Math.max(0,Math.round(s)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
 function overlayOpen(){
-  return ['lvl-ov','death-ov','ad-ov'].some(id=>$(id).classList.contains('on'));
+  return ['lvl-ov','death-ov','ad-ov','pause-ov'].some(id=>$(id).classList.contains('on'));
 }
 const rnd=(a,b)=>a+Math.random()*(b-a);
+const xpNeedFor=l=>Math.max(4,Math.round((6+l*2.6)*(1-SAVE.rooms.generator.xpg*.04)));
 
 /* ---------- procedural ground ---------- */
 function makeGround(){
@@ -1169,10 +1407,10 @@ function nearestFoe(maxD){
   sim.foes.forEach(f=>{ const d=Math.hypot(f.x-sim.px,f.y-sim.py); if(d<bd){bd=d;best=f;} });
   return best;
 }
-function fireShot(x,y,f,radium){
+function fireShot(x,y,f,radium,dmgAdd){
   const dx=f.x-x, dy=f.y-y, d=Math.hypot(dx,dy)||1, spd=radium?460:380;
   sim.shots.push({x,y,vx:dx/d*spd,vy:dy/d*spd,life:.8,radium,
-    dmg:Math.round((radium?3:1)*sim.dmgMul*10)/10});
+    dmg:Math.round(((radium?3:1)*sim.dmgMul+(dmgAdd||0))*10)/10});
 }
 function foeHpScale(){ return 1+(sim.wave-1)*.18; }
 function spawnFoe(){
@@ -1430,9 +1668,9 @@ function update(dt){
     p.w.drone.ang+=dt*1.1;
     const tx=p.px+Math.cos(p.w.drone.ang)*80, ty=p.py+Math.sin(p.w.drone.ang)*80;
     p.w.drone.x+=(tx-p.w.drone.x)*4*dt; p.w.drone.y+=(ty-p.w.drone.y)*4*dt;
-    if(p.t-p.w.drone.last>.95*Math.pow(.82,p.w.drone.lv-1)){
+    if(p.t-p.w.drone.last>.95*Math.pow(.82,p.w.drone.lv-1)*Math.pow(.9,SAVE.rooms.garage.rate)){
       const f=nearestFoe(320);
-      if(f){ p.w.drone.last=p.t; fireShot(p.w.drone.x,p.w.drone.y,f,false); } }
+      if(f){ p.w.drone.last=p.t; fireShot(p.w.drone.x,p.w.drone.y,f,false,SAVE.rooms.garage.power); } }
   }
   // orbiting nail bats
   p.orbA+=dt*4.5;
@@ -1494,7 +1732,7 @@ function update(dt){
     if(!g.fly && (d<p.magnetR || p.t-g.born>6)) g.fly=true;
     if(g.fly){
       if(d<14){
-        if(g.kind==='med'){ p.hp=Math.min(p.maxHp,p.hp+25); dmgNum(p.px,p.py-24,'+25',true); }
+        if(g.kind==='med'){ p.hp=Math.min(p.maxHp,p.hp+p.healAmt); dmgNum(p.px,p.py-24,'+'+p.healAmt,true); }
         else p.xp++;
         return false;
       }
@@ -1504,7 +1742,7 @@ function update(dt){
   });
   // level up → draft
   if(!p.dying && p.xp>=p.xpNeed){
-    p.xp-=p.xpNeed; lvl++; p.xpNeed=Math.round(6+lvl*2.6);
+    p.xp-=p.xpNeed; lvl++; p.xpNeed=xpNeedFor(lvl);
     $('lvl').textContent='LV '+lvl;
     showDraft();
   }
@@ -1707,7 +1945,7 @@ function refreshCards(){
      <div class="pips"><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></div></div>`).join('');
 }
 
-/* ---------- run control ---------- *//* ---------- run control ---------- */
+/* ---------- run control ---------- */
 function frame(ts){
   if(!sim) return;
   raf=requestAnimationFrame(frame);
@@ -1716,8 +1954,9 @@ function frame(ts){
   render();
 }
 function startBattle(){
-  if(state.energy<1){ toast('Out of energy — watch an ad or wait'); return; }
-  state.energy--; $('c-energy').textContent=state.energy;
+  regenEnergy();
+  if(SAVE.energy<1){ toast('Out of energy — watch an ad or wait for regen'); return; }
+  SAVE.energy--; SAVE.energyT=Date.now(); save(); renderWallet();
   kills=0; lvl=1;
   $('wslots').innerHTML=''; addChip('🔫'); addChip('🏏');
   $('kills').textContent='0'; $('lvl').textContent='LV 1';
@@ -1734,8 +1973,11 @@ function startBattle(){
        foes:[],shots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
-       radium:false,dmgMul:1,spdMul:1,magnetR:110,dmgLv:0,bootLv:0,hpLv:0,magLv:0,
-       hp:100,maxHp:100,xp:0,xpNeed:8,revives:0,
+       radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+armoryDmgBonus(),
+       spdMul:1+SAVE.rooms.generator.spd*.04,magnetR:110,dmgLv:0,bootLv:0,hpLv:0,magLv:0,
+       hp:100+SAVE.rooms.medbay.hp*20,maxHp:100+SAVE.rooms.medbay.hp*20,
+       healAmt:25+SAVE.rooms.medbay.heal*10,
+       xp:0,xpNeed:xpNeedFor(1),revives:0,
        wave:0,toSpawn:0,spawnGap:.6,breakT:0,
        lastSpawn:0,lastDust:0,lastTick2:0,ultCd:0,flashT:0,draftOpts:[]};
   refreshCards();
@@ -1748,13 +1990,21 @@ function startBattle(){
 function endRun(won){
   cancelAnimationFrame(raf);
   $('bossbar').style.display='none';
-  ['lvl-ov','death-ov'].forEach(id=>$(id).classList.remove('on'));
+  ['lvl-ov','death-ov','pause-ov'].forEach(id=>$(id).classList.remove('on'));
   $('s-battle').classList.remove('low');
   $('res-title').textContent = won ? 'VICTORY' : 'RUN OVER';
   $('res-title').style.color = won ? 'var(--gold)' : 'var(--red)';
   $('res-sub').textContent = won
     ? `all ${WAVES} waves cleared · ${kills} kills · ${fmtT(sim?sim.t:0)}`
     : `fell on wave ${sim?sim.wave:0} · ${kills} kills · ${fmtT(sim?sim.t:0)}`;
+  const w=sim?sim.wave:0;
+  state.lastLoot={coins:40*w+kills*2, scrap:8*w+Math.floor(kills/3),
+    keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0)};
+  $('loot-coins').textContent=fmtN(state.lastLoot.coins);
+  $('loot-scrap').textContent=fmtN(state.lastLoot.scrap);
+  $('loot-keys').textContent='×'+state.lastLoot.keys;
+  $('loot-shards').textContent='×'+state.lastLoot.shards;
+  SAVE.stats.kills+=kills; SAVE.stats.waves+=w; save();
   sim=null;
   go('results');
 }
@@ -1768,6 +2018,7 @@ window.__test = {
   clearWave:()=>{ if(!sim) return; sim.toSpawn=0;
     [...sim.foes].forEach(f=>hitFoe(f,99999,false)); sim.foes=sim.foes.filter(f=>!f.dead); },
   wave:n=>{ if(!sim) return; sim.wave=n-1; sim.toSpawn=0; sim.foes.length=0; sim.breakT=sim.t; },
+  grant:o=>{ for(const k in o) SAVE[k]=(SAVE[k]||0)+o[k]; save(); renderWallet(); },
   swarm:()=>{ if(!sim) return; for(let i=0;i<8;i++){ spawnFoe();
     const f=sim.foes[sim.foes.length-1];
     f.x=sim.px+rnd(-30,30); f.y=sim.py+rnd(-30,30); f.hp=999; f.maxHp=999; } },
@@ -1805,8 +2056,17 @@ battleEl.addEventListener('pointerup',joyEnd);
 battleEl.addEventListener('pointercancel',joyEnd);
 
 /* ---------- fake rewarded ad ---------- */
+function grantAd(r){
+  if(r==='revive') afterRevive();
+  else if(r==='claim2x') bankLoot(2);
+  else if(r==='energy'){ SAVE.energy=Math.min(5,SAVE.energy+1); SAVE.energyT=Date.now();
+    save(); renderWallet(); toast('+1 ⚡ energy'); }
+  else if(r==='crate') freeCrate();
+  else if(r==='reroll'){ showDraft(); toast('Choices rerolled'); }
+}
 function adFlow(reason){
   state.adReason = reason;
+  if(SAVE.noads){ grantAd(reason); return; }        // Remove Ads: instant payout
   $('lvl-ov').classList.remove('on');
   $('ad-ov').classList.add('on');
   let n=5; $('ad-count').textContent=n;
@@ -1814,18 +2074,14 @@ function adFlow(reason){
     n--; $('ad-count').textContent=n;
     if(n<=0){
       clearInterval(iv); $('ad-ov').classList.remove('on');
-      const r=state.adReason;
-      if(r==='revive') afterRevive();
-      else if(r==='claim2x'){ go('home'); toast('Rewards doubled! +2,480 🪙'); }
-      else if(r==='energy'){ state.energy=Math.min(5,state.energy+1); $('c-energy').textContent=state.energy; toast('+1 ⚡ energy'); }
-      else if(r==='crate'){ showReveal('📦','RUNNER BOOTS','★ RARE ★','var(--blue)'); }
-      else if(r==='reroll'){ showDraft(); toast('Choices rerolled'); }
+      grantAd(state.adReason);
     }
   },700);
 }
 
 /* ---------- interstitial ---------- */
 function claimPlain(){
+  if(SAVE.noads){ bankLoot(1); return; }
   $('int-ov').classList.add('on');
   $('int-x').classList.remove('ok');
   setTimeout(()=>$('int-x').classList.add('ok'),2000);
@@ -1833,13 +2089,24 @@ function claimPlain(){
 function closeInterstitial(){
   if(!$('int-x').classList.contains('ok')) return;
   $('int-ov').classList.remove('on');
-  go('home'); toast('Rewards claimed +1,240 🪙');
+  bankLoot(1);
 }
 
 /* ---------- workshop ---------- */
 function openCrate(kind){
-  if(kind==='rusty') showReveal('🧤','RAG GLOVES','★ COMMON ★','#9aa');
-  else showReveal('🔭','TARGETING SCOPE','★ EPIC ★','var(--purple)');
+  if(kind==='rusty'){
+    if(!spend('coins',500)) return;
+    finishCrate(1,crateReward('rusty'));
+  }else if(kind==='cache'){
+    if(!spendCache(1,300)) return;
+    finishCrate(1,crateReward('cache'));
+  }else{
+    if(!spendCache(9,2700)) return;
+    let best=null;
+    for(let i=0;i<10;i++){ const rw=crateReward('cache'); if(!best||rw.r>best.r) best=rw; }
+    toast('10 crates opened — showing the best pull');
+    finishCrate(10,best);
+  }
 }
 function showReveal(icon,name,r,color){
   go('crates');
@@ -1851,13 +2118,20 @@ function showReveal(icon,name,r,color){
 }
 
 /* ---------- shop ---------- */
-function buy(item,price){
-  $('sheet-item').textContent=item; $('sheet-price').textContent=price;
+function buy(id){
+  const s=SKUS[id]; if(!s) return;
+  if(s.once&&SAVE[s.once]){ toast('Already owned'); return; }
+  state.sku=id;
+  $('sheet-item').textContent=s.n; $('sheet-price').textContent=s.p;
   $('sheet').classList.add('on');
 }
 function confirmBuy(){
   $('sheet').classList.remove('on');
-  toast('Purchase simulated — '+$('sheet-item').textContent);
+  const s=SKUS[state.sku]; if(!s) return;
+  if(s.apply) s.apply();
+  if(s.once) SAVE[s.once]=true;
+  save(); renderWallet(); renderShop();
+  toast('Purchased (simulated) — '+s.n);
 }
 
 /* ---------- barracks: character design picker ---------- */
@@ -1870,36 +2144,42 @@ function renderPreview(cv2,key,scale){
   drawRigAt.noBlink=false;
 }
 function buildBarracks(){
-  $('dgrid').innerHTML = RIG_ORDER.map(k=>
-    `<button class="wcard${k===state.design?' sel':''}" id="d-${k}" onclick="pickDesign('${k}')">
+  $('dgrid').innerHTML = RIG_ORDER.map(k=>{
+    const locked = k==='plague' && !SAVE.plague;
+    return `<button class="wcard${k===state.design?' sel':''}${locked?' locked':''}" id="d-${k}" onclick="pickDesign('${k}')">
        <canvas width="96" height="116"></canvas>
-       <b>${RIGS[k].name}</b><span>${RIGS[k].desc}</span>
-       <div class="lv">${k===state.design?'equipped':'&nbsp;'}</div>
-     </button>`).join('');
+       <b>${RIGS[k].name}${locked?' 🔒':''}</b><span>${RIGS[k].desc}</span>
+       <div class="lv"${locked?' style="color:var(--dim)"':''}>${locked?SAVE.shards+'/80 🧩 to unlock':(k===state.design?'equipped':'&nbsp;')}</div>
+     </button>`;
+  }).join('');
   RIG_ORDER.forEach(k=>renderPreview($('d-'+k).querySelector('canvas'),k,2.2));
 }
 function pickDesign(k){
-  state.design=k;
-  document.querySelectorAll('#dgrid .wcard').forEach(w=>{
-    w.classList.remove('sel'); w.querySelector('.lv').innerHTML='&nbsp;'; });
-  $('d-'+k).classList.add('sel');
-  $('d-'+k).querySelector('.lv').textContent='equipped';
+  if(k==='plague'&&!SAVE.plague){
+    if(SAVE.shards>=80){
+      SAVE.shards-=80; SAVE.plague=true; save(); renderWallet();
+      toast('☣ PLAGUE unlocked!');
+    }else{
+      toast(`Collect 80 🧩 to unlock — ${SAVE.shards}/80 (shards drop from Warden Caches)`);
+      return;
+    }
+  }
+  state.design=k; SAVE.design=k; save();
+  buildBarracks();
   $('home-name').textContent=RIGS[k].name;
   $('home-class').textContent=RIGS[k].desc+' · Lv 14';
   renderPreview($('home-prev'),k,1.55);
   renderPreview($('gear-prev'),k,4.4);
   toast(RIGS[k].name+' equipped');
 }
+state.design = RIGS[SAVE.design] ? SAVE.design : 'drifter';
 buildBarracks();
-renderPreview($('home-prev'),'drifter',1.55);
-renderPreview($('gear-prev'),'drifter',4.4);
-
-/* ---------- armory ---------- */
-function selItem(el,name){
-  document.querySelectorAll('.item').forEach(i=>i.classList.remove('sel'));
-  el.classList.add('sel');
-  $('sel-name').textContent=name;
-}
+renderPreview($('home-prev'),state.design,1.55);
+renderPreview($('gear-prev'),state.design,4.4);
+$('home-name').textContent=RIGS[state.design].name;
+$('home-class').textContent=RIGS[state.design].desc+' · Lv 14';
+renderWallet(); renderShop(); renderArmory(); renderPity();
+setInterval(()=>{ regenEnergy(); renderWallet(); },5000);
 
 /* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
 if(location.search.includes('sheet')){
