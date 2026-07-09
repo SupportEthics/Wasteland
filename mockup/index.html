@@ -186,6 +186,15 @@
   #matshop .pricebtn{padding:6px 2px}
   #matshop .pricebtn small{display:block;font-size:8.5px;opacity:.8}
   #matshop canvas{width:14px;height:14px;vertical-align:-2px}
+  #draft-timer{position:relative;width:100%;max-width:340px;height:20px;margin:0 auto 10px;
+    background:#000a;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  #draft-timer i{position:absolute;left:0;top:0;bottom:0;width:100%;
+    background:linear-gradient(90deg,#5f8f1f,#9ad23f);opacity:.35;transition:width .1s linear}
+  #draft-timer span{position:relative;display:block;text-align:center;font-size:10px;
+    line-height:18px;color:var(--dim);letter-spacing:1px}
+  #draft .skill.auto{box-shadow:0 0 0 1px #9ad23f55, 0 0 14px #9ad23f22}
+  #draft .skill.ascc{border-color:var(--gold);box-shadow:0 0 14px #eebb5533}
+  .new.gold{background:var(--gold);color:#14100c}
   /* DEV MODE badge — remove with the DEV block before release */
   #dev-badge{position:absolute;left:-26px;top:14px;z-index:30;transform:rotate(-45deg);
     background:#c94f3a;color:#fff;font-size:9px;font-weight:bold;letter-spacing:3px;
@@ -418,6 +427,7 @@
     <div class="overlay" id="lvl-ov">
       <div class="ov-title" style="color:var(--green)">LEVEL UP!</div>
       <div class="ov-sub">choose 1 of 3 — you move, the weapons do the work</div>
+      <div id="draft-timer"><i id="draft-bar"></i><span>auto-picks the top perk in <b id="draft-count">5</b>s</span></div>
       <div id="draft"></div>
       <button class="btn grey" style="margin-top:6px" onclick="adFlow('reroll')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> REROLL CHOICES <span class="tag ad">AD</span></button>
     </div>
@@ -974,7 +984,58 @@ function closePause(){ $('pause-ov').classList.remove('on'); }
    ICONS: hand-drawn weapon & equipment art (no more emoji)
    Each draws in a ~30-unit box centred on 0,0.
    ========================================================= */
+function ascHalo(c){                                   // gold ring = ascended tier
+  c.fillStyle='rgba(238,187,85,.16)'; c.beginPath(); c.arc(0,0,14.5,0,7); c.fill();
+  c.strokeStyle='#eebb55'; c.lineWidth=1.6;
+  for(let i=0;i<8;i++){ const a=i*Math.PI/4+.4;
+    c.beginPath(); c.moveTo(Math.cos(a)*12.2,Math.sin(a)*12.2);
+    c.lineTo(Math.cos(a)*14.4,Math.sin(a)*14.4); c.stroke(); }
+  c.fillStyle='#eebb55';
+  c.beginPath(); c.moveTo(0,-17.5); c.lineTo(-3.2,-13); c.lineTo(3.2,-13); c.closePath(); c.fill();
+}
 const ICONS={
+  agun(c){ ascHalo(c); c.save(); c.scale(.72,.72); ICONS.pistol(c); c.restore();
+    c.fillStyle='#e0692c'; c.beginPath();
+    c.moveTo(9.5,-4.5); c.quadraticCurveTo(13.5,-6.5,12,-1.5); c.quadraticCurveTo(10,-.5,9.5,-4.5);
+    c.closePath(); c.fill();
+    c.fillStyle='#ffd76a'; c.beginPath(); c.arc(10.6,-3.4,1.1,0,7); c.fill(); },
+  acyclone(c){ ascHalo(c);
+    c.strokeStyle='#a06b34'; c.lineWidth=2.6; c.lineCap='round';
+    c.beginPath(); c.arc(0,0,8.5,.3,2.4); c.stroke();
+    c.beginPath(); c.arc(0,0,8.5,Math.PI+.3,Math.PI+2.4); c.stroke();
+    c.strokeStyle='#7d5226'; c.lineWidth=2;
+    c.beginPath(); c.arc(0,0,4.6,1.3,3.6); c.stroke();
+    c.beginPath(); c.arc(0,0,4.6,Math.PI+1.3,Math.PI+3.6); c.stroke();
+    dot(c,8.2,-2.6,1.6,'#e4e7ee'); dot(c,-8.2,2.6,1.6,'#e4e7ee'); dot(c,0,0,1.4,'#e4e7ee'); },
+  anapalm(c){ ascHalo(c);
+    c.fillStyle='#e0692c'; c.beginPath();
+    c.moveTo(0,-10.5); c.quadraticCurveTo(7.5,-4,5,3); c.quadraticCurveTo(9,4,6,8.5);
+    c.quadraticCurveTo(0,11.5,-6,8.5); c.quadraticCurveTo(-9,4,-5,3);
+    c.quadraticCurveTo(-7.5,-4,0,-10.5); c.closePath(); c.fill(); O(c,1.6);
+    c.fillStyle='#ffd76a'; c.beginPath();
+    c.moveTo(0,-5.5); c.quadraticCurveTo(3.6,-.5,1.8,4); c.quadraticCurveTo(0,6.5,-1.8,4);
+    c.quadraticCurveTo(-3.6,-.5,0,-5.5); c.closePath(); c.fill();
+    c.fillStyle='#fff2c0'; c.beginPath(); c.ellipse(0,4.5,1.6,2.6,0,0,7); c.fill(); },
+  aswarm(c){ ascHalo(c);
+    c.save(); c.translate(-4.5,2); c.scale(.5,.5); ICONS.drone(c); c.restore();
+    c.save(); c.translate(5.5,-4); c.scale(.5,.5); ICONS.drone(c); c.restore(); },
+  aoverload(c){ ascHalo(c); c.save(); c.scale(.74,.74); ICONS.shock(c); c.restore();
+    c.strokeStyle='#7fd0ff'; c.lineWidth=1.4;
+    c.beginPath(); c.arc(0,0,10.5,.6,1.8); c.stroke();
+    c.beginPath(); c.arc(0,0,10.5,Math.PI+.6,Math.PI+1.8); c.stroke(); },
+  aserum(c){ ascHalo(c); c.save(); c.scale(.72,.72); ICONS.adren(c); c.restore();
+    c.fillStyle='#c94f3a'; c.beginPath(); c.arc(-8,7.5,3,0,7); c.fill(); O(c,1.3);
+    c.fillStyle='#fff'; c.fillRect(-9.4,7,2.8,1.1); c.fillRect(-8.6,6.2,1.1,2.8); },
+  ajets(c){ ascHalo(c); c.save(); c.scale(.72,.72); c.translate(1,0); ICONS.boots(c); c.restore();
+    c.strokeStyle='#7fd0ff'; c.lineWidth=1.8; c.lineCap='round';
+    [[-11,-1],[-12,3],[-10,7]].forEach(([x,y])=>{ c.beginPath(); c.moveTo(x,y); c.lineTo(x+4.5,y); c.stroke(); }); },
+  abunker(c){ ascHalo(c); c.save(); c.scale(.74,.74); ICONS.plate(c); c.restore();
+    c.strokeStyle='#eebb55'; c.lineWidth=1.6;
+    c.beginPath(); c.moveTo(-3.6,.5); c.lineTo(-1,3); c.lineTo(4,-2.6); c.stroke(); },
+  avortex(c){ ascHalo(c); c.save(); c.scale(.7,.7); c.translate(0,-1); ICONS.magnet(c); c.restore();
+    c.strokeStyle='#c9ccd4'; c.lineWidth=1.3;
+    c.beginPath(); c.arc(0,2,10,2.6,4.2); c.stroke();
+    c.beginPath(); c.arc(0,2,10,5.8,7.2); c.stroke(); },
   pistol(c){ c.save(); c.rotate(-.15);
     c.fillStyle='#4a4a55'; c.beginPath(); c.roundRect(-11,-6,19,7.5,2.5); c.fill(); O(c,1.8);
     c.fillStyle='rgba(255,255,255,.18)'; c.fillRect(-9.5,-5,15,2);
@@ -2516,6 +2577,11 @@ function hitFoe(f,dmg,big){
     dropPickups(f);
   }
 }
+function swapChip(oldIc,newIc){        // ascend an existing HUD chip in place
+  const cv=oldIc&&$('wslots').querySelector(`canvas[data-ic="${oldIc}"]`);
+  if(cv){ cv.dataset.ic=newIc; paintIcon(cv,newIc); cv.parentElement.classList.add('evo'); }
+  else addChip(newIc,false);
+}
 function addChip(ic,evo){
   const c=document.createElement('div');
   c.className='wchip'+(evo?' evo':'');
@@ -2526,11 +2592,34 @@ function addChip(ic,evo){
   else $('wslots').appendChild(c);
 }
 
+/* ---------- ascensions: rare post-max upgrades ---------- */
+const ASCENSIONS={
+  a_gun:{ic:'agun',t:()=>`${sim.gun.n.toUpperCase()} OVERDRIVE`,d:'+30% damage · +40% fire rate — pushed past the limit',
+    ok:()=>sim.w.pistol.lv>=4&&!sim.radium},
+  a_bat:{ic:'acyclone',t:()=>'SCRAP CYCLONE',d:'nail bats ascend: +2 bats, wider orbit, double damage',
+    ok:()=>sim.w.orbit.lv>=3},
+  a_molotov:{ic:'anapalm',t:()=>'NAPALM STORM',d:'two bottles per throw and the fire burns far longer',
+    ok:()=>sim.w.molotov.lv>=4},
+  a_drone:{ic:'aswarm',t:()=>'WAR DRONE SWARM',d:'a second war drone joins the fight',
+    ok:()=>sim.w.drone.lv>=4},
+  a_shock:{ic:'aoverload',t:()=>'SHOCK OVERLOAD',d:'far bigger pulse at double damage',
+    ok:()=>sim.w.shock.lv>=4},
+  a_dmg:{ic:'aserum',t:()=>'BERSERKER SERUM',d:'+35% all damage',ok:()=>sim.dmgLv>=4},
+  a_boots:{ic:'ajets',t:()=>'SERVO SPRINTERS',d:'+20% move speed',ok:()=>sim.bootLv>=3},
+  a_plate:{ic:'abunker',t:()=>'JUGGERNAUT PLATING',d:'+60 max HP and a 60 HP heal',ok:()=>sim.hpLv>=3},
+  a_magnet:{ic:'avortex',t:()=>'SALVAGE VORTEX',d:'+80% pickup radius',ok:()=>sim.magLv>=3},
+};
+
 /* ---------- level-up drafts (real choices with real effects) ---------- */
 function draftOptions(){
   const W=sim.w, out=[];
   if(W.pistol.lv>=3&&W.scope&&!sim.radium&&sim.gun.id==='pistol')
     out.push({id:'evolve',ic:'radium',n:'RADIUM BLASTER',d:'Scrap Pistol + Scope merge · irradiated shells, +200% damage',evo:1});
+  const elig=Object.entries(ASCENSIONS).filter(([k,a])=>!sim.asc[k]&&a.ok());
+  if(elig.length&&Math.random()<.35){                      // rare: maxed perks can ascend
+    const [k,a]=elig[Math.floor(Math.random()*elig.length)];
+    out.push({id:k,ic:a.ic,n:a.t(),d:a.d,asc:1});
+  }
   const c=[];
   if(!W.molotov.lv) c.push({id:'molotov',ic:'molotov',n:'MOLOTOV',d:'Throws burning zones onto the ground',nw:1});
   else if(W.molotov.lv<4) c.push({id:'molotov',ic:'molotov',n:`MOLOTOV LV ${W.molotov.lv+1}`,d:'Throws faster'});
@@ -2552,13 +2641,30 @@ function draftOptions(){
 function showDraft(){
   sim.draftOpts=draftOptions();
   $('draft').innerHTML=sim.draftOpts.map((o,i)=>
-    `<button class="skill${o.evo?' evoc':''}" onclick="pickDraft(${i})"><canvas class="icv" width="64" height="64" data-ic="${o.ic}"></canvas><span><b>${o.n}</b><span>${o.d}</span></span>${o.nw?'<span class="new">NEW</span>':(o.evo?'<span class="new">EVOLVE</span>':'')}</button>`).join('');
+    `<button class="skill${o.evo?' evoc':''}${o.asc?' ascc':''}${i===0?' auto':''}" onclick="pickDraft(${i})"><canvas class="icv" width="64" height="64" data-ic="${o.ic}"></canvas><span><b>${o.n}</b><span>${o.d}</span></span>${o.asc?'<span class="new gold">ASCEND</span>':(o.nw?'<span class="new">NEW</span>':(o.evo?'<span class="new">EVOLVE</span>':''))}</button>`).join('');
   paintAll($('draft'));
   sfx('lvl');
   $('lvl-ov').classList.add('on');
+  startDraftTimer();
 }
+/* 5s auto-pick: keeps the run flowing if the player doesn't choose */
+const DRAFT_AUTO_MS=5000;
+let draftT=null;
+function startDraftTimer(){
+  stopDraftTimer();
+  const end=performance.now()+DRAFT_AUTO_MS;
+  draftT=setInterval(()=>{
+    const left=end-performance.now();
+    $('draft-bar').style.width=Math.max(0,left/DRAFT_AUTO_MS*100)+'%';
+    $('draft-count').textContent=Math.max(1,Math.ceil(left/1000));
+    if(left<=0){ stopDraftTimer(); pickDraft(0); }   // top card first — evolutions sit on top
+  },100);
+}
+function stopDraftTimer(){ if(draftT){ clearInterval(draftT); draftT=null; } }
 function pickDraft(i){
-  const o=sim.draftOpts[i]; if(!o) return;
+  if(!$('lvl-ov').classList.contains('on')) return;   // already resolved (auto-pick vs tap race)
+  stopDraftTimer();
+  const o=sim&&sim.draftOpts[i]; if(!o) return;
   applyDraft(o.id); sfx('pick');
   $('lvl-ov').classList.remove('on');
   sim.rings.push({x:sim.px,y:sim.py,r:14,max:120,col:o.evo?'#86c232':'#ffffff',age:0});
@@ -2573,6 +2679,19 @@ function applyDraft(id){
   else if(id==='shock'){ if(!W.shock.lv) addChip('shock'); W.shock.lv++; }
   else if(id==='pistol') W.pistol.lv++;
   else if(id==='dual'){ sim.dual=true; addChip('dual'); toast('DUAL WIELD — two guns'); }
+  else if(ASCENSIONS[id]){
+    sim.asc[id]=1; const A=ASCENSIONS[id];
+    if(id==='a_gun'){ sim.gun.dmg*=1.3; sim.gun.cd*=.7; }
+    else if(id==='a_dmg') sim.dmgMul*=1.35;
+    else if(id==='a_boots') sim.spdMul*=1.2;
+    else if(id==='a_plate'){ sim.maxHp+=60; sim.hp=Math.min(sim.maxHp,sim.hp+60); }
+    else if(id==='a_magnet') sim.magnetR*=1.8;
+    const BASE={a_gun:sim.gun.ic,a_bat:'bat',a_molotov:'molotov',a_drone:'drone',a_shock:'shock'};
+    swapChip(BASE[id],A.ic); sfx('evolve');
+    sim.rings.push({x:sim.px,y:sim.py,r:16,max:200,col:'#eebb55',age:0});
+    addP(sim.px,sim.py,'#eebb55',24,190);
+    toast(`${A.t()} — ASCENDED`);
+  }
   else if(id==='orbit') W.orbit.lv++;
   else if(id==='scope'){ W.scope=1; addChip('scope'); }
   else if(id==='dmg'){ sim.dmgLv++; sim.dmgMul*=1.2; }
@@ -2764,24 +2883,28 @@ function update(dt){
     if(p.t-p.w.drone.last>.95*Math.pow(.82,p.w.drone.lv-1)*Math.pow(.9,SAVE.rooms.garage.rate)){
       const f=nearestFoe(320);
       if(f){ p.w.drone.last=p.t; fireShot(p.w.drone.x,p.w.drone.y,f,false,SAVE.rooms.garage.power,true); } }
+    if(p.asc.a_drone && p.t-(p.w.drone.last2||0)>.95*Math.pow(.82,p.w.drone.lv-1)*Math.pow(.9,SAVE.rooms.garage.rate)){
+      const f2=nearestFoe(320);
+      if(f2){ p.w.drone.last2=p.t;
+        fireShot(2*p.px-p.w.drone.x,2*p.py-p.w.drone.y,f2,false,SAVE.rooms.garage.power,true); } }
   }
   // orbiting nail bats
-  p.orbA+=dt*4.5;
-  const nb=p.w.orbit.lv+1;
+  p.orbA+=dt*(p.asc.a_bat?6.2:4.5);
+  const nb=p.w.orbit.lv+1+(p.asc.a_bat?2:0), orbR=p.asc.a_bat?72:52;
   for(let b=0;b<nb;b++){
     const ba=p.orbA+b*Math.PI*2/nb;
-    const bx=p.px+Math.cos(ba)*52, by=p.py+Math.sin(ba)*52;
+    const bx=p.px+Math.cos(ba)*orbR, by=p.py+Math.sin(ba)*orbR;
     if(!p.dying) p.foes.forEach(f=>{
       if(f.hitCd<=0 && Math.hypot(f.x-bx,f.y-by)<f.r+14){
-        f.hitCd=.4; hitFoe(f,Math.round(1*p.dmgMul*10)/10); } });
+        f.hitCd=.4; hitFoe(f,Math.round((p.asc.a_bat?2:1)*p.dmgMul*10)/10); } });
   }
   // shock field
   if(p.w.shock.lv && !p.dying && p.t-p.w.shock.last>4.2-.5*p.w.shock.lv){
     p.w.shock.last=p.t;
-    const rr=120+18*p.w.shock.lv;
+    const rr=120+18*p.w.shock.lv+(p.asc.a_shock?60:0);
     p.rings.push({x:p.px,y:p.py,r:16,max:rr+10,col:'#7fd0ff',age:0});
     p.shake=Math.max(p.shake,.15);
-    [...p.foes].forEach(f=>{ if(Math.hypot(f.x-p.px,f.y-p.py)<rr+10) hitFoe(f,Math.round(2*p.dmgMul)); });
+    [...p.foes].forEach(f=>{ if(Math.hypot(f.x-p.px,f.y-p.py)<rr+10) hitFoe(f,Math.round((p.asc.a_shock?4:2)*p.dmgMul)); });
   }
   // molotov
   if(p.w.molotov.lv && !p.dying && p.t-p.w.molotov.last>5.2-.7*p.w.molotov.lv){
@@ -2789,10 +2912,13 @@ function update(dt){
     const f=p.foes[Math.floor(rnd(0,p.foes.length))];
     const zx=f?f.x:p.px+rnd(-120,120), zy=f?f.y:p.py+rnd(-120,120);
     p.molos.push({x0:p.px,y0:p.py,x1:zx,y1:zy,age:0});
+    if(p.asc.a_molotov){ const f2=p.foes[Math.floor(rnd(0,p.foes.length))];
+      p.molos.push({x0:p.px,y0:p.py,x1:f2?f2.x+rnd(-26,26):zx+rnd(-80,80),
+        y1:f2?f2.y+rnd(-18,18):zy+rnd(-60,60),age:0}); }
   }
   p.molos=p.molos.filter(m=>{
     m.age+=dt;
-    if(m.age>=.5){ p.zones.push({x:m.x1,y:m.y1,kind:'fire',until:p.t+3,lastTick:0});
+    if(m.age>=.5){ p.zones.push({x:m.x1,y:m.y1,kind:'fire',until:p.t+(p.asc.a_molotov?4.5:3),lastTick:0});
       addP(m.x1,m.y1,'#e0692c',10,120); return false; }
     return true;
   });
@@ -2970,6 +3096,8 @@ function render(){
                 ctx.globalAlpha=1; if(dyingSave) ctx.restore();
               }}];
   if(p.w.drone.lv) ents.push({y:p.w.drone.y+900,d:()=>drawDrone(p.w.drone)}); // drone flies above all
+  if(p.w.drone.lv&&p.asc.a_drone) ents.push({y:p.w.drone.y+901,
+    d:()=>drawDrone({x:2*p.px-p.w.drone.x,y:2*p.py-p.w.drone.y,ang:p.w.drone.ang+Math.PI})});
   p.deaths.forEach(g=>ents.push({y:g.y-1,d:()=>{                 // topple + fade ghosts
     const prog=Math.min(1,g.age/.45);
     ctx.save(); ctx.translate(g.x,g.y); ctx.rotate(prog*1.25*Math.sign(g.vx||1));
@@ -2978,10 +3106,10 @@ function render(){
   }}));
   ents.sort((a,b)=>a.y-b.y).forEach(e=>e.d());
   // orbiting bats above bodies
-  const nb=p.w.orbit.lv+1;
+  const nb=p.w.orbit.lv+1+(p.asc.a_bat?2:0), orbR=p.asc.a_bat?72:52;
   for(let b=0;b<nb;b++){
     const ba=p.orbA+b*Math.PI*2/nb;
-    drawBat(p.px+Math.cos(ba)*52, p.py+Math.sin(ba)*52, ba+p.t*9);
+    drawBat(p.px+Math.cos(ba)*orbR, p.py+Math.sin(ba)*orbR, ba+p.t*9);
   }
   // boss HP bar (drains over the scripted fight)
   const boss=p.foes.find(f=>f.boss);
@@ -3077,12 +3205,12 @@ function refreshCards(){
   if(!sim) return;
   const W=sim.w;
   const slots=[
-    {ic:sim.radium?'radium':sim.gun.ic, t:sim.radium?'RADIUM':sim.gun.n.toUpperCase(), lv:sim.radium?4:W.pistol.lv},
-    {ic:'bat', t:'NAIL BAT', lv:W.orbit.lv},
+    {ic:sim.radium?'radium':(sim.asc.a_gun?'agun':sim.gun.ic), t:sim.radium?'RADIUM':sim.gun.n.toUpperCase(), lv:sim.radium?4:W.pistol.lv},
+    {ic:sim.asc.a_bat?'acyclone':'bat', t:'NAIL BAT', lv:W.orbit.lv},
   ];
-  if(W.molotov.lv) slots.push({ic:'molotov',t:'MOLOTOV',lv:W.molotov.lv});
-  if(W.drone.lv) slots.push({ic:'drone',t:'DRONE',lv:W.drone.lv});
-  if(W.shock.lv) slots.push({ic:'shock',t:'SHOCK',lv:W.shock.lv});
+  if(W.molotov.lv) slots.push({ic:sim.asc.a_molotov?'anapalm':'molotov',t:'MOLOTOV',lv:W.molotov.lv});
+  if(W.drone.lv) slots.push({ic:sim.asc.a_drone?'aswarm':'drone',t:'DRONE',lv:W.drone.lv});
+  if(W.shock.lv) slots.push({ic:sim.asc.a_shock?'aoverload':'shock',t:'SHOCK',lv:W.shock.lv});
   while(slots.length<4) slots.push(null);
   $('wcards').innerHTML=slots.slice(0,4).map(sl=>sl?
     `<div class="wc${sl.lv>1?' on':''}"><div class="t">LV ${sl.lv}</div><div class="i"><canvas width="48" height="48" data-ic="${sl.ic}"></canvas></div>
@@ -3122,7 +3250,7 @@ function startBattle(){
        foes:[],shots:[],eshots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
-       gun:{...equippedDef()},dual:false,mats:{parts:0,cores:0},wDrops:[],
+       gun:{...equippedDef()},dual:false,asc:{},mats:{parts:0,cores:0},wDrops:[],
        radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+GS.dmg/100,
        spdMul:1+SAVE.rooms.generator.spd*.04+GS.spd/100,
        rateMul:1+GS.rate/100,
@@ -3142,6 +3270,7 @@ function startBattle(){
 }
 function endRun(won){
   cancelAnimationFrame(raf);
+  stopDraftTimer();
   $('bossbar').style.display='none';
   ['lvl-ov','death-ov','pause-ov'].forEach(id=>$(id).classList.remove('on'));
   $('s-battle').classList.remove('low');
