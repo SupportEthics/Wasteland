@@ -290,6 +290,8 @@
   .item.sel{outline:2px solid var(--rust2)}
   #gear-panel{display:flex;gap:8px}
   #gear-panel .btn{padding:10px 6px;font-size:12px}
+  #weap-panel .btn{padding:10px 6px;font-size:12px}
+  .item .lvb{position:absolute;left:3px;top:2px;font-size:9px;color:var(--gold);font-weight:bold}
 
   /* workshop */
   .crate{display:flex;gap:12px;align-items:center;margin-bottom:10px}
@@ -487,8 +489,9 @@
         <button class="btn rust" onclick="armUpgrade()">UPGRADE<small id="upg-cost">—</small></button>
         <button class="btn grey" onclick="armMerge()">MERGE 3→1<small id="merge-hint">—</small></button>
       </div>
-      <div id="weap-panel" style="display:none">
+      <div id="weap-panel" style="display:none;gap:8px">
         <button class="btn green" id="equip-btn" onclick="equipSel()">EQUIP</button>
+        <button class="btn rust" id="wupg-btn" onclick="weapUpgrade()">UPGRADE<small id="wupg-cost">—</small></button>
       </div>
       <div class="card" id="arm-bonus" style="margin-top:8px;font-size:11px;color:var(--dim)">—</div>
     </div>
@@ -702,7 +705,7 @@ const DEFAULT_SAVE={
   plague:false, noads:false, starter:false, pass:false, freeDay:'',
   rooms:{medbay:{hp:0,heal:0},garage:{rate:0,power:0},generator:{dmg:0,spd:0,xpg:0}},
   stats:{kills:0,waves:0,crates:0}, mclaimed:{},
-  mats:{parts:0,cores:0}, weapons:['pistol'], equip:'pistol',
+  mats:{parts:0,cores:0}, weapons:['pistol'], equip:'pistol', weaponLv:{},
   items:[
     {ic:'radium',n:'Radium Blaster',r:3,cnt:1,lv:6},
     {ic:'duster',n:'Spiked Duster',r:2,cnt:1,lv:3},
@@ -724,6 +727,7 @@ function loadSave(){
   if(!SAVE.mats) SAVE.mats={parts:0,cores:0};
   if(!SAVE.weapons) SAVE.weapons=['pistol'];
   if(!SAVE.equip) SAVE.equip='pistol';
+  if(!SAVE.weaponLv) SAVE.weaponLv={};
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -862,19 +866,22 @@ function renderArmory(){
   paintAll(inv);
   const wa=$('warms');
   if(wa){ wa.innerHTML=SAVE.weapons.map(id=>{ const d=WEAPON_DEFS[id];
-      return `<div class="item r-${'crel'[d.r]}${state.selW===id?' sel':''}" onclick="selWeap('${id}')"><canvas width="60" height="60" data-ic="${d.ic}"></canvas>${SAVE.equip===id?'<span class="n" style="color:var(--green)">EQ</span>':''}</div>`;
+      return `<div class="item r-${'crel'[d.r]}${state.selW===id?' sel':''}" onclick="selWeap('${id}')"><span class="lvb">Lv${wLv(id)}</span><canvas width="60" height="60" data-ic="${d.ic}"></canvas>${SAVE.equip===id?'<span class="n" style="color:var(--green)">EQ</span>':''}</div>`;
     }).join('');
     paintAll(wa); }
   const sw=$('slot-weap');
   if(sw){ sw.dataset.ic=equippedDef().ic; paintIcon(sw,equippedDef().ic); }
   if(state.selW){
-    const d=WEAPON_DEFS[state.selW];
-    $('sel-name').textContent=`${d.n} · ${RN[d.r]}`;
-    $('sel-stats').textContent=`${d.d} · dmg ×${d.dmg}${d.pellets>1?` · ${d.pellets} pellets`:''}${d.pierce?` · pierce ${d.pierce}`:''}${d.chain?' · chain arc':''} · ${(1/d.cd).toFixed(1)} shots/s`;
-    $('gear-panel').style.display='none'; $('weap-panel').style.display='block';
+    const d=WEAPON_DEFS[state.selW], lv=wLv(state.selW);
+    $('sel-name').textContent=`${d.n} · ${RN[d.r]} · Lv ${lv}`;
+    $('sel-stats').textContent=`${d.d} · dmg ×${(d.dmg*wLvDmg(state.selW)).toFixed(2)}${lv>1?` (+${(lv-1)*8}% upgraded)`:''}${d.pellets>1?` · ${d.pellets} pellets`:''}${d.pierce?` · pierce ${d.pierce}`:''}${d.chain?' · chain arc':''} · ${(1/d.cd).toFixed(1)} shots/s`;
+    $('gear-panel').style.display='none'; $('weap-panel').style.display='flex';
     $('equip-btn').innerHTML=SAVE.equip===state.selW
       ?'EQUIPPED<small>your warden carries this into every run</small>'
       :'EQUIP<small>your warden will use this gun</small>';
+    const c=wupCost(state.selW);
+    $('wupg-btn').classList.toggle('grey',lv>=WLV_MAX);
+    $('wupg-cost').textContent=lv>=WLV_MAX?'MAX LEVEL':`${fmtN(c.coins)} coins + ${c.parts} parts · +8% dmg`;
     $('arm-bonus').textContent=`Weapon drops are rare in runs — craft more in the Workshop forge`;
     return;
   }
@@ -1613,6 +1620,23 @@ const CRAFT=[
 ];
 function equippedDef(){
   return WEAPON_DEFS[(SAVE.weapons||[]).includes(SAVE.equip)?SAVE.equip:'pistol']||WEAPON_DEFS.pistol;
+}
+const WLV_MAX=10;
+const wLv=id=>SAVE.weaponLv[id]||1;
+const wLvDmg=id=>1+(wLv(id)-1)*.08;                       // +8% damage per weapon level
+const wupCost=id=>{ const d=WEAPON_DEFS[id], lv=wLv(id);
+  return {coins:Math.round((220+lv*160)*(1+d.r*.4)), parts:2+lv}; };
+function weapUpgrade(){
+  const id=state.selW; if(!id) return;
+  const lv=wLv(id);
+  if(lv>=WLV_MAX){ toast('Weapon at max level'); return; }
+  const c=wupCost(id);
+  if(SAVE.coins<c.coins||SAVE.mats.parts<c.parts){
+    toast(`Need ${fmtN(c.coins)} coins + ${c.parts} parts`); return; }
+  SAVE.coins-=c.coins; SAVE.mats.parts-=c.parts;
+  SAVE.weaponLv[id]=lv+1;
+  save(); renderWallet(); renderArmory(); sfx('coin');
+  toast(`${WEAPON_DEFS[id].n} → Lv ${lv+1}`);
 }
 const MAT_PACKS=[
   {m:'parts',amt:5,cur:'coins',cost:1000},
@@ -3243,6 +3267,8 @@ function startBattle(){
   cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const GS=gearStats();
+  const EQ={...equippedDef()};
+  EQ.dmg=Math.round(EQ.dmg*wLvDmg(EQ.id)*100)/100;         // armory weapon level
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
        flash:0,hurtT:0,invulnT:0,camx:0,camy:0,shake:0,orbA:0,
        stage:SAVE.selStage, milestones:[],
@@ -3250,7 +3276,7 @@ function startBattle(){
        foes:[],shots:[],eshots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
-       gun:{...equippedDef()},dual:false,asc:{},mats:{parts:0,cores:0},wDrops:[],
+       gun:EQ,dual:false,asc:{},mats:{parts:0,cores:0},wDrops:[],
        radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+GS.dmg/100,
        spdMul:1+SAVE.rooms.generator.spd*.04+GS.spd/100,
        rateMul:1+GS.rate/100,
