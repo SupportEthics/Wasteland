@@ -2695,11 +2695,14 @@ function draftOptions(){
     out.push({id:k,ic:a.ic,n:a.t(),d:a.d,asc:1});
   }
   const c=[];
-  if(!W.molotov.lv) c.push({id:'molotov',ic:'molotov',n:'MOLOTOV',d:'Throws burning zones onto the ground',nw:1});
+  // hard cap: 4 weapons per run (gun + nail bat + 2 picks) — no new weapons once full
+  const arsenal=2+(W.molotov.lv?1:0)+(W.drone.lv?1:0)+(W.shock.lv?1:0);
+  const full=arsenal>=4;
+  if(!W.molotov.lv){ if(!full) c.push({id:'molotov',ic:'molotov',n:'MOLOTOV',d:'Throws burning zones onto the ground',nw:1}); }
   else if(W.molotov.lv<4) c.push({id:'molotov',ic:'molotov',n:`MOLOTOV LV ${W.molotov.lv+1}`,d:'Throws faster'});
-  if(!W.drone.lv) c.push({id:'drone',ic:'drone',n:'TURRET DRONE',d:'Companion drone fires independently',nw:1});
+  if(!W.drone.lv){ if(!full) c.push({id:'drone',ic:'drone',n:'TURRET DRONE',d:'Companion drone fires independently',nw:1}); }
   else if(W.drone.lv<4) c.push({id:'drone',ic:'drone',n:`DRONE LV ${W.drone.lv+1}`,d:'Faster fire rate'});
-  if(!W.shock.lv) c.push({id:'shock',ic:'shock',n:'SHOCK FIELD',d:'Damage pulse around you',nw:1});
+  if(!W.shock.lv){ if(!full) c.push({id:'shock',ic:'shock',n:'SHOCK FIELD',d:'Damage pulse around you',nw:1}); }
   else if(W.shock.lv<4) c.push({id:'shock',ic:'shock',n:`SHOCK LV ${W.shock.lv+1}`,d:'Bigger, harder pulse'});
   if(W.pistol.lv<4) c.push({id:'pistol',ic:sim.gun.ic,n:`${sim.gun.n.toUpperCase()} LV ${W.pistol.lv+1}`,d:'+18% fire rate'});
   if(!sim.dual&&W.pistol.lv>=2) c.push({id:'dual',ic:'dual',n:'DUAL WIELD',d:'a second gun — two volleys per trigger',nw:1});
@@ -2714,6 +2717,9 @@ function draftOptions(){
 }
 function showDraft(){
   sim.draftOpts=draftOptions();
+  const ars=2+(sim.w.molotov.lv?1:0)+(sim.w.drone.lv?1:0)+(sim.w.shock.lv?1:0);
+  $('lvl-ov').querySelector('.ov-sub').textContent=
+    `choose 1 of 3 · weapons ${ars}/4${ars>=4?' — arsenal full, upgrades only':''}`;
   $('draft').innerHTML=sim.draftOpts.map((o,i)=>
     `<button class="skill${o.evo?' evoc':''}${o.asc?' ascc':''}${i===0?' auto':''}" onclick="pickDraft(${i})"><canvas class="icv" width="64" height="64" data-ic="${o.ic}"></canvas><span><b>${o.n}</b><span>${o.d}</span></span>${o.asc?'<span class="new gold">ASCEND</span>':(o.nw?'<span class="new">NEW</span>':(o.evo?'<span class="new">EVOLVE</span>':''))}</button>`).join('');
   paintAll($('draft'));
