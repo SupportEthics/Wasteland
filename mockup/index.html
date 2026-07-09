@@ -1730,7 +1730,7 @@ function craftIt(i){
 }
 
 /* ---------- stages ---------- */
-const STAGE_NAMES=['DEAD CITY','RUST FLATS','SPORE MIRE','ASH STEPPE','GLASS DESERT','BLACKOUT ZONE'];
+const STAGE_NAMES=['DEAD CITY','RUST FLATS','SPORE MIRE','ASH STEPPE','GLASS DESERT','BLACKOUT ZONE','FROSTBITE RIDGE','WHITEOUT WASTES','GLACIER MAW'];
 const stageName=s=>STAGE_NAMES[(s-1)%STAGE_NAMES.length]+(s>STAGE_NAMES.length?' '+(Math.floor((s-1)/STAGE_NAMES.length)+1):'');
 function renderStages(){
   const row=$('stagerow'); if(!row) return;
@@ -1798,6 +1798,8 @@ const WORLD=1400, PR=13;
 // main-character rigs are defined below in RIGS (five designs, one shared skeleton)
 const FOE_BASE={
   sham:   {r:12, hp:2, s:55,  cdm:8 },   // basic infected swarm
+  retch:  {r:12, hp:3, s:48,  cdm:8 },   // frost retcher: stops and projectile-vomits
+  split:  {r:13, hp:5, s:60,  cdm:10},   // rimeclot: cleaves into two halves on death
   crawl:  {r:8,  hp:1, s:130, cdm:5 },   // spikeling: fast hopper
   bloat:  {r:16, hp:4, s:38,  cdm:14},   // bloatspike: tanky, toxic
   raid:   {r:12, hp:2, s:85,  cdm:10},   // raider: quick flanker
@@ -1811,11 +1813,21 @@ const ROSTERS=[            // stage 1: Dead City — the classic horde
                            // stage 3: Spore Mire — banshees & blobs
   [{k:'sham',w:.28,minW:1},{k:'crawl',w:.25,minW:1},{k:'banshee',w:.25,minW:2},{k:'bloat',w:.22,minW:4}],
 ];
+ROSTERS.push(ROSTERS[0],ROSTERS[1],ROSTERS[2]);          // stages 4-6 rerun the tour, harder
+ROSTERS.push(                                            // stages 7-9: the frozen wastes
+  [{k:'sham',w:.35,minW:1},{k:'crawl',w:.25,minW:1},{k:'retch',w:.25,minW:2},{k:'split',w:.15,minW:4}],
+  [{k:'sham',w:.25,minW:1},{k:'hound',w:.30,minW:1},{k:'retch',w:.25,minW:3},{k:'split',w:.20,minW:5}],
+  [{k:'split',w:.30,minW:1},{k:'retch',w:.30,minW:2},{k:'banshee',w:.20,minW:3},{k:'bloat',w:.20,minW:5}]);
 const BOSS_DEFS=[
   {k:'behe', n:'THE BEHEMOTH',   r:32, s:34, cdm:25, atk:'stomp'},
   {k:'behe', n:'IRON CRUSHER',   r:32, s:42, cdm:28, atk:'charge', v:1},
   {k:'brood',n:'THE BROODMOTHER',r:36, s:26, cdm:22, atk:'summon'},
 ];
+BOSS_DEFS.push(BOSS_DEFS[0],BOSS_DEFS[1],BOSS_DEFS[2]);  // stages 4-6
+BOSS_DEFS.push(                                          // stages 7-9: frozen bosses
+  {k:'behe', n:'FROST GOLIATH',    r:32, s:30, cdm:26, atk:'stomp',  v:2},
+  {k:'behe', n:'THE AVALANCHE',    r:32, s:46, cdm:30, atk:'charge', v:2},
+  {k:'brood',n:'GLACIER BROODMOTHER',r:36, s:24, cdm:24, atk:'summon', v:2});
 const WAVES=30;
 let sim=null, raf=null, lastTs=0, kills=0, lvl=1;
 
@@ -1841,7 +1853,13 @@ function makeGround(stage){
      wrecks:6,barrels:8,pools:0,builds:1,road:1,grass:8,mush:0,ash:6},                 // glass desert
     {base:'#2f3438',slabA:'#2b3034',slabB:'#282d31',dirtA:'#363b40',dirtB:'#3a4045',
      wrecks:5,barrels:12,pools:6,builds:4,road:1,grass:12,mush:6,ash:0},               // blackout zone
-  ][((stage||1)-1)%6];
+    {base:'#aebfd0',slabA:'#a3b5c8',slabB:'#98abc0',dirtA:'#bccbdb',dirtB:'#c6d4e2',
+     wrecks:3,barrels:4,pools:0,builds:1,road:0,grass:0,mush:0,ash:0,snow:1},          // frostbite ridge
+    {base:'#bac9d8',slabA:'#aebfd0',slabB:'#a3b6c9',dirtA:'#c8d6e3',dirtB:'#d2dee9',
+     wrecks:1,barrels:2,pools:0,builds:0,road:0,grass:0,mush:0,ash:0,snow:1},          // whiteout wastes
+    {base:'#9fb2c6',slabA:'#94a8bd',slabB:'#8a9fb5',dirtA:'#adbfd1',dirtB:'#b7c8d8',
+     wrecks:2,barrels:3,pools:0,builds:2,road:0,grass:0,mush:0,ash:0,snow:1},          // glacier maw
+  ][((stage||1)-1)%9];
   const g=document.createElement('canvas'); g.width=g.height=WORLD;
   const c=g.getContext('2d');
   c.fillStyle=P.base; c.fillRect(0,0,WORLD,WORLD);                 // packed dirt
@@ -2028,8 +2046,34 @@ function makeGround(stage){
       c.beginPath(); c.moveTo(x+1,y-9); c.lineTo(x-rnd(5,10),y-16); c.stroke();
     }
   }
+  if(P.snow){
+    for(let i=0;i<26;i++){                                          // wind-blown drifts
+      c.fillStyle=`rgba(238,246,252,${rnd(.22,.48)})`;
+      c.beginPath(); c.ellipse(rnd(0,WORLD),rnd(0,WORLD),rnd(60,190),rnd(35,110),rnd(0,3),0,7); c.fill();
+    }
+    for(let i=0;i<4;i++){                                           // sheet ice
+      const x=rnd(120,WORLD-120), y=rnd(120,WORLD-120), w=rnd(90,180), h=rnd(60,120);
+      c.fillStyle='rgba(158,196,226,.55)';
+      c.beginPath(); c.roundRect(x-w/2,y-h/2,w,h,18); c.fill();
+      c.strokeStyle='rgba(233,242,250,.6)'; c.lineWidth=2;
+      c.beginPath(); c.roundRect(x-w/2,y-h/2,w,h,18); c.stroke();
+      c.strokeStyle='rgba(90,120,150,.5)'; c.lineWidth=1.4;
+      c.beginPath(); c.moveTo(x-w*.3,y-h*.2); c.lineTo(x,y); c.lineTo(x-w*.1,y+h*.3);
+      c.moveTo(x+w*.25,y-h*.3); c.lineTo(x+w*.1,y+h*.1); c.stroke();
+    }
+    const fpx=rnd(220,WORLD-220), fpy=rnd(220,WORLD-220);           // frozen pond
+    c.fillStyle='#8fb8d8'; c.beginPath(); c.ellipse(fpx,fpy,120,80,0,0,7); c.fill();
+    c.strokeStyle='rgba(233,242,250,.7)'; c.lineWidth=3;
+    c.beginPath(); c.ellipse(fpx,fpy,120,80,0,0,7); c.stroke();
+    c.strokeStyle='rgba(70,100,130,.6)'; c.lineWidth=1.6;
+    for(let i=0;i<4;i++){ const a=rnd(0,7); c.beginPath(); c.moveTo(fpx,fpy);
+      c.lineTo(fpx+Math.cos(a)*rnd(40,110),fpy+Math.sin(a)*rnd(30,70)); c.stroke(); }
+    c.fillStyle='rgba(255,255,255,.55)';
+    for(let i=0;i<420;i++){ c.beginPath();                          // powder speckle
+      c.arc(rnd(0,WORLD),rnd(0,WORLD),rnd(.6,1.8),0,7); c.fill(); }
+  }
   const warm=c.createLinearGradient(0,0,WORLD*.3,WORLD);           // dusk grade
-  warm.addColorStop(0,'rgba(224,140,74,.07)');
+  warm.addColorStop(0,P.snow?'rgba(140,180,224,.10)':'rgba(224,140,74,.07)');
   warm.addColorStop(.55,'rgba(0,0,0,0)');
   warm.addColorStop(1,'rgba(24,14,40,.14)');
   c.fillStyle=warm; c.fillRect(0,0,WORLD,WORLD);
@@ -2283,6 +2327,7 @@ function drawFoe(f){
   if(f.elite){ c.strokeStyle=`rgba(224,76,58,${.4+Math.sin(t*6)*.2})`; c.lineWidth=2.5;
     c.beginPath(); c.ellipse(f.x,f.y+sOff,sW*1.15,sW*.46,0,0,7); c.stroke(); }
   c.save(); c.translate(f.x,f.y);
+  if(f.frost||f.v===2) c.filter='grayscale(.55) sepia(.9) hue-rotate(175deg) saturate(1.7) brightness(1.06)';
   c.rotate(Math.sin(t*7+f.seed)*.06);
   const bigK=1.25*(f.big||1);
   c.scale(flip*bigK,bigK*(1+Math.sin(t*9+f.seed)*.03));   // squash & stretch
@@ -2317,6 +2362,57 @@ function drawFoe(f){
     ell(c,3.2,-2.4,1.7,2.2,'#14100c',1);                                       // open mouth
     dot(c,3.2,-3.1,.8,'#7d4a3c');                                              // tongue-ish
     c.restore();
+  }else if(f.k==='retch'){
+    const st=Math.sin(t*6+f.seed)*1.2, hv=Math.sin(t*2.8+f.seed);
+    ell(c,3,9.4-st,2.3,3,'#1a2230',1.6);                                       // frostbitten boots
+    ell(c,-3.2,10,2.3,3,'#1a2230',1.6);
+    ell2(c,0,3.8,6.2,5.2,'#31405e','#41547a');                                 // frozen coat
+    ell(c,.8,6.2,3.6,2.4,'#8fb0cc',.01);                                       // distended belly
+    c.strokeStyle='rgba(12,16,26,.5)'; c.lineWidth=1;                          // ragged hem
+    c.beginPath(); c.moveTo(-5.4,7.4); c.lineTo(-2.6,6.4); c.lineTo(0,7.6);
+    c.lineTo(2.6,6.4); c.lineTo(5.4,7.4); c.stroke();
+    ell2(c,6.6,3.2,3.2,1.8,'#5a7a9e','#7fa0c2',1.5);                            // clutching arms
+    ell2(c,-6.4,3.6,3,1.8,'#5a7a9e','#7fa0c2',1.5);
+    c.fillStyle='#dff0fa';                                                     // shoulder icicles
+    [[-6,-2.5,1.6],[-3.5,-4,1.3]].forEach(([ix,iy,is])=>{ c.beginPath();
+      c.moveTo(ix-is,iy); c.lineTo(ix,iy+is*2.4); c.lineTo(ix+is,iy); c.closePath(); c.fill(); });
+    c.save(); c.translate(0,-6); c.rotate(hv*.1); c.translate(0,6);
+    circ2(c,0,-6,7.4,'#6a8cb0','#8fb4d8');                                      // frostbitten head
+    c.fillStyle='#54749a'; c.beginPath(); c.arc(0,-6,7.4,Math.PI*1.05,Math.PI*1.6); c.fill();
+    gloss(c,0,-7.5,6.4,.1);
+    eyes(c,1.6,-7,3.2,f.seed,false);
+    const ja=2+Math.max(0,Math.sin(t*2.2+f.seed))*2.4;                          // heaving jaw
+    ell(c,3,-2.2,1.9,ja,'#101820',1);
+    dot(c,3,-1,.9,'#b8e0c8');                                                   // bile
+    c.strokeStyle='#b8e0c8'; c.lineWidth=1.1;
+    c.beginPath(); c.moveTo(3.6,-.2); c.lineTo(4.2,2.4); c.stroke();            // drool
+    c.restore();
+  }else if(f.k==='split'){
+    const ph=t*5+f.seed, sq=1+Math.sin(ph)*.06;
+    c.scale(1,sq);
+    if(f.half){
+      ell2(c,0,2.5,7,5.6,'#4a7aa8','#6fa2cc');                                  // cleaved half
+      c.fillStyle='#2c4a6a'; c.beginPath();
+      c.moveTo(-6.4,-.6); c.lineTo(-4,-2.2); c.lineTo(-1,-1); c.lineTo(2,-2.8);
+      c.lineTo(5,-1.4); c.lineTo(6.4,-.6); c.lineTo(6.4,.8); c.lineTo(-6.4,.8);
+      c.closePath(); c.fill();
+      gloss(c,-1.5,3,4.2,.14);
+      eyes(c,1.6,2.4,3,f.seed,false);
+    }else{
+      ell2(c,0,1,10.5,9,'#4a7aa8','#6fa2cc');                                   // rimeclot mass
+      ell(c,1,5.8,6,2.6,'#a8cce8',.01);                                         // pale underbelly
+      gloss(c,-2.5,-2.5,6.5,.16);
+      c.strokeStyle='#2c4a6a'; c.lineWidth=1.5;                                  // fissure line
+      c.beginPath(); c.moveTo(0,-8); c.lineTo(-1.6,-4); c.lineTo(1.2,-1);
+      c.lineTo(-.8,3); c.lineTo(.6,7.5); c.stroke();
+      c.fillStyle='#dff0fa';                                                     // ice crystals
+      [[-5,-6.5,2],[3.5,-8,2.6],[7,-3,1.7]].forEach(([ix,iy,is])=>{ c.beginPath();
+        c.moveTo(ix-is,iy+is*1.4); c.lineTo(ix,iy-is*1.6); c.lineTo(ix+is,iy+is*1.4);
+        c.closePath(); c.fill(); });
+      eyes(c,2,-1,3.6,f.seed,false);
+      c.strokeStyle='#14100c'; c.lineWidth=1.3;                                  // grumpy brow
+      c.beginPath(); c.moveTo(.4,-3.6); c.lineTo(3,-2.6); c.stroke();
+    }
   }else if(f.k==='crawl'){
     const ph=t*9+f.seed, hop=Math.abs(Math.sin(ph))*2.8, sq=Math.sin(ph)>0?1:.92;
     const spl=hop*.35;                                                         // legs splay mid-hop
@@ -2462,7 +2558,7 @@ function drawFoe(f){
       c.beginPath(); c.arc(0,4,34,0,7); c.fill(); }
   }else if(f.k==='behe'){
     const st=Math.sin(t*4.5+f.seed)*2;
-    const IR=f.v;                                                                  // Iron Crusher variant
+    const IR=f.v===1;                                                              // Iron Crusher variant
     const wp=f.wind?Math.min(1,(t-f.wind)/.6):0;                               // stomp wind-up
     if(wp>0){ c.fillStyle=`rgba(224,140,74,${.15+wp*.3})`;                     // telegraph glow
       c.beginPath(); c.ellipse(0,27,30+wp*16,11+wp*6,0,0,7); c.fill(); }
@@ -2565,9 +2661,81 @@ function spawnFoe(){
   const y=Math.max(40,Math.min(WORLD-40,sim.py+Math.sin(a)*dist));
   const elite=sim.wave>=5&&Math.random()<.1;
   const hp=Math.ceil(t.hp*foeHpScale())*(elite?4:1);
-  sim.foes.push({...t,x,y,hp,maxHp:hp,ang:0,seed:rnd(0,7),flash:0,hitCd:0,
+  const nf={...t,x,y,hp,maxHp:hp,ang:0,seed:rnd(0,7),flash:0,hitCd:0,
     atkCd:rnd(0,.5),elite,big:elite?1.45:1,
-    cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.35))});
+    frost:(sim.stage>=7&&pick.k!=='retch'&&pick.k!=='split')?1:0,
+    cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.35))};
+  resolveObstacles(nf,nf.r);
+  sim.foes.push(nf);
+}
+function paintGorges(g,list){                          // bake crevasses into the ground
+  const c=g.getContext('2d');
+  list.forEach(gz=>{
+    c.save(); c.translate(gz.x,gz.y);
+    c.fillStyle='#31465c'; c.beginPath();                    // upper crevasse wall
+    const N=26;
+    for(let i=0;i<=N;i++){ const a=i/N*Math.PI*2, j=1+((i*7)%5-2)*.03;
+      const x=Math.cos(a)*gz.rx*j, y=Math.sin(a)*gz.ry*j;
+      i?c.lineTo(x,y):c.moveTo(x,y); }
+    c.closePath(); c.fill();
+    c.fillStyle='#1d2c3d'; c.beginPath();                    // mid wall step
+    c.ellipse(0,2,gz.rx*.86,gz.ry*.78,0,0,7); c.fill();
+    c.fillStyle='#0b121c'; c.beginPath();                    // the drop
+    c.ellipse(0,4,gz.rx*.66,gz.ry*.52,0,0,7); c.fill();
+    c.strokeStyle='rgba(160,196,226,.35)'; c.lineWidth=1.6;  // strata lines
+    c.beginPath(); c.ellipse(0,1,gz.rx*.9,gz.ry*.84,0,Math.PI*.15,Math.PI*.85); c.stroke();
+    c.beginPath(); c.ellipse(0,3,gz.rx*.74,gz.ry*.62,0,Math.PI*.2,Math.PI*.8); c.stroke();
+    c.strokeStyle='rgba(223,240,250,.5)'; c.lineWidth=2.5;
+    c.beginPath(); c.ellipse(0,-2,gz.rx*.98,gz.ry*.95,0,Math.PI*1.05,Math.PI*1.95); c.stroke();
+    c.strokeStyle='rgba(20,28,40,.6)'; c.lineWidth=2;
+    for(let i=0;i<5;i++){ const a=rnd(0,7);
+      c.beginPath(); c.moveTo(Math.cos(a)*gz.rx,Math.sin(a)*gz.ry);
+      c.lineTo(Math.cos(a)*(gz.rx+rnd(14,30)),Math.sin(a)*(gz.ry+rnd(10,22))); c.stroke(); }
+    c.restore();
+  });
+}
+function makeObstacles(){                              // icy stages: rocks + impassable gorges
+  if(sim.stage<7){ sim.obst=null; return; }
+  const rocks=[], gorges=[], cx=WORLD/2, cy=WORLD/2;
+  for(let i=0;i<9;i++){
+    let x,y,tries=0;
+    do{ x=rnd(90,WORLD-90); y=rnd(90,WORLD-90); tries++; }
+    while(Math.hypot(x-cx,y-cy)<180&&tries<20);
+    rocks.push({x,y,r:rnd(16,28)});
+  }
+  for(let i=0;i<2;i++){
+    let x,y,tries=0;
+    do{ x=rnd(260,WORLD-260); y=rnd(260,WORLD-260); tries++; }
+    while(Math.hypot(x-cx,y-cy)<320&&tries<24);
+    gorges.push({x,y,rx:rnd(150,210),ry:rnd(46,64)});
+  }
+  sim.obst={rocks,gorges};
+  paintGorges(sim.ground,gorges);
+}
+function resolveObstacles(o,r){                        // push entities out of rocks/gorges
+  if(!sim||!sim.obst) return;
+  r=r||10;
+  for(const b of sim.obst.rocks){
+    const dx=o.x-b.x, dy=o.y-b.y, d=Math.hypot(dx,dy), min=b.r+r*.7;
+    if(d<min){ const ux=d>.001?dx/d:1, uy=d>.001?dy/d:0;
+      o.x=b.x+ux*min; o.y=b.y+uy*min; }
+  }
+  for(const g of sim.obst.gorges){
+    const rx=g.rx+r*.7, ry=g.ry+r*.7;
+    const nx=(o.x-g.x)/rx, ny=(o.y-g.y)/ry, q=nx*nx+ny*ny;
+    if(q<1e-6){ o.x=g.x+rx; }                                // dead centre: eject sideways
+    else if(q<1){ const s=1/Math.sqrt(q); o.x=g.x+(o.x-g.x)*s; o.y=g.y+(o.y-g.y)*s; }
+  }
+}
+function drawRock(b){
+  const c=ctx;
+  c.fillStyle='rgba(0,0,0,.28)';
+  c.beginPath(); c.ellipse(b.x,b.y+b.r*.55,b.r*1.05,b.r*.4,0,0,7); c.fill();
+  circ2(c,b.x,b.y,b.r,'#5a6474','#79879c',2);
+  c.fillStyle='#e9f2fa'; c.beginPath();
+  c.ellipse(b.x-b.r*.15,b.y-b.r*.45,b.r*.62,b.r*.34,-.2,0,7); c.fill();
+  c.strokeStyle='rgba(20,24,32,.35)'; c.lineWidth=1.4;
+  c.beginPath(); c.moveTo(b.x-b.r*.4,b.y+b.r*.25); c.lineTo(b.x+b.r*.1,b.y+b.r*.05); c.stroke();
 }
 function crackDecal(x,y){                              // permanent impact crater
   const c=sim.ground.getContext('2d');
@@ -2631,8 +2799,16 @@ function hitFoe(f,dmg,big){
     splat(f.x,f.y,gore);
     if(!f.boss && sim.deaths.length<12){                       // ragdoll topple ghost
       const gx=f.x-sim.px, gy=f.y-sim.py, gd=Math.hypot(gx,gy)||1;
-      sim.deaths.push({k:f.k,x:f.x,y:f.y,seed:f.seed,big:f.big||1,r:f.r,flash:0,
+      sim.deaths.push({k:f.k,x:f.x,y:f.y,seed:f.seed,big:f.big||1,r:f.r,flash:0,frost:f.frost,
         vx:gx/gd*150,vy:gy/gd*150,age:0});
+    }
+    if(f.k==='split'&&!f.half){                                  // rimeclot cleaves in two
+      for(let i=0;i<2;i++)
+        sim.foes.push({k:'split',half:1,r:8,s:150,cdm:Math.max(4,Math.round(f.cdm*.6)),
+          x:f.x+(i?15:-15),y:f.y+rnd(-6,6),hp:Math.max(1,Math.ceil(f.maxHp*.35)),
+          maxHp:Math.max(1,Math.ceil(f.maxHp*.35)),ang:0,seed:rnd(0,7),flash:.12,hitCd:.2,
+          atkCd:rnd(.2,.6),elite:false,big:(f.big||1)*.66});
+      addP(f.x,f.y,'#a8cce8',12,150);
     }
     if(f.k==='bloat'){ sim.zones.push({x:f.x,y:f.y,kind:'toxic',until:sim.t+2.5,lastTick:0});
       addP(f.x,f.y,'#86c232',14,140); splat(f.x,f.y,'#425a1a');
@@ -2836,6 +3012,7 @@ function update(dt){
     const spd=170*p.spdMul;
     p.px=Math.max(30,Math.min(WORLD-30,p.px+p.vx*spd*dt));
     p.py=Math.max(30,Math.min(WORLD-30,p.py+p.vy*spd*dt));
+    if(p.obst){ const po={x:p.px,y:p.py}; resolveObstacles(po,13); p.px=po.x; p.py=po.y; }
     p.feet+=dt*13;
     if(p.t-p.lastDust>.22){ p.lastDust=p.t;
       p.parts.push({x:p.px+rnd(-4,4),y:p.py+9,vx:rnd(-8,8),vy:rnd(-14,-4),life:.5,col:'#8b8574',r:2.6}); }
@@ -2864,7 +3041,7 @@ function update(dt){
   p.foes.forEach(f=>{
     const dx=p.px-f.x, dy=p.py-f.y, d=Math.hypot(dx,dy)||1;
     f.ang=Math.atan2(dy,dx);
-    const stop=f.boss?46:(f.k==='banshee'?150:PR+f.r-3);
+    const stop=f.boss?46:(f.k==='banshee'?150:(f.k==='retch'?160:PR+f.r-3));
     const enr=f.boss?(f.hp/f.maxHp<.3?1.35:1)
                     :((p.toSpawn===0&&p.foes.length<4)?1.7:1);   // stragglers/boss enrage
     let sMul=1;
@@ -2886,6 +3063,7 @@ function update(dt){
     }
     else if(d>stop && !(f.boss&&f.wind)){ f.x+=dx/d*f.s*enr*sMul*dt; f.y+=dy/d*f.s*enr*sMul*dt; }
     f.x=Math.max(30,Math.min(WORLD-30,f.x)); f.y=Math.max(30,Math.min(WORLD-30,f.y));
+    if(p.obst) resolveObstacles(f,f.r*.8);
     f.flash-=dt; f.hitCd-=dt; f.atkCd-=dt;
     if(d<(f.boss?stop+6:PR+f.r+3) && f.atkCd<=0 && !p.dying){    // melee contact only
       f.atkCd=.9;
@@ -2899,6 +3077,15 @@ function update(dt){
       const a2=Math.atan2(p.py-f.y,p.px-f.x);
       p.eshots.push({x:f.x,y:f.y-8,vx:Math.cos(a2)*230,vy:Math.sin(a2)*230,
         life:1.6,dmg:Math.round(8*(1+(p.stage-1)*.35))});
+      sfx('spit');
+    }
+    if(f.k==='retch' && d<245 && !p.dying && p.t>(f.spitT||0)){    // projectile vomit
+      f.spitT=p.t+3.1;
+      const a2=Math.atan2(p.py-f.y,p.px-f.x);
+      for(let vi=0;vi<3;vi++){ const aj=a2+(vi-1)*.14;
+        p.eshots.push({x:f.x+Math.cos(a2)*8,y:f.y-4,vomit:1,
+          vx:Math.cos(aj)*(180+vi*22),vy:Math.sin(aj)*(180+vi*22),
+          life:1.5,dmg:Math.round(6*(1+(p.stage-1)*.35))}); }
       sfx('spit');
     }
     if(f.boss){
@@ -2936,7 +3123,7 @@ function update(dt){
           for(let i=0;i<3;i++){
             const sp={k:'crawl',...FOE_BASE.crawl};
             const hp2=Math.ceil(sp.hp*foeHpScale());
-            p.foes.push({...sp,x:f.x+rnd(-40,40),y:f.y+rnd(20,50),hp:hp2,maxHp:hp2,
+            p.foes.push({...sp,frost:p.stage>=7?1:0,x:f.x+rnd(-40,40),y:f.y+rnd(20,50),hp:hp2,maxHp:hp2,
               ang:0,seed:rnd(0,7),flash:.1,hitCd:0,atkCd:rnd(.3,.8),elite:false,big:1,
               cdm:Math.round(sp.cdm*(1+(p.stage-1)*.35))});
           }
@@ -3175,6 +3362,7 @@ function render(){
                   gun:p.gun.gun,dual:p.dual});
                 ctx.globalAlpha=1; if(dyingSave) ctx.restore();
               }}];
+  if(p.obst) p.obst.rocks.forEach(b=>ents.push({y:b.y,d:()=>drawRock(b)}));
   if(p.w.drone.lv) ents.push({y:p.w.drone.y+900,d:()=>drawDrone(p.w.drone)}); // drone flies above all
   if(p.w.drone.lv&&p.asc.a_drone) ents.push({y:p.w.drone.y+901,
     d:()=>drawDrone({x:2*p.px-p.w.drone.x,y:2*p.py-p.w.drone.y,ang:p.w.drone.ang+Math.PI})});
@@ -3219,11 +3407,22 @@ function render(){
   });
   // enemy acid globs
   p.eshots.forEach(s=>{
-    ctx.strokeStyle='rgba(134,194,50,.4)'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(s.x-s.vx*.05,s.y-s.vy*.05); ctx.lineTo(s.x,s.y); ctx.stroke();
-    ctx.shadowColor='#86c232'; ctx.shadowBlur=8;
-    ctx.fillStyle='#a4d84c'; ctx.beginPath(); ctx.arc(s.x,s.y,4.4,0,7); ctx.fill();
-    ctx.shadowBlur=0;
+    if(s.vomit){
+      ctx.strokeStyle='rgba(184,224,200,.4)'; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(s.x-s.vx*.06,s.y-s.vy*.06); ctx.lineTo(s.x,s.y); ctx.stroke();
+      ctx.shadowColor='#b8e0c8'; ctx.shadowBlur=8;
+      ctx.fillStyle='#a9d4b6'; ctx.beginPath(); ctx.arc(s.x,s.y,5,0,7); ctx.fill();
+      ctx.fillStyle='#d6ecd8';
+      ctx.beginPath(); ctx.arc(s.x-s.vx*.02,s.y-s.vy*.02,2.4,0,7); ctx.fill();
+      ctx.beginPath(); ctx.arc(s.x-s.vx*.045,s.y-s.vy*.045+2,1.6,0,7); ctx.fill();
+      ctx.shadowBlur=0;
+    }else{
+      ctx.strokeStyle='rgba(134,194,50,.4)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(s.x-s.vx*.05,s.y-s.vy*.05); ctx.lineTo(s.x,s.y); ctx.stroke();
+      ctx.shadowColor='#86c232'; ctx.shadowBlur=8;
+      ctx.fillStyle='#a4d84c'; ctx.beginPath(); ctx.arc(s.x,s.y,4.4,0,7); ctx.fill();
+      ctx.shadowBlur=0;
+    }
   });
   // rings
   p.rings.forEach(r=>{
@@ -3342,6 +3541,7 @@ function startBattle(){
        xp:0,xpNeed:xpNeedFor(1),revives:0,
        wave:0,toSpawn:0,spawnGap:.6,breakT:0,
        lastSpawn:0,lastDust:0,lastTick2:0,ultCd:0,flashT:0,draftOpts:[]};
+  makeObstacles();
   refreshCards();
   $('ult').classList.remove('cd'); $('ult-n').textContent='';
   $('bossbar').style.display='none';
