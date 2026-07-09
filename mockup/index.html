@@ -756,6 +756,9 @@ function devTopUp(){
   SAVE.coins=999999; SAVE.gems=999999; SAVE.keys=999; SAVE.scrap=99999;
   SAVE.shards=9999; SAVE.energy=5;
   if(SAVE.mats){ SAVE.mats.parts=9999; SAVE.mats.cores=9999; }
+  SAVE.stage=Math.max(SAVE.stage||1,9);        // all stages open for testing
+  if(SAVE.weapons&&SAVE.weapons.length<2)      // full arsenal to test with
+    SAVE.weapons=['pistol','smg','shotgun','rifle','tesla','rail'];
 }
 devTopUp();
 if(DEV_MODE){ addEventListener('DOMContentLoaded',()=>{
