@@ -186,6 +186,10 @@
   #matshop .pricebtn{padding:6px 2px}
   #matshop .pricebtn small{display:block;font-size:8.5px;opacity:.8}
   #matshop canvas{width:14px;height:14px;vertical-align:-2px}
+  /* DEV MODE badge — remove with the DEV block before release */
+  #dev-badge{position:absolute;left:-26px;top:14px;z-index:30;transform:rotate(-45deg);
+    background:#c94f3a;color:#fff;font-size:9px;font-weight:bold;letter-spacing:3px;
+    padding:2px 30px;box-shadow:0 2px 6px #0008;pointer-events:none;opacity:.85}
   #reveal-card canvas{width:60px;height:60px}
 
   /* glossy battle HUD */
@@ -716,8 +720,30 @@ function loadSave(){
 }
 function save(){ try{ localStorage.setItem('ww_save',JSON.stringify(SAVE)); }catch(e){} }
 loadSave();
+
+/* ============================================================
+   DEV MODE — TESTING ONLY. REMOVE THIS WHOLE BLOCK (and the
+   two devTopUp() calls + #dev-badge) BEFORE STORE SUBMISSION.
+   Flip DEV_MODE to false to preview the real economy.
+   ============================================================ */
+const DEV_MODE = !window.__NO_DEV;
+function devTopUp(){
+  if(!DEV_MODE || !SAVE) return;
+  SAVE.coins=999999; SAVE.gems=999999; SAVE.keys=999; SAVE.scrap=99999;
+  SAVE.shards=9999; SAVE.energy=5;
+  if(SAVE.mats){ SAVE.mats.parts=9999; SAVE.mats.cores=9999; }
+}
+devTopUp();
+if(DEV_MODE){ addEventListener('DOMContentLoaded',()=>{
+  const b=document.createElement('div'); b.id='dev-badge'; b.textContent='DEV';
+  b.title='Unlimited resources for testing — remove before release';
+  document.getElementById('phone').appendChild(b);
+}); }
+/* ==================== end DEV MODE block ==================== */
+
 const fmtN=n=>Math.round(n).toLocaleString('en-GB');
 function renderWallet(){
+  devTopUp();                                        // DEV MODE hook — remove for release
   const M={coins:SAVE.coins,gems:SAVE.gems,keys:SAVE.keys,scrap:SAVE.scrap,
     shards:SAVE.shards,energy:SAVE.energy,
     parts:SAVE.mats?SAVE.mats.parts:0,cores:SAVE.mats?SAVE.mats.cores:0};
