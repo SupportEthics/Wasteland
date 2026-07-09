@@ -167,6 +167,25 @@
   .forge-row .pricebtn{flex-shrink:0}
   .forge-row .pricebtn small{display:block;font-size:9px;opacity:.8}
   .forge-row .pricebtn.dim{opacity:.45}
+  .bic{width:14px;height:14px;vertical-align:-2px}
+  .hic{width:12px;height:12px;vertical-align:-1px}
+  .navbar .ic canvas{width:18px;height:18px}
+  .room .ic canvas{width:22px;height:22px}
+  .skill .ic canvas{width:20px;height:20px}
+  .chest .big canvas{width:26px;height:26px}
+  .box canvas{width:36px;height:36px}
+  .sku .big canvas,.card.wide .big canvas{width:26px;height:26px}
+  #ad-box .big canvas{width:44px;height:44px}
+  #snd-btn canvas{width:15px;height:15px;vertical-align:middle}
+  #ult canvas{width:24px;height:24px}
+  #ult.cd canvas{display:none}
+  #ult-n{display:none}
+  #ult.cd #ult-n{display:inline}
+  .stagechip b canvas{width:12px;height:12px}
+  #matshop{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  #matshop .pricebtn{padding:6px 2px}
+  #matshop .pricebtn small{display:block;font-size:8.5px;opacity:.8}
+  #matshop canvas{width:14px;height:14px;vertical-align:-2px}
   #reveal-card canvas{width:60px;height:60px}
 
   /* glossy battle HUD */
@@ -346,10 +365,10 @@
   <!-- BASE HUB -->
   <div class="screen" id="s-home">
     <div class="topbar">
-      <div class="pill">🪙 <span class="w-coins">0</span></div>
-      <div class="pill">💎 <span class="w-gems">0</span><span class="plus" onclick="nav('shop')">+</span></div>
+      <div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div>
+      <div class="pill"><canvas width="30" height="30" data-ic="gem"></canvas> <span class="w-gems">0</span><span class="plus" onclick="nav('shop')">+</span></div>
       <div class="spacer"></div>
-      <div class="pill">⚡ <span class="w-energy">5</span>/5 <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
+      <div class="pill"><canvas width="30" height="30" data-ic="energy"></canvas> <span class="w-energy">5</span>/5 <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
     </div>
     <h2 class="hdr">HAVEN OUTPOST</h2>
     <div class="body">
@@ -359,16 +378,16 @@
         <span class="chev">›</span>
       </button>
       <div id="stagerow"></div>
-      <button class="btn rust" id="battle-btn" onclick="startBattle()">⚔ THE GATE — ENTER THE WASTES<small id="gate-sub">STAGE 1 · DEAD CITY · costs 1 ⚡ energy</small></button>
+      <button class="btn rust" id="battle-btn" onclick="startBattle()"><canvas class="bic" width="28" height="28" data-ic="swords"></canvas> THE GATE — ENTER THE WASTES<small id="gate-sub">STAGE 1 · DEAD CITY · costs 1 energy</small></button>
       <div class="roomgrid">
-        <button class="room" onclick="nav('gear')"><span class="ic">🔫</span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
-        <button class="room" onclick="nav('crates')"><span class="ic">🔧</span><span><b>WORKSHOP</b><span>crates &amp; merge recipes</span></span></button>
-        <button class="room" onclick="nav('wardens')"><span class="ic">🛏</span><span><b>BARRACKS</b><span>survivors &amp; skins</span></span></button>
-        <button class="room" onclick="openRoom('medbay')"><span class="ic">⛑</span><span><b>MED BAY</b><span>health &amp; revive upgrades</span></span></button>
-        <button class="room" onclick="openRadio()"><span class="ic">📻</span><span><b>RADIO TOWER</b><span>daily missions · 📺 free crate <span class="tag ad">AD</span></span></span></button>
-        <button class="room" onclick="openRoom('garage')"><span class="ic">🚗</span><span><b>GARAGE</b><span>drone upgrades</span></span></button>
-        <button class="room" onclick="openRoom('generator')"><span class="ic">⚡</span><span><b>GENERATOR</b><span>permanent core tree</span></span></button>
-        <button class="room" onclick="nav('shop')"><span class="ic">🛒</span><span><b>SUPPLY POST</b><span>bundles, gems &amp; pass <span class="tag iap">IAP</span></span></span></button>
+        <button class="room" onclick="nav('gear')"><span class="ic"><canvas width="44" height="44" data-ic="pistol"></canvas></span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
+        <button class="room" onclick="nav('crates')"><span class="ic"><canvas width="44" height="44" data-ic="wrench"></canvas></span><span><b>WORKSHOP</b><span>crates &amp; merge recipes</span></span></button>
+        <button class="room" onclick="nav('wardens')"><span class="ic"><canvas width="44" height="44" data-ic="bed"></canvas></span><span><b>BARRACKS</b><span>survivors &amp; skins</span></span></button>
+        <button class="room" onclick="openRoom('medbay')"><span class="ic"><canvas width="44" height="44" data-ic="medkit"></canvas></span><span><b>MED BAY</b><span>health &amp; revive upgrades</span></span></button>
+        <button class="room" onclick="openRadio()"><span class="ic"><canvas width="44" height="44" data-ic="radio"></canvas></span><span><b>RADIO TOWER</b><span>daily missions · free ad crate <span class="tag ad">AD</span></span></span></button>
+        <button class="room" onclick="openRoom('garage')"><span class="ic"><canvas width="44" height="44" data-ic="car"></canvas></span><span><b>GARAGE</b><span>drone upgrades</span></span></button>
+        <button class="room" onclick="openRoom('generator')"><span class="ic"><canvas width="44" height="44" data-ic="energy"></canvas></span><span><b>GENERATOR</b><span>permanent core tree</span></span></button>
+        <button class="room" onclick="nav('shop')"><span class="ic"><canvas width="44" height="44" data-ic="cart"></canvas></span><span><b>SUPPLY POST</b><span>bundles, gems &amp; pass <span class="tag iap">IAP</span></span></span></button>
       </div>
     </div>
     <div class="navbar" id="nav"></div>
@@ -380,13 +399,13 @@
     <div id="vig"></div>
     <div id="hud">
       <div id="xpwrap"><span id="lvl">LV 1</span><div id="xpbar"><div id="xpfill"></div></div></div>
-      <div id="bstats"><span id="timer">00:00</span><span id="wave">W 1/20</span><span>💀 <span id="kills">0</span></span><span onclick="openPause()">⏸</span></div>
+      <div id="bstats"><span id="timer">00:00</span><span id="wave">W 1/20</span><span><canvas class="hic" width="28" height="28" data-ic="skull"></canvas> <span id="kills">0</span></span><span onclick="openPause()"><canvas class="hic" width="28" height="28" data-ic="pause"></canvas></span></div>
       <div id="wslots"></div>
     </div>
-    <div id="bosswarn">⚠ BEHEMOTH INCOMING ⚠</div>
+    <div id="bosswarn">! BEHEMOTH INCOMING !</div>
     <div id="wavebanner">— WAVE 1 —</div>
     <div id="bossbar"><b>THE BEHEMOTH</b><div class="bb"><i id="bossfill"></i></div></div>
-    <button id="ult" onclick="fireUlt()">☢</button>
+    <button id="ult" onclick="fireUlt()"><canvas width="44" height="44" data-ic="rad"></canvas><span id="ult-n"></span></button>
     <div id="wcards"></div>
     <div id="joyhint">drag anywhere to move —<br>your weapons fire themselves</div>
     <div id="joy"><i></i></div>
@@ -396,14 +415,14 @@
       <div class="ov-title" style="color:var(--green)">LEVEL UP!</div>
       <div class="ov-sub">choose 1 of 3 — you move, the weapons do the work</div>
       <div id="draft"></div>
-      <button class="btn grey" style="margin-top:6px" onclick="adFlow('reroll')">📺 REROLL CHOICES <span class="tag ad">AD</span></button>
+      <button class="btn grey" style="margin-top:6px" onclick="adFlow('reroll')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> REROLL CHOICES <span class="tag ad">AD</span></button>
     </div>
 
     <!-- death / revive -->    <!-- death / revive -->
     <div class="overlay" id="death-ov">
       <div class="ov-title" style="color:var(--red)">YOU DIED</div>
       <div class="ov-sub" id="death-sub">the horde closes in…</div>
-      <button class="btn green" id="revive-btn" onclick="reviveClick()" style="margin-bottom:10px">📺 WATCH AD — REVIVE &amp; CONTINUE <span class="tag ad">AD</span><small>full HP + blast the horde back</small></button>
+      <button class="btn green" id="revive-btn" onclick="reviveClick()" style="margin-bottom:10px"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> WATCH AD — REVIVE &amp; CONTINUE <span class="tag ad">AD</span><small>full HP + blast the horde back</small></button>
       <button class="btn grey" onclick="endRun(false)">GIVE UP — END RUN</button>
       <div class="ov-sub" style="margin-top:14px">TIP — bank your loot, then spend it in the
       ARMORY, MED BAY &amp; GENERATOR to push deeper next run</div>
@@ -415,22 +434,22 @@
     <div class="body">
       <div id="res-title">VICTORY</div>
       <div id="res-sub">Chapter 3</div>
-      <div class="loot"><span>🪙 Coins</span><b id="loot-coins">0</b></div>
-      <div class="loot"><span>⚙️ Scrap (gear XP)</span><b id="loot-scrap">0</b></div>
-      <div class="loot"><span>🗝 Crate keys</span><b id="loot-keys">×0</b></div>
-      <div class="loot"><span>🧩 Warden shards</span><b id="loot-shards">×0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="coin"></canvas> Coins</span><b id="loot-coins">0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="scrap"></canvas> Scrap (gear XP)</span><b id="loot-scrap">0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="key"></canvas> Crate keys</span><b id="loot-keys">×0</b></div>
+      <div class="loot"><span><canvas width="30" height="30" data-ic="shard"></canvas> Warden shards</span><b id="loot-shards">×0</b></div>
       <div class="loot"><span><canvas width="30" height="30" data-ic="parts"></canvas> Weapon parts</span><b id="loot-parts">×0</b></div>
       <div class="loot"><span><canvas width="30" height="30" data-ic="core"></canvas> Power cores</span><b id="loot-cores">×0</b></div>
       <div id="loot-weaps"></div>
       <div id="chests" style="margin-top:10px"></div>
-      <button class="btn gold" style="margin:12px 0 8px" onclick="adFlow('claim2x')">📺 CLAIM ×2 <span class="tag ad">AD</span><small>double everything — one 30s ad</small></button>
+      <button class="btn gold" style="margin:12px 0 8px" onclick="adFlow('claim2x')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> CLAIM ×2 <span class="tag ad">AD</span><small>double everything — one 30s ad</small></button>
       <button class="btn grey" onclick="claimPlain()">CLAIM<small>non-payers may see an interstitial here (capped)</small></button>
     </div>
   </div>
 
   <!-- ARMORY -->
   <div class="screen" id="s-gear">
-    <div class="topbar"><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill">⚙️ <span class="w-scrap">0</span></div></div>
+    <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="scrap"></canvas> <span class="w-scrap">0</span></div></div>
     <h2 class="hdr">ARMORY</h2>
     <div class="body">
       <div class="paperdoll">
@@ -464,24 +483,24 @@
 
   <!-- WORKSHOP -->
   <div class="screen" id="s-crates">
-    <div class="topbar"><div class="pill">🗝 <span class="w-keys">0</span></div><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="parts"></canvas> <span class="w-parts">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="core"></canvas> <span class="w-cores">0</span></div></div>
+    <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="key"></canvas> <span class="w-keys">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="parts"></canvas> <span class="w-parts">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="core"></canvas> <span class="w-cores">0</span></div></div>
     <h2 class="hdr">WORKSHOP</h2>
     <div class="body">
       <div class="card crate">
-        <div class="box">📦</div>
+        <div class="box"><canvas width="56" height="56" data-ic="crate"></canvas></div>
         <div class="info"><b>RUSTY CRATE</b><span>Coins, scrap, Common–Rare gear</span>
           <div class="row">
-            <button class="btn grey" onclick="openCrate('rusty')">OPEN<small>500 🪙</small></button>
-            <button class="btn green" onclick="adFlow('crate')">📺 FREE <span class="tag ad">AD</span><small>1 per day</small></button>
+            <button class="btn grey" onclick="openCrate('rusty')">OPEN<small>500 coins</small></button>
+            <button class="btn green" onclick="adFlow('crate')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> FREE <span class="tag ad">AD</span><small>1 per day</small></button>
           </div>
         </div>
       </div>
       <div class="card crate" style="border-color:var(--gold)">
-        <div class="box">🧰</div>
+        <div class="box"><canvas width="56" height="56" data-ic="cache"></canvas></div>
         <div class="info"><b style="color:var(--gold)">WARDEN CACHE</b><span>Rare–Legendary gear, hero shards</span>
           <div class="row">
-            <button class="btn gold" onclick="openCrate('cache')">OPEN ×1<small>1 🗝 or 300 💎</small></button>
-            <button class="btn gold" onclick="openCrate('cache10')">OPEN ×10<small>9 🗝 or 2,700 💎</small></button>
+            <button class="btn gold" onclick="openCrate('cache')">OPEN ×1<small>1 key or 300 gems</small></button>
+            <button class="btn gold" onclick="openCrate('cache10')">OPEN ×10<small>9 keys or 2,700 gems</small></button>
           </div>
         </div>
       </div>
@@ -489,6 +508,7 @@
       <div class="card" style="margin-bottom:10px">
         <b style="font-size:12px;letter-spacing:1px">CRAFTING FORGE</b>
         <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 4px">weapon parts &amp; power cores drop (rarely) from kills, elites and bosses — forge them into new guns and gear</span>
+        <div id="matshop"></div>
         <div id="forge"></div>
       </div>
       <div class="card" style="margin-bottom:10px">
@@ -511,27 +531,30 @@
 
   <!-- SHOP -->
   <div class="screen" id="s-shop">
-    <div class="topbar"><div class="pill">🪙 <span class="w-coins">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div></div>
+    <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="gem"></canvas> <span class="w-gems">0</span></div></div>
     <h2 class="hdr">SUPPLY POST</h2>
     <div class="body">
       <div class="banner">
-        <b>⭐ WARDEN'S CONTRACT — SEASON 1</b> <span class="tag iap">IAP</span>
-        <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 💎, 20 🗝</p>
+        <b>★ WARDEN'S CONTRACT — SEASON 1</b> <span class="tag iap">IAP</span>
+        <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 gems, 20 keys</p>
         <button class="btn gold" id="sku-pass" onclick="buy('pass')">UNLOCK · £4.99</button>
       </div>
       <button class="card wide" id="sku-starter" onclick="buy('starter')">
-        <span class="big">🎒</span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 💎 + Rare weapon + 5 🗝 · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
+        <span class="big"><canvas width="48" height="48" data-ic="pack"></canvas></span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 gems + Rare weapon + 5 keys · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
       <button class="card wide" id="sku-noads" onclick="buy('noads')">
-        <span class="big">🚫</span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly, no ad.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
+        <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly, no ad.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
       </button>
       <div class="shoprow">
-        <div class="sku"><div class="big">💎</div><b>500</b><button class="price" onclick="buy('gems500')">£1.99</button></div>
-        <div class="sku"><div class="big">💰</div><b>2,800</b><button class="price" onclick="buy('gems2800')">£7.99</button></div>
-        <div class="sku"><div class="big">🏆</div><b>12,000</b><button class="price" onclick="buy('gems12000')">£24.99</button></div>
+        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="gem"></canvas></div><b>500</b><button class="price" onclick="buy('gems500')">£1.99</button></div>
+        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="sack"></canvas></div><b>2,800</b><button class="price" onclick="buy('gems2800')">£7.99</button></div>
+        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="trophy"></canvas></div><b>12,000</b><button class="price" onclick="buy('gems12000')">£24.99</button></div>
       </div>
       <button class="card wide" id="sku-keys" onclick="buy('keys10')">
-        <span class="big">🗝</span><span class="inf"><b>CRATE KEYS ×10 <span class="tag iap">IAP</span></b><span>Opens Warden Caches</span></span><span class="price" style="color:var(--gold);font-weight:bold">£4.99</span>
+        <span class="big"><canvas width="48" height="48" data-ic="key"></canvas></span><span class="inf"><b>CRATE KEYS ×10 <span class="tag iap">IAP</span></b><span>Opens Warden Caches</span></span><span class="price" style="color:var(--gold);font-weight:bold">£4.99</span>
+      </button>
+      <button class="card wide" id="sku-forge" onclick="buy('forge')">
+        <span class="big"><canvas width="48" height="48" data-ic="parts"></canvas></span><span class="inf"><b>FORGE BUNDLE <span class="tag iap">IAP</span></b><span>40 weapon parts + 8 power cores for the crafting forge</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
     </div>
     <div class="navbar"></div>
@@ -539,7 +562,7 @@
 
   <!-- BARRACKS -->
   <div class="screen" id="s-wardens">
-    <div class="topbar"><div class="pill">🧩 <span class="w-shards">0</span></div><div class="pill">💎 <span class="w-gems">0</span></div></div>
+    <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="shard"></canvas> <span class="w-shards">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="gem"></canvas> <span class="w-gems">0</span></div></div>
     <h2 class="hdr">BARRACKS</h2>
     <div class="body">
       <div class="wgrid" id="dgrid"></div>
@@ -570,17 +593,17 @@
 
   <!-- radio tower -->
   <div class="overlay" id="radio-ov">
-    <div class="ov-title">📻 RADIO TOWER</div>
+    <div class="ov-title">RADIO TOWER</div>
     <div class="ov-sub">missions track lifetime progress across runs</div>
     <div id="mission-rows"></div>
-    <button class="btn green" style="margin:8px 0 10px" onclick="adFlow('crate')">📺 FREE DAILY CRATE <span class="tag ad">AD</span></button>
+    <button class="btn green" style="margin:8px 0 10px" onclick="adFlow('crate')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> FREE DAILY CRATE <span class="tag ad">AD</span></button>
     <button class="btn grey" onclick="$('radio-ov').classList.remove('on')">CLOSE</button>
   </div>
 
   <!-- fake rewarded ad -->
   <div class="overlay" id="ad-ov">
     <div id="ad-count">5</div>
-    <div id="ad-box"><div class="big">📺</div><div>SIMULATED REWARDED AD</div>
+    <div id="ad-box"><div class="big"><canvas width="64" height="64" data-ic="tv"></canvas></div><div>SIMULATED REWARDED AD</div>
       <div style="font-size:11px">(AdMob / AppLovin MAX placement)</div></div>
     <div id="ad-note">Rewarded video ≈ 62% of mobile ad revenue · 45–60% of players engage willingly</div>
   </div>
@@ -588,13 +611,13 @@
   <!-- fake interstitial -->
   <div class="overlay" id="int-ov">
     <button id="int-x" onclick="closeInterstitial()">✕</button>
-    <div id="ad-box" style="border-color:#333"><div class="big">🖼</div><div style="color:#777">SIMULATED INTERSTITIAL</div>
+    <div id="ad-box" style="border-color:#333"><div class="big"><canvas width="64" height="64" data-ic="frame"></canvas></div><div style="color:#777">SIMULATED INTERSTITIAL</div>
       <div style="font-size:11px;color:#555">shown after results only · capped 1-per-3 runs<br>never for paying players · removed by any IAP</div></div>
   </div>
 
   <!-- info overlay -->
   <div class="overlay" id="info-ov" onclick="this.classList.remove('on')">
-    <h3>ⓘ MONETIZATION MAP</h3>
+    <h3>MONETIZATION MAP</h3>
     <div class="card"><b><span class="tag ad">AD</span> Rewarded video (opt-in)</b>
       Revive on death · claim ×2 rewards · Radio Tower free daily crate · +1 energy · draft reroll. Player-positive, capped, boosts IAP conversion up to 6×.</div>
     <div class="card"><b><span class="tag ad">AD</span> Interstitial (limited)</b>
@@ -606,8 +629,8 @@
     <div class="ov-sub" style="margin-top:6px">tap anywhere to close</div>
   </div>
 
-  <button id="info-btn" onclick="document.getElementById('info-ov').classList.add('on')">ⓘ</button>
-  <button id="snd-btn" onclick="cycleSound()">🔊</button>
+  <button id="info-btn" onclick="document.getElementById('info-ov').classList.add('on')">i</button>
+  <button id="snd-btn" onclick="cycleSound()"><canvas width="36" height="36" data-ic="sndOn"></canvas></button>
 
   <!-- purchase sheet -->
   <div id="sheet">
@@ -627,11 +650,11 @@ const state = {design:'drifter', screen:'title', adReason:null, selItem:0, sku:n
 
 /* ---------- navigation ---------- */
 const NAV = [
-  ['shop','🛒','SHOP'],['crates','🔧','WORKSHOP'],['home','⚔','BASE'],['gear','🔫','ARMORY'],['wardens','🛏','BARRACKS']
+  ['shop','cart','SHOP'],['crates','wrench','WORKSHOP'],['home','swords','BASE'],['gear','pistol','ARMORY'],['wardens','bed','BARRACKS']
 ];
 document.querySelectorAll('.navbar').forEach(bar=>{
   bar.innerHTML = NAV.map(([k,ic,lb])=>
-    `<button data-k="${k}" onclick="nav('${k}')"><span class="ic">${ic}</span>${lb}</button>`).join('');
+    `<button data-k="${k}" onclick="nav('${k}')"><span class="ic"><canvas width="36" height="36" data-ic="${ic}"></canvas></span>${lb}</button>`).join('');
 });
 function markNav(){
   document.querySelectorAll('.navbar button').forEach(b=>
@@ -708,7 +731,7 @@ function regenEnergy(){                              // 1 energy per 45s of real
   if(ch) save();
 }
 function spend(cur,amt){
-  const IC={coins:'🪙',gems:'💎',keys:'🗝',scrap:'⚙️',shards:'🧩'};
+  const IC={coins:'coins',gems:'gems',keys:'keys',scrap:'scrap',shards:'shards'};
   if(SAVE[cur]<amt){ toast(`Need ${fmtN(amt)} ${IC[cur]}`); return false; }
   SAVE[cur]-=amt; save(); renderWallet(); return true;
 }
@@ -719,6 +742,7 @@ const SKUS={
   gems2800:{n:'2,800 Gems',p:'£7.99',apply:()=>SAVE.gems+=2800},
   gems12000:{n:'12,000 Gems',p:'£24.99',apply:()=>SAVE.gems+=12000},
   keys10:{n:'Crate Keys ×10',p:'£4.99',apply:()=>SAVE.keys+=10},
+  forge:{n:'Forge Bundle',p:'£2.99',apply:()=>{SAVE.mats.parts+=40;SAVE.mats.cores+=8;renderForge();}},
   noads:{n:'Remove Ads',p:'£7.99',once:'noads'},
   starter:{n:'Starter Bundle',p:'£2.99',once:'starter',apply:()=>{SAVE.gems+=800;SAVE.keys+=5;}},
   pass:{n:"Warden's Contract (Season 1)",p:'£4.99',once:'pass',apply:()=>{SAVE.gems+=1200;SAVE.keys+=20;}},
@@ -760,7 +784,7 @@ function crateReward(tier){
 function spendCache(k,g){
   if(SAVE.keys>=k){ SAVE.keys-=k; save(); renderWallet(); return true; }
   if(SAVE.gems>=g){ SAVE.gems-=g; save(); renderWallet(); return true; }
-  toast(`Need ${k} 🗝 or ${fmtN(g)} 💎`); return false;
+  toast(`Need ${k} keys or ${fmtN(g)} gems`); return false;
 }
 function finishCrate(n,rw){
   SAVE.stats.crates+=n; save(); renderWallet(); renderPity();
@@ -803,7 +827,7 @@ function renderArmory(){
   const it=SAVE.items[state.selItem];
   $('sel-name').textContent=`${it.n} · ${RN[it.r]}`;
   $('sel-stats').textContent=`ATK +${it.lv*8} · Lv ${it.lv} · owned ×${it.cnt}`;
-  $('upg-cost').textContent=`${fmtN(180+it.lv*120)} 🪙 + 8 ⚙️`;
+  $('upg-cost').textContent=`${fmtN(180+it.lv*120)} coins + 8 scrap`;
   $('merge-hint').textContent = it.r>=3?'max rarity':(it.cnt>=3?`${RN[it.r]} ×3 → ${RN[it.r+1]}`:`need ×3 (have ×${it.cnt})`);
   $('arm-bonus').textContent=`Gear bonus in runs: +${(armoryDmgBonus()*100).toFixed(1)}% damage (sum of item levels)`;
 }
@@ -818,7 +842,7 @@ function equipSel(){
 }
 function armUpgrade(){
   const it=SAVE.items[state.selItem], cc=180+it.lv*120;
-  if(SAVE.coins<cc||SAVE.scrap<8){ toast(`Need ${fmtN(cc)} 🪙 + 8 ⚙️`); return; }
+  if(SAVE.coins<cc||SAVE.scrap<8){ toast(`Need ${fmtN(cc)} coins + 8 scrap`); return; }
   SAVE.coins-=cc; SAVE.scrap-=8; it.lv++;
   save(); renderWallet(); renderArmory(); sfx('coin'); toast(`${it.n} → Lv ${it.lv}`);
 }
@@ -832,16 +856,16 @@ function armMerge(){
 
 /* ---------- upgrade rooms ---------- */
 const ROOMS={
-  medbay:{t:'⛑ MED BAY',d:'permanent survival upgrades',rows:[
-    {k:'hp',i:'❤️',n:'REINFORCED VITALS',d:'+20 max HP per level',max:5,cur:'coins',cost:l=>300+l*260},
-    {k:'heal',i:'💊',n:'FIELD STIMS',d:'medkits heal +10 per level',max:4,cur:'coins',cost:l=>250+l*220}]},
-  garage:{t:'🚗 GARAGE',d:'drone & companion tech',rows:[
-    {k:'rate',i:'🛸',n:'DRONE SERVOS',d:'drone fires 10% faster per level',max:4,cur:'scrap',cost:l=>60+l*50},
-    {k:'power',i:'🔩',n:'AP ROUNDS',d:'drone shots +1 damage per level',max:3,cur:'scrap',cost:l=>80+l*70}]},
-  generator:{t:'⚡ GENERATOR',d:'permanent core tree',rows:[
-    {k:'dmg',i:'💪',n:'OVERCHARGE',d:'+5% all damage per level',max:5,cur:'scrap',cost:l=>70+l*60},
-    {k:'spd',i:'👟',n:'SERVO LEGS',d:'+4% move speed per level',max:4,cur:'coins',cost:l=>280+l*240},
-    {k:'xpg',i:'🧠',n:'SCRAP LEARNING',d:'−4% XP needed per level',max:4,cur:'scrap',cost:l=>90+l*80}]},
+  medbay:{t:'MED BAY',d:'permanent survival upgrades',rows:[
+    {k:'hp',i:'heart',n:'REINFORCED VITALS',d:'+20 max HP per level',max:5,cur:'coins',cost:l=>300+l*260},
+    {k:'heal',i:'adren',n:'FIELD STIMS',d:'medkits heal +10 per level',max:4,cur:'coins',cost:l=>250+l*220}]},
+  garage:{t:'GARAGE',d:'drone & companion tech',rows:[
+    {k:'rate',i:'drone',n:'DRONE SERVOS',d:'drone fires 10% faster per level',max:4,cur:'scrap',cost:l=>60+l*50},
+    {k:'power',i:'parts',n:'AP ROUNDS',d:'drone shots +1 damage per level',max:3,cur:'scrap',cost:l=>80+l*70}]},
+  generator:{t:'GENERATOR',d:'permanent core tree',rows:[
+    {k:'dmg',i:'rad',n:'OVERCHARGE',d:'+5% all damage per level',max:5,cur:'scrap',cost:l=>70+l*60},
+    {k:'spd',i:'boots',n:'SERVO LEGS',d:'+4% move speed per level',max:4,cur:'coins',cost:l=>280+l*240},
+    {k:'xpg',i:'brain',n:'SCRAP LEARNING',d:'−4% XP needed per level',max:4,cur:'scrap',cost:l=>90+l*80}]},
 };
 function openRoom(key){
   state.room=key;
@@ -853,10 +877,11 @@ function renderRoom(){
   const key=state.room, cfg=ROOMS[key];
   $('room-rows').innerHTML=cfg.rows.map(rw=>{
     const lv=SAVE.rooms[key][rw.k], maxed=lv>=rw.max, cost=rw.cost(lv);
-    return `<div class="skill" style="cursor:default"><span class="ic">${rw.i}</span>
+    return `<div class="skill" style="cursor:default"><span class="ic"><canvas width="40" height="40" data-ic="${rw.i}"></canvas></span>
       <span><b>${rw.n} · ${lv}/${rw.max}</b><span>${rw.d}</span></span>
-      <button class="pricebtn" ${maxed?'disabled':''} onclick="roomUp('${rw.k}')">${maxed?'MAX':fmtN(cost)+' '+(rw.cur==='coins'?'🪙':'⚙️')}</button></div>`;
+      <button class="pricebtn" ${maxed?'disabled':''} onclick="roomUp('${rw.k}')">${maxed?'MAX':fmtN(cost)+(rw.cur==='coins'?' coins':' scrap')}</button></div>`;
   }).join('');
+  paintAll($('room-rows'));
 }
 function roomUp(k){
   const key=state.room, rw=ROOMS[key].rows.find(r=>r.k===k);
@@ -869,18 +894,19 @@ function roomUp(k){
 
 /* ---------- radio tower missions ---------- */
 const MISSIONS=[
-  {k:'kills',n:'Exterminate 150 infected',goal:150,rl:'600 🪙',give:()=>SAVE.coins+=600},
-  {k:'waves',n:'Clear 15 waves (lifetime)',goal:15,rl:'3 🗝',give:()=>SAVE.keys+=3},
-  {k:'crates',n:'Open 5 supply crates',goal:5,rl:'80 ⚙️',give:()=>SAVE.scrap+=80},
+  {k:'kills',n:'Exterminate 150 infected',goal:150,rl:'600 coins',give:()=>SAVE.coins+=600},
+  {k:'waves',n:'Clear 15 waves (lifetime)',goal:15,rl:'3 keys',give:()=>SAVE.keys+=3},
+  {k:'crates',n:'Open 5 supply crates',goal:5,rl:'80 scrap',give:()=>SAVE.scrap+=80},
 ];
 function openRadio(){ renderRadio(); $('radio-ov').classList.add('on'); }
 function renderRadio(){
   $('mission-rows').innerHTML=MISSIONS.map((m,i)=>{
     const p=Math.min(SAVE.stats[m.k],m.goal), done=p>=m.goal, cl=SAVE.mclaimed[m.k];
-    return `<div class="skill" style="cursor:default"><span class="ic">📋</span>
+    return `<div class="skill" style="cursor:default"><span class="ic"><canvas width="40" height="40" data-ic="clip"></canvas></span>
       <span><b>${m.n}</b><span>${fmtN(p)}/${fmtN(m.goal)} · reward ${m.rl}</span></span>
       <button class="pricebtn" ${done&&!cl?'':'disabled'} onclick="claimMission(${i})">${cl?'DONE':'CLAIM'}</button></div>`;
   }).join('');
+  paintAll($('mission-rows'));
 }
 function claimMission(i){
   const m=MISSIONS[i];
@@ -1069,6 +1095,194 @@ const ICONS={
     c.strokeStyle='#7fd0ff'; c.lineWidth=1.4;
     c.beginPath(); c.arc(0,0,11,.4,1.6); c.stroke();
     c.beginPath(); c.arc(0,0,11,Math.PI+.4,Math.PI+1.6); c.stroke(); },
+  energy(c){ c.fillStyle='rgba(255,215,106,.2)'; c.beginPath(); c.arc(0,0,13,0,7); c.fill();
+    c.fillStyle='#ffd76a'; c.beginPath();
+    c.moveTo(3,-14); c.lineTo(-6,1); c.lineTo(-1,1); c.lineTo(-3,14); c.lineTo(6,-2); c.lineTo(1,-2);
+    c.closePath(); c.fill(); O(c,1.6);
+    c.fillStyle='rgba(255,255,255,.5)'; c.beginPath();
+    c.moveTo(1.6,-11); c.lineTo(-3.4,-1); c.lineTo(-1,-1); c.closePath(); c.fill(); },
+  skull(c){ circ2(c,0,-2,9.5,'#c9c2b2','#e8e2d2',1.8);
+    c.fillStyle='#e8e2d2'; c.beginPath(); c.roundRect(-5.5,3,11,7,2.4); c.fill(); O(c,1.6);
+    c.fillStyle='#14100c';
+    c.beginPath(); c.ellipse(-3.6,-2.5,2.6,3,0,0,7); c.fill();
+    c.beginPath(); c.ellipse(3.6,-2.5,2.6,3,0,0,7); c.fill();
+    c.beginPath(); c.moveTo(0,1.5); c.lineTo(-1.8,4.6); c.lineTo(1.8,4.6); c.closePath(); c.fill();
+    c.strokeStyle='#14100c'; c.lineWidth=1.4;
+    [-3,0,3].forEach(x=>{ c.beginPath(); c.moveTo(x,6.5); c.lineTo(x,9.6); c.stroke(); });
+    gloss(c,-1,-5,6,.25); },
+  tv(c){ c.fillStyle='#3a3f47'; c.beginPath(); c.roundRect(-12,-8,24,17,3.4); c.fill(); O(c,1.8);
+    c.fillStyle='#7fd0ff'; c.beginPath(); c.roundRect(-9.4,-5.6,18.8,12.2,2); c.fill(); O(c,1.2);
+    c.fillStyle='#14151c'; c.beginPath();
+    c.moveTo(-2.6,-3.4); c.lineTo(4.4,.5); c.lineTo(-2.6,4.4); c.closePath(); c.fill();
+    c.strokeStyle='#14100c'; c.lineWidth=1.8;
+    c.beginPath(); c.moveTo(-5,-8); c.lineTo(-8.5,-13); c.moveTo(5,-8); c.lineTo(8.5,-13); c.stroke();
+    dot(c,-8.5,-13,1.4,'#3a3f47'); dot(c,8.5,-13,1.4,'#3a3f47');
+    c.fillStyle='#23232a'; c.fillRect(-4,9,8,2.6); },
+  noads(c){ c.save(); c.scale(.86,.86); ICONS.tv(c); c.restore();
+    c.strokeStyle='#c94f3a'; c.lineWidth=3.4; c.lineCap='round';
+    c.beginPath(); c.arc(0,0,12.5,0,7); c.stroke();
+    c.beginPath(); c.moveTo(-8.6,-8.6); c.lineTo(8.6,8.6); c.stroke(); },
+  cart(c){ c.strokeStyle='#c9ccd4'; c.lineWidth=2.2; c.lineJoin='round';
+    c.beginPath(); c.moveTo(-12,-9); c.lineTo(-8,-9); c.lineTo(-5,4); c.lineTo(8,4);
+    c.lineTo(11,-5.5); c.lineTo(-7,-5.5); c.stroke();
+    c.strokeStyle='#14100c'; c.lineWidth=4.2;
+    c.beginPath(); c.arc(-3,9,2.6,0,7); c.stroke();
+    c.beginPath(); c.arc(6,9,2.6,0,7); c.stroke();
+    c.strokeStyle='#c9ccd4'; c.lineWidth=2.2;
+    c.beginPath(); c.arc(-3,9,2.6,0,7); c.stroke();
+    c.beginPath(); c.arc(6,9,2.6,0,7); c.stroke();
+    c.fillStyle='#5a4432'; c.beginPath(); c.roundRect(-4.5,-11,8,5,1.4); c.fill(); O(c,1.2); },
+  wrench(c){ c.save(); c.rotate(.75);
+    c.strokeStyle='#14100c'; c.lineWidth=6.4;
+    c.beginPath(); c.moveTo(-3,-3); c.lineTo(7,7); c.stroke();
+    c.strokeStyle='#9a9587'; c.lineWidth=4;
+    c.beginPath(); c.moveTo(-3,-3); c.lineTo(7,7); c.stroke();
+    const jaw=(x,y)=>{ c.fillStyle='#9a9587'; c.beginPath();
+      c.arc(x,y,6,0,7); c.fill(); O(c,1.6);
+      c.fillStyle='#14151c'; c.beginPath(); c.arc(x-2.4,y-2.4,3.4,0,7); c.fill(); };
+    jaw(-6,-6); jaw(10,10); c.restore(); },
+  swords(c){ const blade=fl=>{ c.save(); c.scale(fl,1); c.rotate(.78);
+      c.fillStyle='#c9ccd4'; c.beginPath();
+      c.moveTo(-1.7,-13.5); c.lineTo(1.7,-13.5); c.lineTo(1.2,5); c.lineTo(-1.2,5); c.closePath(); c.fill(); O(c,1.4);
+      c.fillStyle='rgba(255,255,255,.3)'; c.fillRect(-.4,-13,1,17);
+      c.fillStyle='#5a4432'; c.fillRect(-4.4,5,8.8,2.6); O(c,1.2);
+      c.fillStyle='#3a2f22'; c.fillRect(-1.4,7.6,2.8,5.5); O(c,1.2);
+      c.restore(); };
+    blade(1); blade(-1); },
+  bed(c){ c.fillStyle='#5a4432'; c.fillRect(-12,-6,2.6,16); c.fillRect(9.4,-1,2.6,11); O(c,1.2);
+    c.fillStyle='#3d4432'; c.beginPath(); c.roundRect(-10,-1,20,6,2); c.fill(); O(c,1.6);
+    c.fillStyle='#d8cbb0'; c.beginPath(); c.roundRect(-9.4,-4.5,7,4.4,2); c.fill(); O(c,1.3);
+    c.strokeStyle='#14100c'; c.lineWidth=1.6;
+    c.beginPath(); c.moveTo(-12,5); c.lineTo(12,5); c.stroke(); },
+  medkit(c){ c.fillStyle='#e8e4da'; c.beginPath(); c.roundRect(-11,-7,22,16,3); c.fill(); O(c,1.8);
+    c.fillStyle='#c94f3a'; c.fillRect(-2.4,-4.4,4.8,11); c.fillRect(-7.6,.9,15.2,4.8);
+    c.fillStyle='#8a8f99'; c.fillRect(-4,-10,8,3.4); O(c,1.3);
+    gloss(c,-3,-4,6,.25); },
+  radio(c){ c.strokeStyle='#8a8578'; c.lineWidth=2;
+    c.beginPath(); c.moveTo(-7,12); c.lineTo(0,-9); c.lineTo(7,12); c.stroke();
+    c.beginPath(); c.moveTo(-4,4); c.lineTo(4,4); c.moveTo(-2.4,-2.5); c.lineTo(2.4,-2.5); c.stroke();
+    dot(c,0,-10,2,'#c94f3a');
+    c.strokeStyle='#ffd76a'; c.lineWidth=1.4;
+    c.beginPath(); c.arc(0,-10,5.5,-2.4,-.7); c.stroke();
+    c.beginPath(); c.arc(0,-10,8.5,-2.4,-.7); c.stroke();
+    c.beginPath(); c.arc(0,-10,5.5,Math.PI+.7,Math.PI+2.4); c.stroke(); },
+  car(c){ c.fillStyle='#7a4a2c'; c.beginPath(); c.roundRect(-12,-1,24,7,2.6); c.fill(); O(c,1.8);
+    c.fillStyle='#8f5a38'; c.beginPath();
+    c.moveTo(-7,-1); c.lineTo(-4.6,-7); c.lineTo(5.6,-7); c.lineTo(8,-1); c.closePath(); c.fill(); O(c,1.6);
+    c.fillStyle='#7fd0ff'; c.beginPath();
+    c.moveTo(-3.6,-2.2); c.lineTo(-2.4,-5.6); c.lineTo(4,-5.6); c.lineTo(5.2,-2.2); c.closePath(); c.fill();
+    const wheel=x=>{ dot(c,x,7,3.6,'#14151c'); dot(c,x,7,1.6,'#54545e'); };
+    wheel(-7); wheel(7);
+    dot(c,11,1.4,1.3,'#ffd76a'); },
+  pause(c){ c.fillStyle='#d8cbb0';
+    c.beginPath(); c.roundRect(-7.5,-10,5.4,20,2); c.fill(); O(c,1.6);
+    c.beginPath(); c.roundRect(2.1,-10,5.4,20,2); c.fill(); O(c,1.6); },
+  lock(c){ c.strokeStyle='#14100c'; c.lineWidth=5.6;
+    c.beginPath(); c.arc(0,-4,5,Math.PI,0); c.stroke();
+    c.strokeStyle='#8a8578'; c.lineWidth=3;
+    c.beginPath(); c.arc(0,-4,5,Math.PI,0); c.stroke();
+    c.fillStyle='#a8752c'; c.beginPath(); c.roundRect(-8,-3,16,13,2.6); c.fill(); O(c,1.8);
+    c.fillStyle='#eebb55'; c.fillRect(-6.6,-1.6,13.2,3);
+    dot(c,0,3.5,2,'#14100c'); c.fillStyle='#14100c'; c.fillRect(-1,4,2,3.4); },
+  chest(c){ c.fillStyle='#7a4a2c'; c.beginPath(); c.roundRect(-11,-3,22,12,2.6); c.fill(); O(c,1.8);
+    c.fillStyle='#8f5a38'; c.beginPath(); c.roundRect(-11,-9,22,7,3); c.fill(); O(c,1.8);
+    c.fillStyle='rgba(255,255,255,.12)'; c.fillRect(-9.6,-8,19.2,2);
+    c.fillStyle='#eebb55'; c.fillRect(-2.2,-4.5,4.4,7); O(c,1.4);
+    dot(c,0,-.6,1.2,'#14100c');
+    c.strokeStyle='#5a3a22'; c.lineWidth=1.6;
+    c.beginPath(); c.moveTo(-7,-3); c.lineTo(-7,9); c.moveTo(7,-3); c.lineTo(7,9); c.stroke(); },
+  done(c){ circ2(c,0,0,11,'#4c6330','#6f8f44',1.8);
+    c.strokeStyle='#e8ffd0'; c.lineWidth=3.4; c.lineCap='round'; c.lineJoin='round';
+    c.beginPath(); c.moveTo(-5.5,.5); c.lineTo(-1.5,4.5); c.lineTo(6,-4.5); c.stroke(); },
+  heart(c){ c.fillStyle='#c94f3a'; c.beginPath();
+    c.moveTo(0,10); c.bezierCurveTo(-12,1,-11,-8,-5,-8.5);
+    c.bezierCurveTo(-2,-8.7,0,-6,0,-4.5);
+    c.bezierCurveTo(0,-6,2,-8.7,5,-8.5);
+    c.bezierCurveTo(11,-8,12,1,0,10); c.closePath(); c.fill(); O(c,1.8);
+    gloss(c,-3,-4,4,.3); },
+  brain(c){ circ2(c,0,-1,9.5,'#b06a7a','#cf8a99',1.8);
+    c.strokeStyle='#8f4a5c'; c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(0,-10); c.lineTo(0,8); c.stroke();
+    c.beginPath(); c.arc(-4.5,-3,3,0,4.5); c.stroke();
+    c.beginPath(); c.arc(4.5,-3,3,1.8,6.1); c.stroke();
+    c.beginPath(); c.arc(-4,3.4,2.6,3,7.5); c.stroke();
+    c.beginPath(); c.arc(4,3.4,2.6,2,6.4); c.stroke();
+    c.fillStyle='#8f4a5c'; c.beginPath(); c.roundRect(-2.6,7,5.2,4.4,1.6); c.fill(); O(c,1.3); },
+  clip(c){ c.fillStyle='#5a4432'; c.beginPath(); c.roundRect(-9,-11,18,23,2.6); c.fill(); O(c,1.8);
+    c.fillStyle='#e8e4da'; c.beginPath(); c.roundRect(-7,-8,14,17.5,1.6); c.fill(); O(c,1.2);
+    c.fillStyle='#8a8f99'; c.beginPath(); c.roundRect(-4,-13,8,4.4,1.8); c.fill(); O(c,1.4);
+    c.strokeStyle='#8a8578'; c.lineWidth=1.4;
+    [-3.5,.5,4.5].forEach(y=>{ c.beginPath(); c.moveTo(-4.6,y); c.lineTo(4.6,y); c.stroke(); });
+    c.strokeStyle='#4c6330'; c.lineWidth=1.8;
+    c.beginPath(); c.moveTo(-5.6,-4.5); c.lineTo(-4.4,-3); c.lineTo(-2.8,-5.4); c.stroke(); },
+  crate(c){ c.fillStyle='#8f5a38'; c.beginPath(); c.roundRect(-11,-9,22,19,2); c.fill(); O(c,1.8);
+    c.fillStyle='#7a4a2c';
+    c.beginPath(); c.moveTo(-11,-9); c.lineTo(11,10); c.lineTo(8,10); c.lineTo(-11,-6); c.fill();
+    c.beginPath(); c.moveTo(11,-9); c.lineTo(-11,10); c.lineTo(-8,10); c.lineTo(11,-6); c.fill();
+    c.strokeStyle='#5a3a22'; c.lineWidth=1.6; c.strokeRect(-11,-9,22,19);
+    c.strokeRect(-11,-4.5,22,10);
+    [[-9,-7],[9,-7],[-9,8],[9,8]].forEach(([x,y])=>dot(c,x,y,.9,'#3a2513')); },
+  cache(c){ c.fillStyle='#a83a2c'; c.beginPath(); c.roundRect(-11,-6,22,15,2.6); c.fill(); O(c,1.8);
+    c.fillStyle='#c14a38'; c.fillRect(-11,-6,22,4);
+    c.fillStyle='#8a8f99'; c.beginPath(); c.roundRect(-4.4,-9.6,8.8,4.4,1.6); c.fill(); O(c,1.4);
+    c.fillStyle='#eebb55'; c.fillRect(-2,-3.5,4,5); O(c,1.2);
+    c.strokeStyle='#7a2a20'; c.lineWidth=1.4;
+    c.beginPath(); c.moveTo(-11,-2); c.lineTo(11,-2); c.stroke();
+    gloss(c,-4,-4,5,.18); },
+  sack(c){ c.fillStyle='#a8752c'; c.beginPath();
+    c.moveTo(0,-7); c.bezierCurveTo(9,-6,11,3,9,8);
+    c.bezierCurveTo(6,12,-6,12,-9,8); c.bezierCurveTo(-11,3,-9,-6,0,-7);
+    c.closePath(); c.fill(); O(c,1.8);
+    c.fillStyle='#8a5a1c'; c.beginPath(); c.ellipse(0,-8.5,4.4,2.6,0,0,7); c.fill(); O(c,1.4);
+    c.fillStyle='#c9963f'; c.fillRect(-2.6,-12.5,5.2,3.4); O(c,1.2);
+    c.fillStyle='#5a3a10'; c.font='bold 10px monospace'; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('$',0,3);
+    gloss(c,-3,0,5,.18); },
+  trophy(c){ c.fillStyle='#eebb55'; c.beginPath();
+    c.moveTo(-7,-11); c.lineTo(7,-11); c.lineTo(6,-1); c.bezierCurveTo(5,3,-5,3,-6,-1);
+    c.closePath(); c.fill(); O(c,1.8);
+    c.strokeStyle='#a8752c'; c.lineWidth=2;
+    c.beginPath(); c.arc(-8.4,-7,3.4,1.2,4.6); c.stroke();
+    c.beginPath(); c.arc(8.4,-7,3.4,-1.5,1.9); c.stroke();
+    c.fillStyle='#a8752c'; c.fillRect(-1.6,2.6,3.2,4);
+    c.fillStyle='#8f5a38'; c.beginPath(); c.roundRect(-6,6.6,12,4.4,1.6); c.fill(); O(c,1.5);
+    gloss(c,-2,-8,4,.35); },
+  pack(c){ c.fillStyle='#4c5a3a'; c.beginPath(); c.roundRect(-10,-8,20,19,4.4); c.fill(); O(c,1.8);
+    c.fillStyle='#3d4a2e'; c.beginPath(); c.roundRect(-6,1,12,9,2.6); c.fill(); O(c,1.4);
+    c.fillStyle='#5a6a46'; c.beginPath(); c.roundRect(-7,-12,14,6,3); c.fill(); O(c,1.5);
+    c.strokeStyle='#2c351f'; c.lineWidth=1.8;
+    c.beginPath(); c.moveTo(-4.5,-8); c.lineTo(-4.5,1); c.moveTo(4.5,-8); c.lineTo(4.5,1); c.stroke();
+    c.fillStyle='#d8a24c'; c.fillRect(-1.6,3,3.2,3); },
+  frame(c){ c.fillStyle='#5a4432'; c.beginPath(); c.roundRect(-12,-9,24,19,2); c.fill(); O(c,1.8);
+    c.fillStyle='#8db8d8'; c.fillRect(-9.4,-6.6,18.8,14.2);
+    c.fillStyle='#e8d8a0'; c.beginPath(); c.arc(5,-2.4,2.4,0,7); c.fill();
+    c.fillStyle='#4c6330'; c.beginPath();
+    c.moveTo(-9.4,7.6); c.lineTo(-3,-1); c.lineTo(1.5,4); c.lineTo(4.5,1); c.lineTo(9.4,7.6);
+    c.closePath(); c.fill();
+    c.strokeStyle='#3a2c20'; c.lineWidth=1.4; c.strokeRect(-9.4,-6.6,18.8,14.2); },
+  rad(c){ circ2(c,0,0,11.5,'#a8842c','#e0c04c',1.8);
+    c.fillStyle='#14100c';
+    for(let i=0;i<3;i++){ const a=-Math.PI/2+i*Math.PI*2/3;
+      c.beginPath(); c.moveTo(Math.cos(a-.5)*3.4,Math.sin(a-.5)*3.4);
+      c.arc(0,0,9.4,a-.5,a+.5); c.lineTo(Math.cos(a+.5)*3.4,Math.sin(a+.5)*3.4);
+      c.closePath(); c.fill(); }
+    dot(c,0,0,2.2,'#14100c'); dot(c,0,0,1,'#e0c04c'); },
+  sndOn(c){ c.fillStyle='#d8cbb0'; c.beginPath();
+    c.moveTo(-10,-4); c.lineTo(-5,-4); c.lineTo(0,-9.5); c.lineTo(0,9.5); c.lineTo(-5,4); c.lineTo(-10,4);
+    c.closePath(); c.fill(); O(c,1.6);
+    c.strokeStyle='#d8cbb0'; c.lineWidth=2; c.lineCap='round';
+    c.beginPath(); c.arc(1,0,5.5,-.9,.9); c.stroke();
+    c.beginPath(); c.arc(1,0,9,-.9,.9); c.stroke(); },
+  sndSfx(c){ c.fillStyle='#d8cbb0'; c.beginPath();
+    c.moveTo(-10,-4); c.lineTo(-5,-4); c.lineTo(0,-9.5); c.lineTo(0,9.5); c.lineTo(-5,4); c.lineTo(-10,4);
+    c.closePath(); c.fill(); O(c,1.6);
+    c.strokeStyle='#d8cbb0'; c.lineWidth=2; c.lineCap='round';
+    c.beginPath(); c.arc(1,0,5.5,-.9,.9); c.stroke(); },
+  sndOff(c){ c.fillStyle='#8a8578'; c.beginPath();
+    c.moveTo(-10,-4); c.lineTo(-5,-4); c.lineTo(0,-9.5); c.lineTo(0,9.5); c.lineTo(-5,4); c.lineTo(-10,4);
+    c.closePath(); c.fill(); O(c,1.6);
+    c.strokeStyle='#c94f3a'; c.lineWidth=2.4; c.lineCap='round';
+    c.beginPath(); c.moveTo(3,-4.5); c.lineTo(10,4.5); c.moveTo(10,-4.5); c.lineTo(3,4.5); c.stroke(); },
   coin(c){ circ2(c,0,0,11,'#a8752c','#eebb55',1.8);
     c.strokeStyle='#a8752c'; c.lineWidth=1.6;
     c.beginPath(); c.arc(0,0,7.4,0,7); c.stroke();
@@ -1265,9 +1479,10 @@ function cycleSound(){
   save(); applySndGains(); renderSndBtn();
 }
 function renderSndBtn(){
-  const ic = SAVE.sound&&SAVE.music?'🔊':(SAVE.sound?'🔈':'🔇');
-  $('snd-btn').textContent = ic;
-  const p=$('pause-snd'); if(p) p.textContent = ic+'  SOUND: '+(SAVE.sound&&SAVE.music?'ALL ON':(SAVE.sound?'SFX ONLY':'MUTED'));
+  const key = SAVE.sound&&SAVE.music?'sndOn':(SAVE.sound?'sndSfx':'sndOff');
+  $('snd-btn').innerHTML=`<canvas width="36" height="36" data-ic="${key}"></canvas>`;
+  paintAll($('snd-btn'));
+  const p=$('pause-snd'); if(p) p.textContent='SOUND: '+(SAVE.sound&&SAVE.music?'ALL ON':(SAVE.sound?'SFX ONLY':'MUTED'));
 }
 
 /* ---------- weapons & crafting ---------- */
@@ -1291,12 +1506,29 @@ const CRAFT=[
 function equippedDef(){
   return WEAPON_DEFS[(SAVE.weapons||[]).includes(SAVE.equip)?SAVE.equip:'pistol']||WEAPON_DEFS.pistol;
 }
+const MAT_PACKS=[
+  {m:'parts',amt:5,cur:'coins',cost:1000},
+  {m:'parts',amt:20,cur:'gems',cost:350},
+  {m:'cores',amt:1,cur:'gems',cost:220},
+  {m:'cores',amt:5,cur:'gems',cost:900},
+];
+function buyMat(i){
+  const p=MAT_PACKS[i];
+  if(!spend(p.cur,p.cost)) return;
+  SAVE.mats[p.m==='parts'?'parts':'cores']+=p.amt;
+  save(); renderWallet(); renderForge(); sfx('buy');
+  toast(`+${p.amt} ${p.m==='parts'?'weapon parts':'power cores'}`);
+}
 function renderForge(){
+  const ms=$('matshop');
+  if(ms){ ms.innerHTML=MAT_PACKS.map((p,i)=>
+      `<button class="pricebtn" onclick="buyMat(${i})"><canvas width="30" height="30" data-ic="${p.m==='parts'?'parts':'core'}"></canvas> ×${p.amt}<small>${fmtN(p.cost)} ${p.cur}</small></button>`).join('');
+    paintAll(ms); }
   const el=$('forge'); if(!el) return;
   el.innerHTML=CRAFT.map((r,i)=>{
     const def=r.w?WEAPON_DEFS[r.id]:null, n=def?def.n:r.n, ic=def?def.ic:r.ic;
     const owned=def&&SAVE.weapons.includes(r.id);
-    const cost=`${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} 🪙`;
+    const cost=`${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} coins`;
     return `<div class="forge-row"><canvas width="36" height="36" data-ic="${ic}"></canvas><span class="fi"><b>${n}</b><em>${def?def.d:r.d}</em></span>
       <button class="pricebtn${owned?' dim':''}" onclick="craftIt(${i})">${owned?'OWNED':'CRAFT'}${owned?'':`<small>${cost}</small>`}</button></div>`;
   }).join('');
@@ -1306,13 +1538,13 @@ function craftIt(i){
   const r=CRAFT[i], def=r.w?WEAPON_DEFS[r.id]:null;
   if(def&&SAVE.weapons.includes(r.id)){ toast('Already built — equip it in the Armory'); return; }
   if(SAVE.mats.parts<r.parts||SAVE.mats.cores<r.cores||SAVE.coins<r.coins){
-    toast(`Need ${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} 🪙`); return; }
+    toast(`Need ${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} coins`); return; }
   SAVE.mats.parts-=r.parts; SAVE.mats.cores-=r.cores; SAVE.coins-=r.coins;
   if(def){ SAVE.weapons.push(r.id); showReveal(def.ic,def.n.toUpperCase(),'★ '+RN[def.r]+' ★',RCOL[def.r]); }
   else{ const it=SAVE.items.find(x=>x.n===r.item); if(it) it.cnt++;
     showReveal(r.ic,r.n.toUpperCase()+' +1','★ CRAFTED ★',RCOL[1]); }
   sfx('evolve'); save(); renderWallet(); renderForge(); renderArmory();
-  toast(`🔧 Crafted ${def?def.n:r.n}`);
+  toast(`Crafted ${def?def.n:r.n}`);
 }
 
 /* ---------- stages ---------- */
@@ -1324,10 +1556,10 @@ function renderStages(){
   let h='';
   for(let n=1;n<=maxShow;n++){
     const locked=n>SAVE.stage;
-    h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'🔒':n}</b>STAGE ${n}</button>`;
+    h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'<canvas width="24" height="24" data-ic="lock"></canvas>':n}</b>STAGE ${n}</button>`;
   }
-  row.innerHTML=h;
-  $('gate-sub').textContent=`STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 ⚡`;
+  row.innerHTML=h; paintAll(row);
+  $('gate-sub').textContent=`STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 energy`;
 }
 function selStage(n){
   if(n>SAVE.stage){ toast(`Clear STAGE ${SAVE.stage} (30 waves) to unlock`); return; }
@@ -1342,11 +1574,12 @@ function chestReward(t,stg){
 function renderChests(){
   $('chests').innerHTML=state.chests.map((ch,i)=>`
     <div class="chest${ch.claimed?' claimed':''}${ch.earned?'':' lockedc'}">
-      <span class="big">${ch.claimed?'✅':(ch.earned?'🎁':'🔒')}</span>
+      <span class="big"><canvas width="52" height="52" data-ic="${ch.claimed?'done':(ch.earned?'chest':'lock')}"></canvas></span>
       <span style="flex:1"><b>WAVE ${ch.w} REWARD</b>
-        <span class="d">${ch.earned?'':'reach wave '+ch.w+' to earn — '}${fmtN(ch.rw.coins)} 🪙 · ${ch.rw.gems} 💎${ch.rw.keys?` · ${ch.rw.keys} 🗝`:''}${ch.rw.shards?` · ${ch.rw.shards} 🧩`:''}</span></span>
+        <span class="d">${ch.earned?'':'reach wave '+ch.w+' to earn — '}${fmtN(ch.rw.coins)} coins · ${ch.rw.gems} gems${ch.rw.keys?` · ${ch.rw.keys} keys`:''}${ch.rw.shards?` · ${ch.rw.shards} shards`:''}</span></span>
       <button class="pricebtn" ${ch.claimed||!ch.earned?'disabled':''} onclick="claimChest(${i})">${ch.claimed?'CLAIMED':(ch.earned?'CLAIM':'LOCKED')}</button>
     </div>`).join('');
+  paintAll($('chests'));
 }
 function claimChest(i){
   const ch=state.chests[i];
@@ -1354,7 +1587,7 @@ function claimChest(i){
   ch.claimed=true;
   SAVE.coins+=ch.rw.coins; SAVE.gems+=ch.rw.gems; SAVE.keys+=ch.rw.keys; SAVE.shards+=ch.rw.shards;
   save(); renderWallet(); renderChests(); sfx('chest');
-  toast(`🎁 Wave ${ch.w}: +${fmtN(ch.rw.coins)} 🪙 +${ch.rw.gems} 💎`);
+  toast(`Wave ${ch.w}: +${fmtN(ch.rw.coins)} coins +${ch.rw.gems} gems`);
 }
 
 /* ---------- run loot banking ---------- */
@@ -1369,7 +1602,7 @@ function bankLoot(m){
   (L.weapons||[]).forEach(id=>{ if(!SAVE.weapons.includes(id)) SAVE.weapons.push(id); });
   state.lastLoot=null; save(); renderWallet(); sfx('coin');
   go('home');
-  toast(`Banked +${fmtN(L.coins*m)} 🪙 · +${L.scrap*m} ⚙️${m>1?' — DOUBLED!':''}`);
+  toast(`Banked +${fmtN(L.coins*m)} coins · +${L.scrap*m} scrap${m>1?' — DOUBLED!':''}`);
 }
 
 
@@ -2171,7 +2404,7 @@ function spawnBoss(){
   sim.foes.push({k:def.k,r:def.r,hp,maxHp:hp,s:def.s,cdm:def.cdm,boss:true,big:1,v:def.v||0,
     atk:def.atk,x:bx,y:by,ang:0,seed:0,flash:.15,hitCd:0,atkCd:0,
     stompT:sim.t+4,wind:0,lastStep:0,chgU:0,chgHit:0});
-  $('bosswarn').textContent=`⚠ ${def.n} INCOMING ⚠`;
+  $('bosswarn').textContent=`! ${def.n} INCOMING !`;
   sfx('warn');
   $('bossbar').querySelector('b').textContent=def.n;
   crackDecal(bx,by+34);                                  // entrance slam
@@ -2232,7 +2465,7 @@ function hitFoe(f,dmg,big){
         addP(bx+rnd(-26,26),by+rnd(-20,20),i%2?'#e08c4a':'#8b8574',10,180);
         sim.rings.push({x:bx+rnd(-16,16),y:by+rnd(-13,13),r:10,max:90,col:'#ffd76a',age:0});
       },ms));
-      toast('💀 BEHEMOTH SLAIN'); }
+      toast('BEHEMOTH SLAIN'); }
     dropPickups(f);
   }
 }
@@ -2287,12 +2520,12 @@ function pickDraft(i){
 function applyDraft(id){
   const W=sim.w;
   if(id==='evolve'){ sim.radium=true; addChip('radium',true); sfx('evolve');
-    addP(sim.px,sim.py,'#86c232',22,180); toast('☢ RADIUM BLASTER — evolution complete'); }
+    addP(sim.px,sim.py,'#86c232',22,180); toast('RADIUM BLASTER — evolution complete'); }
   else if(id==='molotov'){ if(!W.molotov.lv) addChip('molotov'); W.molotov.lv++; }
   else if(id==='drone'){ if(!W.drone.lv){ addChip('drone'); W.drone.x=sim.px; W.drone.y=sim.py-60; } W.drone.lv++; }
   else if(id==='shock'){ if(!W.shock.lv) addChip('shock'); W.shock.lv++; }
   else if(id==='pistol') W.pistol.lv++;
-  else if(id==='dual'){ sim.dual=true; addChip('dual'); toast('🔫🔫 DUAL WIELD'); }
+  else if(id==='dual'){ sim.dual=true; addChip('dual'); toast('DUAL WIELD — two guns'); }
   else if(id==='orbit') W.orbit.lv++;
   else if(id==='scope'){ W.scope=1; addChip('scope'); }
   else if(id==='dmg'){ sim.dmgLv++; sim.dmgMul*=1.2; }
@@ -2311,13 +2544,14 @@ function finishDeath(){                                 // …then the overlay
   if($('death-ov').classList.contains('on')) return;
   $('death-sub').textContent=`fell on wave ${sim.wave} · ${kills} kills · ${fmtT(sim.t)}`;
   $('revive-btn').innerHTML = sim.revives===0
-    ? '📺 WATCH AD — REVIVE &amp; CONTINUE <span class="tag ad">AD</span><small>full HP + blast the horde back · 1 free per run</small>'
-    : '💎 60 — REVIVE &amp; CONTINUE<small>rewarded ad already used this run</small>';
+    ? '<canvas class="bic" width="28" height="28" data-ic="tv"></canvas> WATCH AD — REVIVE &amp; CONTINUE <span class="tag ad">AD</span><small>full HP + blast the horde back · 1 free per run</small>'
+    : '60 GEMS — REVIVE &amp; CONTINUE<small>rewarded ad already used this run</small>';
+  paintAll($('death-ov'));
   $('death-ov').classList.add('on');
 }
 function reviveClick(){
   if(sim.revives===0) adFlow('revive');
-  else{ toast('−60 💎 (simulated)'); afterRevive(); }
+  else{ toast('−60 gems (simulated)'); afterRevive(); }
 }
 function afterRevive(){
   $('death-ov').classList.remove('on');
@@ -2374,7 +2608,7 @@ function update(dt){
   if(p.toSpawn===0 && p.foes.length===0){
     if(p.wave%10===0 && !p.milestones.includes(p.wave)){
       p.milestones.push(p.wave);
-      toast(`🎁 Wave ${p.wave} reward secured!`);
+      toast(`Wave ${p.wave} reward secured!`);
     }
     if(p.wave>=WAVES){ endRun(true); return; }
     if(!p.breakT) p.breakT=p.t+1.4;
@@ -2571,7 +2805,7 @@ function update(dt){
             p.mats.parts+=2; dmgNum(p.px,p.py-24,'+2 PARTS',true); sfx('coin');
             toast(`Duplicate ${WEAPON_DEFS[g.wid].n} → +2 parts`); }
           else{ p.wDrops.push(g.wid); sfx('chest');
-            toast(`🔫 Found: ${WEAPON_DEFS[g.wid].n}! banked at run end`); }
+            toast(`Found: ${WEAPON_DEFS[g.wid].n}! banked at run end`); }
         }
         else{ p.xp++; sfx('gem'); }
         return false;
@@ -2601,8 +2835,8 @@ function update(dt){
     $('bossbar').style.display=bb?'block':'none';
     if(bb) $('bossfill').style.width=(Math.max(0,bb.hp/bb.maxHp)*100)+'%';
     const ub=$('ult');
-    if(p.ultCd>0){ ub.classList.add('cd'); ub.textContent=Math.ceil(p.ultCd); }
-    else{ ub.classList.remove('cd'); ub.textContent='☢'; } }
+    if(p.ultCd>0){ ub.classList.add('cd'); $('ult-n').textContent=Math.ceil(p.ultCd); }
+    else ub.classList.remove('cd'); }
 }
 function render(){
   const p=sim; if(!p) return;
@@ -2789,8 +3023,8 @@ function fireUlt(){
   sim.rings.push({x:sim.px,y:sim.py,r:30,max:520,col:'#e0a83c',age:0});
   [...sim.foes].forEach(f=>{ if(!f.boss) hitFoe(f,9999,true); else hitFoe(f,30,true); });
   sim.foes=sim.foes.filter(f=>!f.dead);
-  $('ult').classList.add('cd'); $('ult').textContent='30';
-  toast('☢ WASTELAND PROTOCOL');
+  $('ult').classList.add('cd'); $('ult-n').textContent='30';
+  toast('WASTELAND PROTOCOL');
 }
 function refreshCards(){
   if(!sim) return;
@@ -2849,7 +3083,7 @@ function startBattle(){
        wave:0,toSpawn:0,spawnGap:.6,breakT:0,
        lastSpawn:0,lastDust:0,lastTick2:0,ultCd:0,flashT:0,draftOpts:[]};
   refreshCards();
-  $('ult').classList.remove('cd'); $('ult').textContent='☢';
+  $('ult').classList.remove('cd'); $('ult-n').textContent='';
   $('bossbar').style.display='none';
   startWave(1);
   startMusic(SAVE.selStage);
@@ -2877,7 +3111,7 @@ function endRun(won){
     $('res-title').textContent=`STAGE ${stg} CLEAR`;
     if(stg===SAVE.stage){
       SAVE.stage++; SAVE.selStage=SAVE.stage;
-      toast(`🏆 STAGE ${stg} CLEARED — Stage ${SAVE.stage} unlocked!`);
+      toast(`STAGE ${stg} CLEARED — Stage ${SAVE.stage} unlocked!`);
     }
   }
   renderStages();
@@ -2950,7 +3184,7 @@ function grantAd(r){
   if(r==='revive') afterRevive();
   else if(r==='claim2x') bankLoot(2);
   else if(r==='energy'){ SAVE.energy=Math.min(5,SAVE.energy+1); SAVE.energyT=Date.now();
-    save(); renderWallet(); toast('+1 ⚡ energy'); }
+    save(); renderWallet(); toast('+1 energy'); }
   else if(r==='crate') freeCrate();
   else if(r==='reroll'){ showDraft(); toast('Choices rerolled'); }
 }
@@ -3038,8 +3272,8 @@ function buildBarracks(){
     const locked = k==='plague' && !SAVE.plague;
     return `<button class="wcard${k===state.design?' sel':''}${locked?' locked':''}" id="d-${k}" onclick="pickDesign('${k}')">
        <canvas width="96" height="116"></canvas>
-       <b>${RIGS[k].name}${locked?' 🔒':''}</b><span>${RIGS[k].desc}</span>
-       <div class="lv"${locked?' style="color:var(--dim)"':''}>${locked?SAVE.shards+'/80 🧩 to unlock':(k===state.design?'equipped':'&nbsp;')}</div>
+       <b>${RIGS[k].name}</b><span>${RIGS[k].desc}</span>
+       <div class="lv"${locked?' style="color:var(--dim)"':''}>${locked?SAVE.shards+'/80 shards to unlock':(k===state.design?'equipped':'&nbsp;')}</div>
      </button>`;
   }).join('');
   RIG_ORDER.forEach(k=>renderPreview($('d-'+k).querySelector('canvas'),k,2.2));
@@ -3048,9 +3282,9 @@ function pickDesign(k){
   if(k==='plague'&&!SAVE.plague){
     if(SAVE.shards>=80){
       SAVE.shards-=80; SAVE.plague=true; save(); renderWallet();
-      toast('☣ PLAGUE unlocked!');
+      toast('PLAGUE unlocked!');
     }else{
-      toast(`Collect 80 🧩 to unlock — ${SAVE.shards}/80 (shards drop from Warden Caches)`);
+      toast(`Collect 80 shards to unlock — ${SAVE.shards}/80 (shards drop from Warden Caches)`);
       return;
     }
   }
