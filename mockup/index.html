@@ -130,6 +130,23 @@
   .wcard.locked canvas{filter:grayscale(1) brightness(.55)}
   #room-ov,#radio-ov{justify-content:flex-start;padding-top:64px;overflow-y:auto}
 
+  #stagerow{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px}
+  .stagechip{min-width:56px;padding:6px 4px;border-radius:9px;background:var(--panel);
+    border:2px solid var(--line);text-align:center;font-size:9px;font-weight:bold;
+    letter-spacing:1px;color:var(--dim);flex-shrink:0}
+  .stagechip b{display:block;font-size:14px;color:var(--bone)}
+  .stagechip.sel{border-color:var(--rust2);color:var(--rust2)}
+  .stagechip.sel b{color:var(--rust2)}
+  .stagechip.lock{opacity:.4}
+  .chest{display:flex;align-items:center;gap:10px;width:100%;
+    background:linear-gradient(110deg,#3a2c14,#1b1d26 70%);border:2px solid var(--gold);
+    border-radius:10px;padding:8px 12px;margin-bottom:7px;text-align:left}
+  .chest.claimed{opacity:.5;border-color:var(--line)}
+  .chest .big{font-size:22px}
+  .chest b{font-size:12px;letter-spacing:1px;display:block}
+  .chest span.d{display:block;font-size:10px;color:var(--dim)}
+  .chest .pricebtn{color:#fff;background:linear-gradient(#eebb55,#b07f22);border-color:#00000066}
+
   /* glossy battle HUD */
   #xpbar{height:14px;border-radius:8px;border:2px solid #0a0b0e;box-shadow:inset 0 2px 5px #000c}
   #xpfill{background:linear-gradient(#d2f18f,#86c232 45%,#5f8f1f);box-shadow:0 0 9px #86c23288}
@@ -318,7 +335,8 @@
         <span><b id="home-name">DRIFTER</b><span id="home-class">road leathers · scrap pistol · Lv 14</span></span>
         <span class="chev">›</span>
       </button>
-      <button class="btn rust" id="battle-btn" onclick="startBattle()">⚔ THE GATE — ENTER THE WASTES<small>Chapter 3 · Dead City · costs 1 ⚡ energy</small></button>
+      <div id="stagerow"></div>
+      <button class="btn rust" id="battle-btn" onclick="startBattle()">⚔ THE GATE — ENTER THE WASTES<small id="gate-sub">STAGE 1 · DEAD CITY · costs 1 ⚡ energy</small></button>
       <div class="roomgrid">
         <button class="room" onclick="nav('gear')"><span class="ic">🔫</span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
         <button class="room" onclick="nav('crates')"><span class="ic">🔧</span><span><b>WORKSHOP</b><span>crates &amp; merge recipes</span></span></button>
@@ -376,6 +394,7 @@
       <div class="loot"><span>⚙️ Scrap (gear XP)</span><b id="loot-scrap">0</b></div>
       <div class="loot"><span>🗝 Crate keys</span><b id="loot-keys">×0</b></div>
       <div class="loot"><span>🧩 Warden shards</span><b id="loot-shards">×0</b></div>
+      <div id="chests" style="margin-top:10px"></div>
       <button class="btn gold" style="margin:12px 0 8px" onclick="adFlow('claim2x')">📺 CLAIM ×2 <span class="tag ad">AD</span><small>double everything — one 30s ad</small></button>
       <button class="btn grey" onclick="claimPlain()">CLAIM<small>non-payers may see an interstitial here (capped)</small></button>
     </div>
@@ -599,7 +618,7 @@ function toast(msg){
 const RN=['COMMON','RARE','EPIC','LEGENDARY'], RCOL=['#9aa','#5b8bd4','#a06bd4','#e0a83c'];
 const DEFAULT_SAVE={
   coins:1200, gems:150, keys:3, scrap:120, shards:20,
-  energy:5, energyT:0, pity:27, design:'drifter',
+  energy:5, energyT:0, pity:27, design:'drifter', stage:1, selStage:1,
   plague:false, noads:false, starter:false, pass:false, freeDay:'',
   rooms:{medbay:{hp:0,heal:0},garage:{rate:0,power:0},generator:{dmg:0,spd:0,xpg:0}},
   stats:{kills:0,waves:0,crates:0}, mclaimed:{},
@@ -618,6 +637,8 @@ function loadSave(){
   try{ SAVE=JSON.parse(localStorage.getItem('ww_save')); }catch(e){ SAVE=null; }
   if(!SAVE||!SAVE.rooms||!SAVE.items) SAVE=JSON.parse(JSON.stringify(DEFAULT_SAVE));
   if(!SAVE.energyT) SAVE.energyT=Date.now();
+  if(!SAVE.stage) SAVE.stage=1;
+  if(!SAVE.selStage) SAVE.selStage=1;
 }
 function save(){ try{ localStorage.setItem('ww_save',JSON.stringify(SAVE)); }catch(e){} }
 loadSave();
@@ -795,10 +816,55 @@ function openPause(){
 }
 function closePause(){ $('pause-ov').classList.remove('on'); }
 
+/* ---------- stages ---------- */
+const STAGE_NAMES=['DEAD CITY','RUST FLATS','SPORE MIRE','ASH STEPPE','GLASS DESERT','BLACKOUT ZONE'];
+const stageName=s=>STAGE_NAMES[(s-1)%STAGE_NAMES.length]+(s>STAGE_NAMES.length?' '+(Math.floor((s-1)/STAGE_NAMES.length)+1):'');
+function renderStages(){
+  const row=$('stagerow'); if(!row) return;
+  const maxShow=Math.max(SAVE.stage+2,5);
+  let h='';
+  for(let n=1;n<=maxShow;n++){
+    const locked=n>SAVE.stage;
+    h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'🔒':n}</b>STAGE ${n}</button>`;
+  }
+  row.innerHTML=h;
+  $('gate-sub').textContent=`STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 ⚡`;
+}
+function selStage(n){
+  if(n>SAVE.stage){ toast(`Clear STAGE ${SAVE.stage} (30 waves) to unlock`); return; }
+  SAVE.selStage=n; save(); renderStages();
+  toast(`STAGE ${n} — ${stageName(n)} selected`);
+}
+
+/* ---------- milestone chests (waves 10 / 20 / 30) ---------- */
+function chestReward(t,stg){
+  return {coins:(100+t*80)*stg, gems:t*12, keys:t>=2?t-1:0, shards:t>=3?4:0};
+}
+function renderChests(){
+  $('chests').innerHTML=state.chests.map((ch,i)=>`
+    <div class="chest${ch.claimed?' claimed':''}">
+      <span class="big">${ch.claimed?'✅':'🎁'}</span>
+      <span style="flex:1"><b>WAVE ${ch.w} REWARD</b>
+        <span class="d">${fmtN(ch.rw.coins)} 🪙 · ${ch.rw.gems} 💎${ch.rw.keys?` · ${ch.rw.keys} 🗝`:''}${ch.rw.shards?` · ${ch.rw.shards} 🧩`:''}</span></span>
+      <button class="pricebtn" ${ch.claimed?'disabled':''} onclick="claimChest(${i})">${ch.claimed?'CLAIMED':'CLAIM'}</button>
+    </div>`).join('');
+}
+function claimChest(i){
+  const ch=state.chests[i];
+  if(!ch||ch.claimed) return;
+  ch.claimed=true;
+  SAVE.coins+=ch.rw.coins; SAVE.gems+=ch.rw.gems; SAVE.keys+=ch.rw.keys; SAVE.shards+=ch.rw.shards;
+  save(); renderWallet(); renderChests();
+  toast(`🎁 Wave ${ch.w}: +${fmtN(ch.rw.coins)} 🪙 +${ch.rw.gems} 💎`);
+}
+
 /* ---------- run loot banking ---------- */
 function bankLoot(m){
+  (state.chests||[]).forEach(ch=>{ if(!ch.claimed){ ch.claimed=true;   // auto-claim leftovers
+    SAVE.coins+=ch.rw.coins; SAVE.gems+=ch.rw.gems; SAVE.keys+=ch.rw.keys; SAVE.shards+=ch.rw.shards; } });
+  state.chests=[];
   const L=state.lastLoot;
-  if(!L){ go('home'); return; }
+  if(!L){ save(); renderWallet(); go('home'); return; }
   SAVE.coins+=L.coins*m; SAVE.scrap+=L.scrap*m; SAVE.keys+=L.keys*m; SAVE.shards+=L.shards*m;
   state.lastLoot=null; save(); renderWallet();
   go('home');
@@ -820,7 +886,7 @@ const FOE_TYPES=[
   {k:'bloat', w:.15, r:16, hp:4, s:38,  cdm:14, minW:4},   // bloatspike: tanky, toxic
   {k:'raid',  w:.10, r:12, hp:2, s:85,  cdm:10, minW:6},   // raider: quick flanker
 ];
-const WAVES=20;
+const WAVES=30;
 let sim=null, raf=null, lastTs=0, kills=0, lvl=1;
 
 function fmtT(s){ s=Math.max(0,Math.round(s)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
@@ -831,16 +897,24 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const xpNeedFor=l=>Math.max(4,Math.round((6+l*2.6)*(1-SAVE.rooms.generator.xpg*.04)));
 
 /* ---------- procedural ground ---------- */
-function makeGround(){
+function makeGround(stage){
+  const P=[
+    {base:'#453526',slabA:'#40342a',slabB:'#3e3126',dirtA:'#4a3927',dirtB:'#4f3d29'},  // dead city
+    {base:'#3c3b34',slabA:'#37362f',slabB:'#34332d',dirtA:'#43423a',dirtB:'#474639'},  // rust flats
+    {base:'#3e4429',slabA:'#3a3f27',slabB:'#363b24',dirtA:'#464c2e',dirtB:'#4a5230'},  // spore mire
+    {base:'#39323a',slabA:'#353036',slabB:'#322d33',dirtA:'#403a41',dirtB:'#443d45'},  // ash steppe
+    {base:'#4a3222',slabA:'#442f21',slabB:'#402c1f',dirtA:'#513826',dirtB:'#553c29'},  // glass desert
+    {base:'#2f3438',slabA:'#2b3034',slabB:'#282d31',dirtA:'#363b40',dirtB:'#3a4045'},  // blackout zone
+  ][((stage||1)-1)%6];
   const g=document.createElement('canvas'); g.width=g.height=WORLD;
   const c=g.getContext('2d');
-  c.fillStyle='#453526'; c.fillRect(0,0,WORLD,WORLD);              // packed dirt
+  c.fillStyle=P.base; c.fillRect(0,0,WORLD,WORLD);                 // packed dirt
   for(let i=0;i<7;i++){                                            // asphalt slabs
-    c.fillStyle=i%2?'#40342a':'#3e3126';
+    c.fillStyle=i%2?P.slabA:P.slabB;
     c.beginPath(); c.ellipse(rnd(150,WORLD-150),rnd(150,WORLD-150),rnd(160,340),rnd(120,260),rnd(0,3),0,7); c.fill();
   }
   for(let i=0;i<10;i++){                                           // dirt/sand patches
-    c.fillStyle=i%2?'#4a3927':'#4f3d29';
+    c.fillStyle=i%2?P.dirtA:P.dirtB;
     c.beginPath(); c.ellipse(rnd(0,WORLD),rnd(0,WORLD),rnd(60,150),rnd(40,110),rnd(0,3),0,7); c.fill();
   }
   const ry=rnd(300,WORLD-300), rslope=rnd(-120,120);                // two-lane road
@@ -1412,7 +1486,7 @@ function fireShot(x,y,f,radium,dmgAdd){
   sim.shots.push({x,y,vx:dx/d*spd,vy:dy/d*spd,life:.8,radium,
     dmg:Math.round(((radium?3:1)*sim.dmgMul+(dmgAdd||0))*10)/10});
 }
-function foeHpScale(){ return 1+(sim.wave-1)*.18; }
+function foeHpScale(){ return (1+(sim.wave-1)*.14)*(1+(sim.stage-1)*.4); }
 function spawnFoe(){
   const allowed=FOE_TYPES.filter(ft=>sim.wave>=ft.minW);
   const tot=allowed.reduce((a,f)=>a+f.w,0);
@@ -1424,7 +1498,8 @@ function spawnFoe(){
   const elite=sim.wave>=5&&Math.random()<.1;
   const hp=Math.ceil(t.hp*foeHpScale())*(elite?4:1);
   sim.foes.push({...t,x,y,hp,maxHp:hp,ang:0,seed:rnd(0,7),flash:0,hitCd:0,
-    atkCd:rnd(0,.5),elite,big:elite?1.45:1,cdm:t.cdm*(elite?2:1)});
+    atkCd:rnd(0,.5),elite,big:elite?1.45:1,
+    cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.25))});
 }
 function crackDecal(x,y){                              // permanent impact crater
   const c=sim.ground.getContext('2d');
@@ -1437,7 +1512,7 @@ function crackDecal(x,y){                              // permanent impact crate
     c.stroke(); }
 }
 function spawnBoss(){
-  const hp=Math.round(140*(1+sim.wave*.12));
+  const hp=Math.round(140*(1+sim.wave*.12)*(1+(sim.stage-1)*.5));
   const bx=sim.px, by=Math.max(80,sim.py-300);
   sim.foes.push({k:'behe',r:32,hp,maxHp:hp,s:34,cdm:25,boss:true,big:1,
     x:bx,y:by,ang:0,seed:0,flash:.15,hitCd:0,atkCd:0,
@@ -1615,6 +1690,10 @@ function update(dt){
     p.lastSpawn=p.t; p.toSpawn--; spawnFoe();
   }
   if(p.toSpawn===0 && p.foes.length===0){
+    if(p.wave%10===0 && !p.milestones.includes(p.wave)){
+      p.milestones.push(p.wave);
+      toast(`🎁 Wave ${p.wave} reward secured!`);
+    }
     if(p.wave>=WAVES){ endRun(true); return; }
     if(!p.breakT) p.breakT=p.t+1.4;
     else if(p.t>=p.breakT){ p.breakT=0; startWave(p.wave+1); }
@@ -1969,7 +2048,8 @@ function startBattle(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
        flash:0,hurtT:0,invulnT:0,camx:0,camy:0,shake:0,orbA:0,
-       ground:makeGround(),
+       stage:SAVE.selStage, milestones:[],
+       ground:makeGround(SAVE.selStage),
        foes:[],shots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
@@ -1995,11 +2075,21 @@ function endRun(won){
   $('res-title').textContent = won ? 'VICTORY' : 'RUN OVER';
   $('res-title').style.color = won ? 'var(--gold)' : 'var(--red)';
   $('res-sub').textContent = won
-    ? `all ${WAVES} waves cleared · ${kills} kills · ${fmtT(sim?sim.t:0)}`
+    ? `all ${WAVES} waves of ${stageName(sim?sim.stage:1)} cleared · ${kills} kills · ${fmtT(sim?sim.t:0)}`
     : `fell on wave ${sim?sim.wave:0} · ${kills} kills · ${fmtT(sim?sim.t:0)}`;
-  const w=sim?sim.wave:0;
-  state.lastLoot={coins:40*w+kills*2, scrap:8*w+Math.floor(kills/3),
+  const w=sim?sim.wave:0, stg=sim?sim.stage:1, stgMul=1+(stg-1)*.3;
+  state.lastLoot={coins:Math.round((40*w+kills*2)*stgMul), scrap:Math.round((8*w+Math.floor(kills/3))*stgMul),
     keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0)};
+  state.chests=(sim?sim.milestones:[]).map(mw=>({w:mw, rw:chestReward(mw/10,stg), claimed:false}));
+  renderChests();
+  if(won){
+    $('res-title').textContent=`STAGE ${stg} CLEAR`;
+    if(stg===SAVE.stage){
+      SAVE.stage++; SAVE.selStage=SAVE.stage;
+      toast(`🏆 STAGE ${stg} CLEARED — Stage ${SAVE.stage} unlocked!`);
+    }
+  }
+  renderStages();
   $('loot-coins').textContent=fmtN(state.lastLoot.coins);
   $('loot-scrap').textContent=fmtN(state.lastLoot.scrap);
   $('loot-keys').textContent='×'+state.lastLoot.keys;
@@ -2011,7 +2101,8 @@ function endRun(won){
 // test/debug hooks
 window.__sim = () => sim ? {foes:sim.foes.length, shots:sim.shots.length, gems:sim.gems.length,
   kills, px:sim.px, py:sim.py, boss:sim.foes.some(f=>f.boss),
-  wave:sim.wave, hp:sim.hp, xp:sim.xp, toSpawn:sim.toSpawn} : null;
+  wave:sim.wave, hp:sim.hp, xp:sim.xp, toSpawn:sim.toSpawn,
+  stage:sim.stage, milestones:sim.milestones.length} : null;
 window.__test = {
   xp:n=>{ if(sim) sim.xp+=n; },
   hp:n=>{ if(sim) sim.hp=n; },
@@ -2178,7 +2269,7 @@ renderPreview($('home-prev'),state.design,1.55);
 renderPreview($('gear-prev'),state.design,4.4);
 $('home-name').textContent=RIGS[state.design].name;
 $('home-class').textContent=RIGS[state.design].desc+' · Lv 14';
-renderWallet(); renderShop(); renderArmory(); renderPity();
+renderWallet(); renderShop(); renderArmory(); renderPity(); renderStages();
 setInterval(()=>{ regenEnergy(); renderWallet(); },5000);
 
 /* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
