@@ -182,7 +182,11 @@
   #ult-n{display:none}
   #ult.cd #ult-n{display:inline}
   .stagechip b canvas{width:12px;height:12px}
-  #matshop{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  #matshop,#exchange{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  #exchange{grid-template-columns:repeat(4,1fr);margin-bottom:0}
+  #exchange .pricebtn{padding:6px 2px}
+  #exchange .pricebtn small{display:block;font-size:8.5px;opacity:.8}
+  #exchange canvas{width:14px;height:14px;vertical-align:-2px}
   #matshop .pricebtn{padding:6px 2px}
   #matshop .pricebtn small{display:block;font-size:8.5px;opacity:.8}
   #matshop canvas{width:14px;height:14px;vertical-align:-2px}
@@ -573,6 +577,11 @@
       <button class="card wide" id="sku-forge" onclick="buy('forge')">
         <span class="big"><canvas width="48" height="48" data-ic="parts"></canvas></span><span class="inf"><b>FORGE BUNDLE <span class="tag iap">IAP</span></b><span>40 weapon parts + 8 power cores for the crafting forge</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
+      <div class="card" style="margin-top:8px">
+        <b style="font-size:12px;letter-spacing:1px">QUICK EXCHANGE</b>
+        <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 6px">turn gems into upgrade currency — rush weapon, gear and room levels</span>
+        <div id="exchange"></div>
+      </div>
     </div>
     <div class="navbar"></div>
   </div>
@@ -684,6 +693,7 @@ function go(name){
   $('info-btn').style.display = (name==='battle'||name==='title') ? 'none':'block';
   if(name==='gear'&&typeof renderArmory==='function') renderArmory();
   if(name==='crates'&&typeof renderForge==='function') renderForge();
+  if(name==='shop'&&typeof renderExchange==='function') renderExchange();
   markNav();
 }
 function nav(name){ sfx('ui'); go(name); }
@@ -881,7 +891,9 @@ function renderArmory(){
       :'EQUIP<small>your warden will use this gun</small>';
     const c=wupCost(state.selW);
     $('wupg-btn').classList.toggle('grey',lv>=WLV_MAX);
-    $('wupg-cost').textContent=lv>=WLV_MAX?'MAX LEVEL':`${fmtN(c.coins)} coins + ${c.parts} parts · +8% dmg`;
+    const tt=gemTopup({coins:c.coins,parts:c.parts});
+    $('wupg-cost').textContent=lv>=WLV_MAX?'MAX LEVEL'
+      :`${fmtN(c.coins)} coins + ${c.parts} parts${tt.gems>0?` · gems cover ${fmtN(tt.gems)}`:''} · +8% dmg`;
     $('arm-bonus').textContent=`Weapon drops are rare in runs — craft more in the Workshop forge`;
     return;
   }
@@ -890,7 +902,8 @@ function renderArmory(){
   $('sel-name').textContent=`${it.n} · ${RN[it.r]}`;
   const fx=itemFx(it);
   $('sel-stats').textContent=`+${fx.v}${fx.u} in runs · Lv ${it.lv} · owned ×${it.cnt}`;
-  $('upg-cost').textContent=`${fmtN(180+it.lv*120)} coins + 8 scrap`;
+  const ut=gemTopup({coins:180+it.lv*120,scrap:8});
+  $('upg-cost').textContent=`${fmtN(180+it.lv*120)} coins + 8 scrap${ut.gems>0?` · gems cover ${fmtN(ut.gems)}`:''}`;
   $('merge-hint').textContent = it.r>=3?'max rarity':(it.cnt>=3?`${RN[it.r]} ×3 → ${RN[it.r+1]}`:`need ×3 (have ×${it.cnt})`);
   const gs=gearStats();
   $('arm-bonus').textContent=`Loadout bonus: +${gs.dmg.toFixed(1)}% dmg · +${Math.round(gs.hp)} HP · +${gs.spd.toFixed(1)}% speed · +${gs.rate.toFixed(1)}% fire rate · +${gs.mag.toFixed(0)}% pickup · +${Math.round(gs.heal)} heal`;
@@ -906,8 +919,8 @@ function equipSel(){
 }
 function armUpgrade(){
   const it=SAVE.items[state.selItem], cc=180+it.lv*120;
-  if(SAVE.coins<cc||SAVE.scrap<8){ toast(`Need ${fmtN(cc)} coins + 8 scrap`); return; }
-  SAVE.coins-=cc; SAVE.scrap-=8; it.lv++;
+  if(!spendSmart({coins:cc,scrap:8})) return;
+  it.lv++;
   save(); renderWallet(); renderArmory(); sfx('coin'); toast(`${it.n} → Lv ${it.lv}`);
 }
 function armMerge(){
@@ -943,7 +956,7 @@ function renderRoom(){
     const lv=SAVE.rooms[key][rw.k], maxed=lv>=rw.max, cost=rw.cost(lv);
     return `<div class="skill" style="cursor:default"><span class="ic"><canvas width="40" height="40" data-ic="${rw.i}"></canvas></span>
       <span><b>${rw.n} · ${lv}/${rw.max}</b><span>${rw.d}</span></span>
-      <button class="pricebtn" ${maxed?'disabled':''} onclick="roomUp('${rw.k}')">${maxed?'MAX':fmtN(cost)+(rw.cur==='coins'?' coins':' scrap')}</button></div>`;
+      <button class="pricebtn" ${maxed?'disabled':''} onclick="roomUp('${rw.k}')">${maxed?'MAX':fmtN(cost)+(rw.cur==='coins'?' coins':' scrap')+(gemTopup({[rw.cur]:cost}).gems>0?' / gems':'')}</button></div>`;
   }).join('');
   paintAll($('room-rows'));
 }
@@ -951,7 +964,7 @@ function roomUp(k){
   const key=state.room, rw=ROOMS[key].rows.find(r=>r.k===k);
   const lv=SAVE.rooms[key][k];
   if(lv>=rw.max) return;
-  if(!spend(rw.cur,rw.cost(lv))) return;
+  if(!spendSmart({[rw.cur]:rw.cost(lv)})) return;
   SAVE.rooms[key][k]++; save(); renderRoom(); sfx('coin');
   toast(`${rw.n} → LV ${lv+1}`);
 }
@@ -1631,9 +1644,7 @@ function weapUpgrade(){
   const lv=wLv(id);
   if(lv>=WLV_MAX){ toast('Weapon at max level'); return; }
   const c=wupCost(id);
-  if(SAVE.coins<c.coins||SAVE.mats.parts<c.parts){
-    toast(`Need ${fmtN(c.coins)} coins + ${c.parts} parts`); return; }
-  SAVE.coins-=c.coins; SAVE.mats.parts-=c.parts;
+  if(!spendSmart({coins:c.coins,parts:c.parts})) return;
   SAVE.weaponLv[id]=lv+1;
   save(); renderWallet(); renderArmory(); sfx('coin');
   toast(`${WEAPON_DEFS[id].n} → Lv ${lv+1}`);
@@ -1650,6 +1661,47 @@ function buyMat(i){
   SAVE.mats[p.m==='parts'?'parts':'cores']+=p.amt;
   save(); renderWallet(); renderForge(); sfx('buy');
   toast(`+${p.amt} ${p.m==='parts'?'weapon parts':'power cores'}`);
+}
+/* gems → upgrade currency: lets spenders rush weapon/gear/room levels */
+const EXCHANGE=[
+  {get:'coins',ic:'coin',amt:2000,gems:120},
+  {get:'coins',ic:'coin',amt:12000,gems:600},
+  {get:'scrap',ic:'scrap',amt:150,gems:140},
+  {get:'scrap',ic:'scrap',amt:800,gems:620},
+];
+function buyEx(i){
+  const p=EXCHANGE[i];
+  if(!spend('gems',p.gems)) return;
+  SAVE[p.get]+=p.amt;
+  save(); renderWallet(); sfx('buy');
+  toast(`+${fmtN(p.amt)} ${p.get}`);
+}
+/* pay with what you have; gems cover any shortfall (exchange-card rates) */
+const GEMRATE={coins:.06,scrap:.95,parts:17.5,cores:220};
+function gemTopup(need){
+  let gems=0; const pay={};
+  for(const k in need){
+    const have=(k==='parts'||k==='cores')?SAVE.mats[k]:SAVE[k];
+    const use=Math.min(have,need[k]);
+    pay[k]=use;
+    if(need[k]>use) gems+=Math.ceil((need[k]-use)*GEMRATE[k]);
+  }
+  return {gems,pay};
+}
+function spendSmart(need){
+  const t=gemTopup(need);
+  if(t.gems>0&&SAVE.gems<t.gems){
+    toast(`Not enough — shortfall needs ${fmtN(t.gems)} gems`); return false; }
+  for(const k in t.pay){
+    if(k==='parts'||k==='cores') SAVE.mats[k]-=t.pay[k]; else SAVE[k]-=t.pay[k]; }
+  if(t.gems>0){ SAVE.gems-=t.gems; toast(`${fmtN(t.gems)} gems covered the shortfall`); }
+  save(); renderWallet(); return true;
+}
+function renderExchange(){
+  const el=$('exchange'); if(!el) return;
+  el.innerHTML=EXCHANGE.map((p,i)=>
+    `<button class="pricebtn" onclick="buyEx(${i})"><canvas width="30" height="30" data-ic="${p.ic}"></canvas> ×${fmtN(p.amt)}<small>${fmtN(p.gems)} gems</small></button>`).join('');
+  paintAll(el);
 }
 function renderForge(){
   const ms=$('matshop');
@@ -1669,9 +1721,7 @@ function renderForge(){
 function craftIt(i){
   const r=CRAFT[i], def=r.w?WEAPON_DEFS[r.id]:null;
   if(def&&SAVE.weapons.includes(r.id)){ toast('Already built — equip it in the Armory'); return; }
-  if(SAVE.mats.parts<r.parts||SAVE.mats.cores<r.cores||SAVE.coins<r.coins){
-    toast(`Need ${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} coins`); return; }
-  SAVE.mats.parts-=r.parts; SAVE.mats.cores-=r.cores; SAVE.coins-=r.coins;
+  if(!spendSmart({coins:r.coins,parts:r.parts,cores:r.cores})) return;
   if(def){ SAVE.weapons.push(r.id); showReveal(def.ic,def.n.toUpperCase(),'★ '+RN[def.r]+' ★',RCOL[def.r]); }
   else{ const it=SAVE.items.find(x=>x.n===r.item); if(it) it.cnt++;
     showReveal(r.ic,r.n.toUpperCase()+' +1','★ CRAFTED ★',RCOL[1]); }
@@ -3508,7 +3558,7 @@ renderPreview($('gear-prev'),state.design,4.4,equippedDef().gun);
 $('home-name').textContent=RIGS[state.design].name;
 $('home-class').textContent=RIGS[state.design].desc+' · Lv 14';
 renderWallet(); renderShop(); renderArmory(); renderPity(); renderStages();
-renderSndBtn(); renderForge(); paintAll(document);
+renderSndBtn(); renderForge(); renderExchange(); paintAll(document);
 setInterval(()=>{ regenEnergy(); renderWallet(); },5000);
 
 /* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
