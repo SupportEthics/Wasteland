@@ -825,7 +825,26 @@ function freeCrate(){
 }
 
 /* ---------- armory ---------- */
-const armoryDmgBonus=()=>SAVE.items.reduce((a,it)=>a+it.lv,0)*.004;
+/* each gear piece has a real stat role; level scales it, rarity multiplies it */
+const GEAR_FX={
+  radium:{k:'dmg',per:1.2,u:'% damage'},
+  bat:{k:'dmg',per:.8,u:'% damage'},
+  duster:{k:'dmg',per:.6,u:'% damage'},
+  plate:{k:'hp',per:4,u:' max HP'},
+  gasmask:{k:'heal',per:2,u:' medkit healing'},
+  boots:{k:'spd',per:.8,u:'% move speed'},
+  gloves:{k:'rate',per:.7,u:'% fire rate'},
+  charm:{k:'mag',per:2,u:'% pickup radius'},
+};
+const rarMul=r=>1+r*.5;                                   // common x1 … legendary x2.5
+const itemFx=it=>{ const fx=GEAR_FX[it.ic]||GEAR_FX.plate;
+  return {k:fx.k, u:fx.u, v:Math.round(fx.per*it.lv*rarMul(it.r)*10)/10}; };
+function gearStats(){
+  const t={dmg:0,hp:0,spd:0,rate:0,mag:0,heal:0};
+  SAVE.items.forEach(it=>{ const f=itemFx(it); t[f.k]+=f.v; });
+  return t;
+}
+const armoryDmgBonus=()=>gearStats().dmg/100;             // damage share, as before
 function renderArmory(){
   const inv=$('inv'); if(!inv) return;
   inv.innerHTML=SAVE.items.map((it,i)=>
@@ -852,10 +871,12 @@ function renderArmory(){
   $('gear-panel').style.display=''; $('weap-panel').style.display='none';
   const it=SAVE.items[state.selItem];
   $('sel-name').textContent=`${it.n} · ${RN[it.r]}`;
-  $('sel-stats').textContent=`ATK +${it.lv*8} · Lv ${it.lv} · owned ×${it.cnt}`;
+  const fx=itemFx(it);
+  $('sel-stats').textContent=`+${fx.v}${fx.u} in runs · Lv ${it.lv} · owned ×${it.cnt}`;
   $('upg-cost').textContent=`${fmtN(180+it.lv*120)} coins + 8 scrap`;
   $('merge-hint').textContent = it.r>=3?'max rarity':(it.cnt>=3?`${RN[it.r]} ×3 → ${RN[it.r+1]}`:`need ×3 (have ×${it.cnt})`);
-  $('arm-bonus').textContent=`Gear bonus in runs: +${(armoryDmgBonus()*100).toFixed(1)}% damage (sum of item levels)`;
+  const gs=gearStats();
+  $('arm-bonus').textContent=`Loadout bonus: +${gs.dmg.toFixed(1)}% dmg · +${Math.round(gs.hp)} HP · +${gs.spd.toFixed(1)}% speed · +${gs.rate.toFixed(1)}% fire rate · +${gs.mag.toFixed(0)}% pickup · +${Math.round(gs.heal)} heal`;
 }
 function selArm(i){ state.selItem=i; state.selW=null; renderArmory(); }
 function selWeap(id){ state.selW=id; renderArmory(); }
@@ -2726,7 +2747,7 @@ function update(dt){
   });
   battleEl.classList.toggle('low', p.hp/p.maxHp<.3);
   // equipped gun / radium blaster
-  const pcd=(p.radium?.3:p.gun.cd*Math.pow(.85,p.w.pistol.lv-1))*(p.dual?.9:1);
+  const pcd=(p.radium?.3:p.gun.cd*Math.pow(.85,p.w.pistol.lv-1))*(p.dual?.9:1)/(p.rateMul||1);
   if(!p.dying && p.t-p.w.pistol.last>pcd){
     const f=nearestFoe((p.radium?260:p.gun.range)*(p.w.scope?1.35:1));
     if(f){ p.w.pistol.last=p.t; p.flash=.07;
@@ -3093,6 +3114,7 @@ function startBattle(){
   const dpr=Math.min(2,window.devicePixelRatio||1);
   cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
+  const GS=gearStats();
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
        flash:0,hurtT:0,invulnT:0,camx:0,camy:0,shake:0,orbA:0,
        stage:SAVE.selStage, milestones:[],
@@ -3101,10 +3123,12 @@ function startBattle(){
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
        gun:{...equippedDef()},dual:false,mats:{parts:0,cores:0},wDrops:[],
-       radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+armoryDmgBonus(),
-       spdMul:1+SAVE.rooms.generator.spd*.04,magnetR:110,dmgLv:0,bootLv:0,hpLv:0,magLv:0,
-       hp:100+SAVE.rooms.medbay.hp*20,maxHp:100+SAVE.rooms.medbay.hp*20,
-       healAmt:25+SAVE.rooms.medbay.heal*10,
+       radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+GS.dmg/100,
+       spdMul:1+SAVE.rooms.generator.spd*.04+GS.spd/100,
+       rateMul:1+GS.rate/100,
+       magnetR:110*(1+GS.mag/100),dmgLv:0,bootLv:0,hpLv:0,magLv:0,
+       hp:100+SAVE.rooms.medbay.hp*20+GS.hp,maxHp:100+SAVE.rooms.medbay.hp*20+GS.hp,
+       healAmt:25+SAVE.rooms.medbay.heal*10+GS.heal,
        xp:0,xpNeed:xpNeedFor(1),revives:0,
        wave:0,toSpawn:0,spawnGap:.6,breakT:0,
        lastSpawn:0,lastDust:0,lastTick2:0,ultCd:0,flashT:0,draftOpts:[]};
