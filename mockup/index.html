@@ -199,6 +199,26 @@
   #draft .skill.auto{box-shadow:0 0 0 1px #9ad23f55, 0 0 14px #9ad23f22}
   #draft .skill.ascc{border-color:var(--gold);box-shadow:0 0 14px #eebb5533}
   .new.gold{background:var(--gold);color:#14100c}
+  #coach{position:absolute;inset:0;z-index:40;pointer-events:none;display:none}
+  .coach-ring{position:absolute;border:3px solid var(--gold);border-radius:14px;
+    box-shadow:0 0 0 2000px rgba(0,0,0,.5), 0 0 18px #eebb5588;
+    animation:coachpulse 1.2s ease-in-out infinite}
+  @keyframes coachpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+  .coach-tip{position:absolute;background:#14151c;border:1px solid var(--gold);border-radius:12px;
+    padding:10px 12px;font-size:12px;line-height:1.45;color:var(--ink);box-shadow:0 6px 18px #000a}
+  .coach-tip b{color:var(--gold)}
+  #lb-card canvas{width:22px;height:22px;flex-shrink:0}
+  #lb-rows{width:100%;max-width:340px}
+  .lb-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;
+    font-size:12px;border:1px solid transparent}
+  .lb-row:nth-child(odd){background:#ffffff08}
+  .lb-row .rk{width:26px;color:var(--dim);font-weight:bold}
+  .lb-row .nm{flex:1;text-align:left}
+  .lb-row .st{font-weight:bold;color:var(--gold)}
+  .lb-row.me{border-color:var(--green);background:#86c23218}
+  .lb-row.me .nm{color:var(--green);font-weight:bold}
+  .lb-ellip{color:var(--dim);font-size:11px;padding:2px 0}
+  #lb-link .btn{margin-top:8px}
   /* DEV MODE badge — remove with the DEV block before release */
   #dev-badge{position:absolute;left:-26px;top:14px;z-index:30;transform:rotate(-45deg);
     background:#c94f3a;color:#fff;font-size:9px;font-weight:bold;letter-spacing:3px;
@@ -397,6 +417,11 @@
         <span class="chev">›</span>
       </button>
       <div id="stagerow"></div>
+      <button class="card" id="lb-card" onclick="openLB()" style="width:100%;margin-bottom:10px">
+        <canvas width="44" height="44" data-ic="trophy"></canvas>
+        <span><b>GLOBAL LEADERBOARD</b><span id="lb-sub" style="display:block;font-size:11px;color:var(--dim)">rank —</span></span>
+        <span class="chev">›</span>
+      </button>
       <button class="btn rust" id="battle-btn" onclick="startBattle()"><canvas class="bic" width="28" height="28" data-ic="swords"></canvas> THE GATE — ENTER THE WASTES<small id="gate-sub">STAGE 1 · DEAD CITY · costs 1 energy</small></button>
       <div class="roomgrid">
         <button class="room" onclick="nav('gear')"><span class="ic"><canvas width="44" height="44" data-ic="pistol"></canvas></span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
@@ -667,6 +692,17 @@
     <button class="cancel" onclick="document.getElementById('sheet').classList.remove('on')">Cancel</button>
   </div>
 
+  <div id="coach"></div>
+
+  <!-- leaderboard (SIMULATED — Game Center / Play Games at native build) -->
+  <div class="overlay" id="lb-ov">
+    <div class="ov-title">GLOBAL LEADERBOARD</div>
+    <div class="ov-sub">furthest stage reached · season 1 · 34,208 wardens (simulated)</div>
+    <div id="lb-rows"></div>
+    <div id="lb-link"></div>
+    <button class="btn grey" style="margin-top:8px" onclick="$('lb-ov').classList.remove('on')">CLOSE</button>
+  </div>
+
   <div id="toast"></div>
 </div>
 
@@ -694,6 +730,9 @@ function go(name){
   if(name==='gear'&&typeof renderArmory==='function') renderArmory();
   if(name==='crates'&&typeof renderForge==='function') renderForge();
   if(name==='shop'&&typeof renderExchange==='function') renderExchange();
+  if(name==='home'&&typeof updateLBCard==='function') updateLBCard();
+  if(name==='gear'&&(SAVE.tut||0)===3&&typeof tutAdvance==='function') tutAdvance(9);
+  if(typeof updateTut==='function') updateTut();
   markNav();
 }
 function nav(name){ sfx('ui'); go(name); }
@@ -738,6 +777,8 @@ function loadSave(){
   if(!SAVE.weapons) SAVE.weapons=['pistol'];
   if(!SAVE.equip) SAVE.equip='pistol';
   if(!SAVE.weaponLv) SAVE.weaponLv={};
+  if(SAVE.tut===undefined) SAVE.tut=(SAVE.stats&&SAVE.stats.kills>0)?9:0;  // veterans skip the tutorial
+  if(!SAVE.lbName) SAVE.lbName='Warden'+(1000+Math.floor(Math.random()*9000));
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -1732,6 +1773,76 @@ function craftIt(i){
   toast(`Crafted ${def?def.n:r.n}`);
 }
 
+/* ---------- first-run tutorial (non-blocking coach marks) ---------- */
+function coachShow(sel,txt,below){
+  const co=$('coach'), el=document.querySelector(sel);
+  if(!co) return;
+  if(!el){ coachHide(); return; }
+  const pr=$('phone').getBoundingClientRect(), r=el.getBoundingClientRect();
+  co.style.display='block';
+  const tipPos=below?`top:${r.bottom-pr.top+14}px`:`bottom:${pr.height-(r.top-pr.top)+14}px`;
+  co.innerHTML=`<div class="coach-ring" style="left:${r.left-pr.left-6}px;top:${r.top-pr.top-6}px;width:${r.width+12}px;height:${r.height+12}px"></div>
+    <div class="coach-tip" style="left:16px;right:16px;${tipPos}">${txt}</div>`;
+}
+function coachHide(){ const co=$('coach'); if(co){ co.style.display='none'; co.innerHTML=''; } }
+function updateTut(){
+  if(SAVE.tut===undefined) SAVE.tut=0;
+  if(SAVE.tut>=9){ coachHide(); return; }
+  if(state.screen==='home'){
+    if(SAVE.tut===0)
+      coachShow('#battle-btn','<b>Welcome to the outpost, Warden.</b> The wastes are crawling. Tap <b>THE GATE</b> to start your first run — just drag to move, your weapons fire themselves.');
+    else if(SAVE.tut===3)
+      coachShow(`.room[onclick="nav('gear')"]`,'<b>Loot banked.</b> Spend it in the <b>ARMORY</b> — upgrading gear and weapons makes every future run stronger.');
+    else coachHide();
+  }
+  else if(state.screen==='results'&&SAVE.tut===2)
+    coachShow('#s-results .btn.gold','<b>Claim your loot.</b> The AD button doubles everything — that choice is always yours.',true);
+  else coachHide();
+}
+function tutAdvance(to){
+  if((SAVE.tut||0)<to&&SAVE.tut<9){ SAVE.tut=to; save(); }
+  if(to>=9){ coachHide(); toast("You're ready, Warden — good hunting."); }
+}
+
+/* ---------- leaderboard (SIMULATED)
+   Replace with Game Center (GKLeaderboard) on iOS and Google Play Games
+   Services on Android at the native build. SAVE.lbLink records which
+   identity the player chose; scores post as: stage reached, lifetime
+   waves as tiebreak. ---------- */
+const LB_BOTS=[
+  ['IronMaw',9,412],['Dust_Queen',9,371],['K0balt',9,298],['Vulture77',8,344],
+  ['HexNail',8,301],['Mirelurker',8,255],['Sable',7,280],['GritSpit',7,214],
+  ['NoMansLand',6,240],['Rustbucket',6,188],['PaleRider',5,171],['Cinders',4,150],
+  ['Wanderer_02',3,96],['TinDog',2,58],['FirstStep',1,12],
+];
+function lbData(){
+  const mine={n:(SAVE.lbName||'YOU')+' (you)',stage:Math.max(1,SAVE.stage||1),
+    waves:SAVE.stats.waves||0,me:1};
+  const all=LB_BOTS.map(([n,stage,waves])=>({n,stage,waves})).concat([mine]);
+  all.sort((a,b)=>b.stage-a.stage||b.waves-a.waves);
+  return {all,rank:all.findIndex(e=>e.me)+1};
+}
+function renderLB(){
+  const {all,rank}=lbData();
+  const row=(e,i)=>`<div class="lb-row${e.me?' me':''}"><span class="rk">#${i+1}</span><span class="nm">${e.n}</span><span class="st">STAGE ${e.stage}</span></div>`;
+  let h=all.slice(0,10).map(row).join('');
+  if(rank>10) h+=`<div class="lb-ellip">···</div>`+row(all[rank-1],rank-1);
+  $('lb-rows').innerHTML=h;
+  $('lb-link').innerHTML=SAVE.lbLink
+    ?`<div class="lb-ellip">linked to ${SAVE.lbLink==='gc'?'Apple Game Center':'Google Play Games'} (simulated) as <b>${SAVE.lbName}</b></div>`
+    :`<button class="btn green" onclick="lbLink('gc')">LINK APPLE GAME CENTER<small>simulated — real sign-in at native build</small></button>
+      <button class="btn green" onclick="lbLink('gp')">LINK GOOGLE PLAY GAMES<small>simulated — real sign-in at native build</small></button>`;
+}
+function updateLBCard(){
+  const el=$('lb-sub'); if(!el) return;
+  el.textContent=`rank #${lbData().rank} of 34,208 · stage ${Math.max(1,SAVE.stage||1)} (simulated)`;
+}
+function openLB(){ renderLB(); sfx('ui'); $('lb-ov').classList.add('on'); }
+function lbLink(k){
+  SAVE.lbLink=k; save(); renderLB(); sfx('pick');
+  toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
+}
+
 /* ---------- stages ---------- */
 const STAGE_NAMES=['DEAD CITY','RUST FLATS','SPORE MIRE','ASH STEPPE','GLASS DESERT','BLACKOUT ZONE','FROSTBITE RIDGE','WHITEOUT WASTES','GLACIER MAW'];
 const stageName=s=>STAGE_NAMES[(s-1)%STAGE_NAMES.length]+(s>STAGE_NAMES.length?' '+(Math.floor((s-1)/STAGE_NAMES.length)+1):'');
@@ -1785,7 +1896,9 @@ function bankLoot(m){
   SAVE.coins+=L.coins*m; SAVE.scrap+=L.scrap*m; SAVE.keys+=L.keys*m; SAVE.shards+=L.shards*m;
   SAVE.mats.parts+=(L.parts||0)*m; SAVE.mats.cores+=(L.cores||0)*m;
   (L.weapons||[]).forEach(id=>{ if(!SAVE.weapons.includes(id)) SAVE.weapons.push(id); });
-  state.lastLoot=null; save(); renderWallet(); sfx('coin');
+  state.lastLoot=null;
+  if((SAVE.tut||0)===2) SAVE.tut=3;
+  save(); renderWallet(); sfx('coin');
   go('home');
   toast(`Banked +${fmtN(L.coins*m)} coins · +${L.scrap*m} scrap${m>1?' — DOUBLED!':''}`);
 }
@@ -3112,6 +3225,7 @@ function startDraftTimer(){
 function stopDraftTimer(){ if(draftT){ clearInterval(draftT); draftT=null; } }
 function pickDraft(i){
   if(!$('lvl-ov').classList.contains('on')) return;   // already resolved (auto-pick vs tap race)
+  if((SAVE.tut||0)===1){ SAVE.tut=2; save(); }
   stopDraftTimer();
   const o=sim&&sim.draftOpts[i]; if(!o) return;
   applyDraft(o.id); sfx('pick');
@@ -3180,15 +3294,17 @@ function afterRevive(){
 
 /* ---------- waves ---------- */
 function startWave(n){
-  sim.wave=n; sim.toSpawn=8+Math.round(n*1.8);
-  sim.spawnGap=Math.max(.25,.72-n*.022);
+  const gentle=sim.stage===1&&n<=4;                    // soft first-contact curve
+  sim.wave=n; sim.toSpawn=Math.round((8+Math.round(n*1.8))*(gentle?.6:1));
+  sim.spawnGap=Math.max(.25,(.72-n*.022)*(gentle?1.5:1));
   $('wave').textContent=`W ${n}/${WAVES}`;
   const b=$('wavebanner');
   b.textContent=(n%10===0)?`— WAVE ${n} · BOSS —`:`— WAVE ${n} —`;
   b.style.display='block';
   clearTimeout(startWave.bt); startWave.bt=setTimeout(()=>b.style.display='none',1500);
   sfx('wave');
-  for(let i=0;i<4&&sim.toSpawn>0;i++){ sim.toSpawn--; spawnFoe(); }   // opening burst
+  const burst=(sim.stage===1&&n<=4)?2:4;
+  for(let i=0;i<burst&&sim.toSpawn>0;i++){ sim.toSpawn--; spawnFoe(); }   // opening burst
   if(n%10===0) spawnBoss();
 }
 
@@ -3706,6 +3822,7 @@ function startBattle(){
   if(SAVE.energy<1){ toast('Out of energy — watch an ad or wait for regen'); return; }
   SAVE.energy--; SAVE.energyT=Date.now(); save(); renderWallet();
   kills=0; lvl=1;
+  if((SAVE.tut||0)===0){ SAVE.tut=1; save(); } coachHide();
   $('wslots').innerHTML=''; addChip(equippedDef().ic); addChip('bat');
   $('kills').textContent='0'; $('lvl').textContent='LV 1';
   $('xpfill').style.width='0%'; $('timer').textContent='00:00';
@@ -3958,7 +4075,7 @@ renderPreview($('gear-prev'),state.design,4.4,equippedDef().gun);
 $('home-name').textContent=RIGS[state.design].name;
 $('home-class').textContent=RIGS[state.design].desc+' · Lv 14';
 renderWallet(); renderShop(); renderArmory(); renderPity(); renderStages();
-renderSndBtn(); renderForge(); renderExchange(); paintAll(document);
+renderSndBtn(); renderForge(); renderExchange(); updateLBCard(); paintAll(document);
 setInterval(()=>{ regenEnergy(); renderWallet(); },5000);
 
 /* ---------- ?sheet — character design sheet (for review/screenshots) ---------- */
