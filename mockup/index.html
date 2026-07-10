@@ -392,6 +392,89 @@
   #info-ov h3{letter-spacing:2px;margin-bottom:10px}
   #info-ov .card{margin-bottom:10px;font-size:12px;line-height:1.5}
   #info-ov .card b{display:block;margin-bottom:4px}
+
+  /* ============ v2 menu tile system (approved mockup) ============ */
+  :root{--line2:#353849;--panel2b:#1d2030}
+  .sec{font-size:10px;letter-spacing:2px;color:var(--dim);display:flex;align-items:center;gap:8px;
+    margin:4px 0 8px;text-align:left;font-weight:bold}
+  .sec::after{content:'';flex:1;height:1px;background:var(--line)}
+  .well{width:46px;height:46px;border-radius:11px;background:#0d0e12;border:1px solid var(--line);
+    display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .well canvas{width:30px;height:30px}
+  .well.gold{border-color:#8a6a2c;background:linear-gradient(160deg,#241d10,#0d0e12)}
+  .well.green{border-color:#4c6330;background:linear-gradient(160deg,#18220f,#0d0e12)}
+  .pricebtn{background:linear-gradient(#eebb55,#c9963f);color:#14100c;border:1px solid #00000055;
+    border-radius:11px;font-size:12px;font-weight:bold;padding:8px 10px;min-width:64px;text-align:center}
+  .pricebtn small{display:block;font-size:8.5px;font-weight:normal;opacity:.8;margin-top:1px}
+  .pricebtn:disabled{opacity:.4;filter:grayscale(.6)}
+  .pricebtn.grey{background:var(--panel2b);color:var(--ink);border-color:var(--line2)}
+  .card{border-radius:14px;border-width:1px;border-color:var(--line2)}
+  /* home */
+  .room{border-radius:14px;border-width:1px;border-color:var(--line2);min-height:54px}
+  .room .ic{width:40px;height:40px;border-radius:10px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .room .ic canvas{width:24px;height:24px}
+  .room b{font-size:11.5px}
+  .room span{font-size:9.5px;margin-top:2px}
+  #stagerow{gap:8px}
+  .stagechip{min-width:62px;border-radius:12px;border:1.5px solid var(--line2);padding:7px 4px 6px}
+  .stagechip u{display:block;text-decoration:none;font-size:7.5px;color:var(--dim);letter-spacing:.5px;
+    margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;margin-left:auto;margin-right:auto}
+  .stagechip.sel{border-color:var(--gold);background:linear-gradient(160deg,#241d10,var(--panel))}
+  .stagechip.sel b,.stagechip.sel u{color:var(--gold)}
+  #lb-card,#base-head{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(150deg,#1a1c28,var(--panel))}
+  #battle-btn{border-radius:14px}
+  /* workshop */
+  .card.crate{border-radius:14px}
+  .crate .box{width:52px;height:52px;border-radius:12px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;filter:none;flex-shrink:0}
+  .crate .box canvas{width:36px;height:36px}
+  #pity{font-size:9.5px}
+  .mtile{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line2);
+    border-radius:12px;padding:7px 8px;min-height:44px}
+  .mtile .well{width:34px;height:34px;border-radius:9px}
+  .mtile .well canvas{width:22px;height:22px}
+  .mtile > b{font-size:10px;flex:1;text-align:left;letter-spacing:0}
+  .mtile .pricebtn{min-width:52px;padding:6px 5px;font-size:10.5px;margin-left:0}
+  #matshop,#exchange{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .forge-row{border-top:none;background:var(--panel);border:1px solid var(--line2);border-radius:12px;
+    padding:8px 9px;margin-bottom:7px;gap:9px}
+  .forge-row .well{width:40px;height:40px;border-radius:10px}
+  .forge-row .well canvas{width:26px;height:26px}
+  .forge-row .fi b{font-size:11.5px}
+  .forge-row .fi em{font-size:9.5px}
+  /* shop */
+  .banner{border-radius:14px;border-width:1px}
+  .wide{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:10px 11px;min-height:56px}
+  .wide .big{width:46px;height:46px;border-radius:11px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+  .sku .big canvas,.card.wide .big canvas{width:30px;height:30px}
+  .wide .price{background:linear-gradient(#eebb55,#c9963f);color:#14100c!important;border-radius:11px;
+    padding:9px 10px;font-size:12.5px;flex-shrink:0}
+  .sku{border-radius:14px;border:1px solid var(--line2);display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px 8px}
+  .sku .big{width:44px;height:44px;border-radius:11px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;margin:0 auto}
+  .sku b{font-size:13px;margin:0}
+  .sku .price{display:block;width:100%;box-sizing:border-box;background:linear-gradient(#eebb55,#c9963f);
+    color:#14100c;border-radius:11px;padding:7px 4px;font-size:12px;border:1px solid #00000055}
+  .linkish{text-align:center;font-size:10px;color:var(--dim);text-decoration:underline;padding:4px 0 6px;cursor:pointer}
+  .sku .big.gold-sku{border-color:#8a6a2c;background:linear-gradient(160deg,#241d10,#0d0e12)}
+  /* armory */
+  .invgrid{gap:8px}
+  .item{border-radius:13px;border-width:1.5px;min-width:0}
+  .item.r-r{background:linear-gradient(160deg,#131b2a,var(--panel))}
+  .item.r-e{background:linear-gradient(160deg,#1d1528,var(--panel))}
+  .item.r-l{background:linear-gradient(160deg,#241d10,var(--panel))}
+  .eqb{position:absolute;left:0;right:0;bottom:0;background:var(--green);color:#14200a;font-size:7.5px;
+    font-weight:bold;letter-spacing:1px;text-align:center;border-radius:0 0 11px 11px;padding:2px 0}
+  /* shared list rows (rooms overlay, missions, drafts) */
+  .skill{border-radius:14px;border:1px solid var(--line2);background:var(--panel)}
+  .skill .ic{width:40px;height:40px;border-radius:10px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+  .skill .ic canvas{width:24px;height:24px}
+  .chest{border-radius:14px;border-width:1px}
+  .chest .big{width:44px;height:44px;border-radius:11px;background:#0d0e12;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -419,22 +502,24 @@
         <span><b id="home-name">DRIFTER</b><span id="home-class">road leathers · scrap pistol · Lv 14</span></span>
         <span class="chev">›</span>
       </button>
+      <div class="sec">SELECT STAGE</div>
       <div id="stagerow"></div>
-      <button class="card" id="lb-card" onclick="openLB()" style="width:100%;margin-bottom:10px">
-        <canvas width="44" height="44" data-ic="trophy"></canvas>
+      <button class="card" id="lb-card" onclick="openLB()" style="width:100%;margin-bottom:10px;display:flex;align-items:center;gap:11px">
+        <span class="well gold"><canvas width="44" height="44" data-ic="trophy"></canvas></span>
         <span><b>GLOBAL LEADERBOARD</b><span id="lb-sub" style="display:block;font-size:11px;color:var(--dim)">rank —</span></span>
         <span class="chev">›</span>
       </button>
       <button class="btn rust" id="battle-btn" onclick="startBattle()"><canvas class="bic" width="28" height="28" data-ic="swords"></canvas> THE GATE — ENTER THE WASTES<small id="gate-sub">STAGE 1 · DEAD CITY · costs 1 energy</small></button>
+      <div class="sec">BASE ROOMS</div>
       <div class="roomgrid">
-        <button class="room" onclick="nav('gear')"><span class="ic"><canvas width="44" height="44" data-ic="pistol"></canvas></span><span><b>ARMORY</b><span>weapon &amp; gear upgrades</span></span></button>
-        <button class="room" onclick="nav('crates')"><span class="ic"><canvas width="44" height="44" data-ic="wrench"></canvas></span><span><b>WORKSHOP</b><span>crates &amp; merge recipes</span></span></button>
+        <button class="room" onclick="nav('gear')"><span class="ic"><canvas width="44" height="44" data-ic="pistol"></canvas></span><span><b>ARMORY</b><span>weapons &amp; gear</span></span></button>
+        <button class="room" onclick="nav('crates')"><span class="ic"><canvas width="44" height="44" data-ic="wrench"></canvas></span><span><b>WORKSHOP</b><span>crates &amp; forge</span></span></button>
         <button class="room" onclick="nav('wardens')"><span class="ic"><canvas width="44" height="44" data-ic="bed"></canvas></span><span><b>BARRACKS</b><span>survivors &amp; skins</span></span></button>
         <button class="room" onclick="openRoom('medbay')"><span class="ic"><canvas width="44" height="44" data-ic="medkit"></canvas></span><span><b>MED BAY</b><span>health &amp; revive upgrades</span></span></button>
-        <button class="room" onclick="openRadio()"><span class="ic"><canvas width="44" height="44" data-ic="radio"></canvas></span><span><b>RADIO TOWER</b><span>daily missions · free ad crate <span class="tag ad">AD</span></span></span></button>
+        <button class="room" onclick="openRadio()"><span class="ic"><canvas width="44" height="44" data-ic="radio"></canvas></span><span><b>RADIO TOWER</b><span>daily missions <span class="tag ad">AD</span></span></span></button>
         <button class="room" onclick="openRoom('garage')"><span class="ic"><canvas width="44" height="44" data-ic="car"></canvas></span><span><b>GARAGE</b><span>drone upgrades</span></span></button>
         <button class="room" onclick="openRoom('generator')"><span class="ic"><canvas width="44" height="44" data-ic="energy"></canvas></span><span><b>GENERATOR</b><span>permanent core tree</span></span></button>
-        <button class="room" onclick="nav('shop')"><span class="ic"><canvas width="44" height="44" data-ic="cart"></canvas></span><span><b>SUPPLY POST</b><span>bundles, gems &amp; pass <span class="tag iap">IAP</span></span></span></button>
+        <button class="room" onclick="nav('shop')"><span class="ic"><canvas width="44" height="44" data-ic="cart"></canvas></span><span><b>SUPPLY POST</b><span>bundles &amp; gems <span class="tag iap">IAP</span></span></span></button>
       </div>
     </div>
     <div class="navbar" id="nav"></div>
@@ -509,10 +594,10 @@
         <div class="slot"        style="right:10px;top:50%;transform:translateY(-23px)"><canvas width="48" height="48" data-ic="gloves"></canvas></div>
         <div class="slot filled" style="right:10px;top:100%;transform:translateY(-58px)"><canvas width="48" height="48" data-ic="charm"></canvas></div>
       </div>
-      <b style="font-size:11px;letter-spacing:1px;color:var(--dim)">WEAPONS — found in runs or crafted</b>
-      <div class="invgrid" id="warms" style="margin:4px 0 8px"></div>
-      <b style="font-size:11px;letter-spacing:1px;color:var(--dim)">GEAR</b>
-      <div class="invgrid" id="inv" style="margin-top:4px"></div>
+      <div class="sec">WEAPONS — FOUND IN RUNS OR CRAFTED</div>
+      <div class="invgrid" id="warms" style="margin:0 0 8px"></div>
+      <div class="sec">GEAR — EVERY LEVEL MAKES RUNS STRONGER</div>
+      <div class="invgrid" id="inv"></div>
       <div class="card" style="margin-bottom:8px">
         <b id="sel-name" style="font-size:12px;letter-spacing:1px">—</b>
         <span id="sel-stats" style="display:block;font-size:11px;color:var(--dim);margin-top:3px">—</span>
@@ -535,6 +620,7 @@
     <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="key"></canvas> <span class="w-keys">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="parts"></canvas> <span class="w-parts">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="core"></canvas> <span class="w-cores">0</span></div></div>
     <h2 class="hdr">WORKSHOP</h2>
     <div class="body">
+      <div class="sec">SUPPLY CRATES</div>
       <div class="card crate">
         <div class="box"><canvas width="56" height="56" data-ic="crate"></canvas></div>
         <div class="info"><b>RUSTY CRATE</b><span>Coins, scrap, Common–Rare gear</span>
@@ -554,12 +640,10 @@
         </div>
       </div>
       <div id="pity">Pity: guaranteed <b>LEGENDARY</b> within <b id="pity-n">27</b> more opens · odds shown in-game (platform compliance)</div>
-      <div class="card" style="margin-bottom:10px">
-        <b style="font-size:12px;letter-spacing:1px">CRAFTING FORGE</b>
-        <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 4px">weapon parts &amp; power cores drop (rarely) from kills, elites and bosses — forge them into new guns and gear</span>
-        <div id="matshop"></div>
-        <div id="forge"></div>
-      </div>
+      <div class="sec">BUY MATERIALS</div>
+      <div id="matshop"></div>
+      <div class="sec">CRAFTING FORGE — RARE DROPS FROM RUNS</div>
+      <div id="forge"></div>
       <div class="card" style="margin-bottom:10px">
         <b style="font-size:12px;letter-spacing:1px">MERGE RECIPES</b>
         <div class="recipe"><canvas width="36" height="36" data-ic="pistol"></canvas> Scrap Pistol <span class="to">+ <canvas width="36" height="36" data-ic="scope"></canvas> Scope →</span><span class="evoname"><canvas width="36" height="36" data-ic="radium"></canvas> Radium Blaster</span></div>
@@ -583,21 +667,21 @@
     <div class="topbar"><div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div><div class="pill"><canvas width="30" height="30" data-ic="gem"></canvas> <span class="w-gems">0</span></div></div>
     <h2 class="hdr">SUPPLY POST</h2>
     <div class="body">
+      <div class="sec">FEATURED</div>
       <div class="banner">
         <b>★ WARDEN'S CONTRACT — SEASON 1</b> <span class="tag iap">IAP</span>
         <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 gems, 20 keys</p>
         <button class="btn gold" id="sku-pass" onclick="buy('pass')">UNLOCK · £4.99</button>
       </div>
+      <div class="sec">BUNDLES</div>
       <button class="card wide" id="sku-starter" onclick="buy('starter')">
         <span class="big"><canvas width="48" height="48" data-ic="pack"></canvas></span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 gems + Rare weapon + 5 keys · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
-      <button class="card wide" id="sku-noads" onclick="buy('noads')">
-        <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly, no ad.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
-      </button>
+      <div class="sec">GEMS</div>
       <div class="shoprow">
         <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="gem"></canvas></div><b>500</b><button class="price" onclick="buy('gems500')">£1.99</button></div>
-        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="sack"></canvas></div><b>2,800</b><button class="price" onclick="buy('gems2800')">£7.99</button></div>
-        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="trophy"></canvas></div><b>12,000</b><button class="price" onclick="buy('gems12000')">£24.99</button></div>
+        <div class="sku"><div class="big"><canvas width="48" height="48" data-ic="gem"></canvas></div><b>2,800</b><button class="price" onclick="buy('gems2800')">£7.99</button></div>
+        <div class="sku"><div class="big gold-sku"><canvas width="48" height="48" data-ic="gem"></canvas></div><b>12,000</b><button class="price" onclick="buy('gems12000')">£24.99</button></div>
       </div>
       <button class="card wide" id="sku-keys" onclick="buy('keys10')">
         <span class="big"><canvas width="48" height="48" data-ic="key"></canvas></span><span class="inf"><b>CRATE KEYS ×10 <span class="tag iap">IAP</span></b><span>Opens Warden Caches</span></span><span class="price" style="color:var(--gold);font-weight:bold">£4.99</span>
@@ -605,12 +689,13 @@
       <button class="card wide" id="sku-forge" onclick="buy('forge')">
         <span class="big"><canvas width="48" height="48" data-ic="parts"></canvas></span><span class="inf"><b>FORGE BUNDLE <span class="tag iap">IAP</span></b><span>40 weapon parts + 8 power cores for the crafting forge</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
-      <button class="btn grey" style="margin-top:8px" onclick="Bridge.restorePurchases()">RESTORE PURCHASES<small>required by the App Store — re-applies past purchases</small></button>
-      <div class="card" style="margin-top:8px">
-        <b style="font-size:12px;letter-spacing:1px">QUICK EXCHANGE</b>
-        <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 6px">turn gems into upgrade currency — rush weapon, gear and room levels</span>
-        <div id="exchange"></div>
-      </div>
+      <div class="linkish" onclick="Bridge.restorePurchases()">Restore purchases</div>
+      <div class="sec" style="margin-top:8px">QUICK EXCHANGE — GEMS INTO CURRENCY</div>
+      <div id="exchange"></div>
+      <div class="sec">ACCOUNT</div>
+      <button class="card wide" id="sku-noads" onclick="buy('noads')">
+        <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
+      </button>
     </div>
     <div class="navbar"></div>
   </div>
@@ -957,7 +1042,7 @@ function renderArmory(){
   paintAll(inv);
   const wa=$('warms');
   if(wa){ wa.innerHTML=SAVE.weapons.map(id=>{ const d=WEAPON_DEFS[id];
-      return `<div class="item r-${'crel'[d.r]}${state.selW===id?' sel':''}" onclick="selWeap('${id}')"><span class="lvb">Lv${wLv(id)}</span><canvas width="60" height="60" data-ic="${d.ic}"></canvas>${SAVE.equip===id?'<span class="n" style="color:var(--green)">EQ</span>':''}</div>`;
+      return `<div class="item r-${'crel'[d.r]}${state.selW===id?' sel':''}" onclick="selWeap('${id}')"><span class="lvb">Lv${wLv(id)}</span><canvas width="60" height="60" data-ic="${d.ic}"></canvas>${SAVE.equip===id?'<span class="eqb">EQUIPPED</span>':''}</div>`;
     }).join('');
     paintAll(wa); }
   const sw=$('slot-weap');
@@ -1808,21 +1893,21 @@ function spendSmart(need){
 function renderExchange(){
   const el=$('exchange'); if(!el) return;
   el.innerHTML=EXCHANGE.map((p,i)=>
-    `<button class="pricebtn" onclick="buyEx(${i})"><canvas width="30" height="30" data-ic="${p.ic}"></canvas> ×${fmtN(p.amt)}<small>${fmtN(p.gems)} gems</small></button>`).join('');
+    `<div class="mtile"><span class="well"><canvas width="30" height="30" data-ic="${p.ic}"></canvas></span><b>${fmtN(p.amt)} ${p.get.toUpperCase()}</b><button class="pricebtn grey" onclick="buyEx(${i})">${fmtN(p.gems)}<small>GEMS</small></button></div>`).join('');
   paintAll(el);
 }
 function renderForge(){
   const ms=$('matshop');
   if(ms){ ms.innerHTML=MAT_PACKS.map((p,i)=>
-      `<button class="pricebtn" onclick="buyMat(${i})"><canvas width="30" height="30" data-ic="${p.m==='parts'?'parts':'core'}"></canvas> ×${p.amt}<small>${fmtN(p.cost)} ${p.cur}</small></button>`).join('');
+      `<div class="mtile"><span class="well"><canvas width="30" height="30" data-ic="${p.m==='parts'?'parts':'core'}"></canvas></span><b>${p.amt} ${(p.amt===1?p.m.slice(0,-1):p.m).toUpperCase()}</b><button class="pricebtn grey" onclick="buyMat(${i})">${fmtN(p.cost)}<small>${p.cur.toUpperCase()}</small></button></div>`).join('');
     paintAll(ms); }
   const el=$('forge'); if(!el) return;
   el.innerHTML=CRAFT.map((r,i)=>{
     const def=r.w?WEAPON_DEFS[r.id]:null, n=def?def.n:r.n, ic=def?def.ic:r.ic;
     const owned=def&&SAVE.weapons.includes(r.id);
     const cost=`${r.parts} parts${r.cores?` + ${r.cores} cores`:''} + ${fmtN(r.coins)} coins`;
-    return `<div class="forge-row"><canvas width="36" height="36" data-ic="${ic}"></canvas><span class="fi"><b>${n}</b><em>${def?def.d:r.d}</em></span>
-      <button class="pricebtn${owned?' dim':''}" onclick="craftIt(${i})">${owned?'OWNED':'CRAFT'}${owned?'':`<small>${cost}</small>`}</button></div>`;
+    return `<div class="forge-row"><span class="well${def&&def.r>=3?' gold':''}"><canvas width="36" height="36" data-ic="${ic}"></canvas></span><span class="fi"><b>${n}</b><em>${def?def.d:r.d}</em></span>
+      <button class="pricebtn${owned?' grey dim':''}" onclick="craftIt(${i})">${owned?'OWNED':'CRAFT'}${owned?'':`<small>${cost}</small>`}</button></div>`;
   }).join('');
   paintAll(el);
 }
@@ -1918,7 +2003,7 @@ function renderStages(){
   for(let n=1;n<=maxShow;n++){
     const locked=n>SAVE.stage;
     const st3=SAVE.stars&&SAVE.stars[n]?`<i class="stars">${'★'.repeat(SAVE.stars[n])}${'☆'.repeat(3-SAVE.stars[n])}</i>`:(locked?'':`<i class="stars dim3">☆☆☆</i>`);
-    h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'<canvas width="24" height="24" data-ic="lock"></canvas>':n}</b>STAGE ${n}${st3}</button>`;
+    h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'<canvas width="24" height="24" data-ic="lock"></canvas>':n}</b>${st3}<u>${locked?'LOCKED':stageName(n)}</u></button>`;
   }
   row.innerHTML=h; paintAll(row);
   $('gate-sub').textContent=`STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 energy`;
