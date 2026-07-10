@@ -109,6 +109,7 @@ const PRODUCT_IDS = {
   gems500: 'ww.gems.500', gems2800: 'ww.gems.2800', gems12000: 'ww.gems.12000',
   keys10: 'ww.keys.10', noads: 'ww.noads', starter: 'ww.starter',
   pass: 'ww.pass.s1', forge: 'ww.forge.bundle',
+  skinWarlord: 'ww.skin.warlord', skinTinker: 'ww.skin.tinker', skinJugg: 'ww.skin.juggernaut',
 };
 Bridge.purchase = async (id, onSuccess) => {
   try {

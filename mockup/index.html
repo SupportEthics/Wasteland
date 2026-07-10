@@ -475,6 +475,7 @@
   .chest{border-radius:14px;border-width:1px}
   .chest .big{width:44px;height:44px;border-radius:11px;background:#0d0e12;border:1px solid var(--line);
     display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .wcard .lv.boost{color:var(--gold);font-size:8.5px;letter-spacing:.3px;margin-top:3px}
 </style>
 </head>
 <body>
@@ -673,6 +674,9 @@
         <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 gems, 20 keys</p>
         <button class="btn gold" id="sku-pass" onclick="buy('pass')">UNLOCK · £4.99</button>
       </div>
+      <button class="card wide" id="sku-noads" onclick="buy('noads')">
+        <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
+      </button>
       <div class="sec">BUNDLES</div>
       <button class="card wide" id="sku-starter" onclick="buy('starter')">
         <span class="big"><canvas width="48" height="48" data-ic="pack"></canvas></span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 gems + Rare weapon + 5 keys · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
@@ -692,10 +696,6 @@
       <div class="linkish" onclick="Bridge.restorePurchases()">Restore purchases</div>
       <div class="sec" style="margin-top:8px">QUICK EXCHANGE — GEMS INTO CURRENCY</div>
       <div id="exchange"></div>
-      <div class="sec">ACCOUNT</div>
-      <button class="card wide" id="sku-noads" onclick="buy('noads')">
-        <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
-      </button>
     </div>
     <div class="navbar"></div>
   </div>
@@ -901,6 +901,8 @@ function loadSave(){
   if(!SAVE.lbName) SAVE.lbName='Warden'+(1000+Math.floor(Math.random()*9000));
   if(!SAVE.stars) SAVE.stars={};
   if(!SAVE.daily) SAVE.daily={day:'',p:{},c:{}};
+  if(!SAVE.skins) SAVE.skins={};
+  if(SAVE.plague) SAVE.skins.plague=1;               // migrate old unlock flag
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -959,6 +961,9 @@ const SKUS={
   gems12000:{n:'12,000 Gems',p:'£24.99',apply:()=>SAVE.gems+=12000},
   keys10:{n:'Crate Keys ×10',p:'£4.99',apply:()=>SAVE.keys+=10},
   forge:{n:'Forge Bundle',p:'£2.99',apply:()=>{SAVE.mats.parts+=40;SAVE.mats.cores+=8;renderForge();}},
+  skinWarlord:{n:'Warlord Skin',p:'£2.99',once:'skinW',apply:()=>{SAVE.skins.warlord=1;pickDesign('warlord');}},
+  skinTinker:{n:'Tinker Skin',p:'£5.99',once:'skinT',apply:()=>{SAVE.skins.tinker=1;pickDesign('tinker');}},
+  skinJugg:{n:'Juggernaut Skin',p:'£9.99',once:'skinJ',apply:()=>{SAVE.skins.juggernaut=1;pickDesign('juggernaut');}},
   noads:{n:'Remove Ads',p:'£7.99',once:'noads'},
   starter:{n:'Starter Bundle',p:'£2.99',once:'starter',apply:()=>{SAVE.gems+=800;SAVE.keys+=5;}},
   pass:{n:"Warden's Contract (Season 1)",p:'£4.99',once:'pass',apply:()=>{SAVE.gems+=1200;SAVE.keys+=20;}},
@@ -2536,6 +2541,28 @@ const RIGS={
       circ2(c,3.4,-7-bob,2.7,'#a8752c','#eebb55',1.6);
       dot(c,-4.1,-7.7-bob,.8,'#fff8dc'); dot(c,2.7,-7.7-bob,.8,'#fff8dc');
     }},
+  juggernaut:{name:'JUGGERNAUT',desc:'exo frame · reactor core · rail javelin',flashCol:'#7fd0ff',gun:'rail',
+    draw(c,st,bob,seed){
+      chibiBase(c,st,bob,'#2b2f38','#3f4552','#33373f');
+      circ2(c,-9,-1-bob,4,'#31353e','#4a505c',1.8);                            // servo shoulders
+      circ2(c,9,-1-bob,4,'#31353e','#4a505c',1.8);
+      dot(c,-9,-1.6-bob,1.1,'#7fd0ff'); dot(c,9,-1.6-bob,1.1,'#7fd0ff');
+      c.strokeStyle='#12141a'; c.lineWidth=1.4;                                // frame struts
+      c.beginPath(); c.moveTo(-6,1-bob); c.lineTo(-2,5-bob);
+      c.moveTo(6,1-bob); c.lineTo(2,5-bob); c.stroke();
+      c.fillStyle='rgba(127,208,255,.22)';                                     // reactor bloom
+      c.beginPath(); c.arc(0,2.5-bob,4,0,7); c.fill();
+      dot(c,0,2.5-bob,2.6,'#0d1218'); dot(c,0,2.5-bob,1.6,'#7fd0ff');
+      dot(c,-.5,2-bob,.6,'#e8f8ff');
+      circ2(c,0,-8-bob,9,'#3a404c','#555c6a');                                 // sealed helm
+      gloss(c,0,-9.5-bob,7.6,.18);
+      c.fillStyle='#0e1116'; c.beginPath(); c.roundRect(-6,-10.5-bob,12,4.4,2); c.fill();
+      c.fillStyle='#7fd0ff'; c.fillRect(-4.5,-9.4-bob,9,1.6);                  // T-visor glow
+      c.fillRect(-1,-8-bob,2,2.6);
+      c.strokeStyle='#555c6a'; c.lineWidth=1.2;                                // antenna
+      c.beginPath(); c.moveTo(4.5,-12.5-bob); c.lineTo(6,-15-bob); c.stroke();
+      dot(c,6,-15-bob,1,'#7fd0ff');
+    }},
   plague:{name:'PLAGUE',desc:'gasmask · twin chem tanks · sprayer',flashCol:'#b8f04c',gun:'sprayer',
     draw(c,st,bob,seed){
       ell2(c,-6,6-bob,3.2,6,'#39472c','#55683e',1.8);                         // chem tanks
@@ -2560,7 +2587,17 @@ const RIGS={
       circ2(c,6.4,-4-bob,2.2,'#6e6a5e','#9a9587',1.4);
     }},
 };
-const RIG_ORDER=['drifter','warlord','stalker','tinker','plague'];
+const RIG_ORDER=['drifter','stalker','plague','warlord','tinker','juggernaut'];
+/* skins are real power: boosts apply to every run (see startBattle) */
+const SKIN_DEFS={
+  drifter:   {boost:null, unlock:'start', line:'baseline warden'},
+  stalker:   {boost:{dmg:.08,spd:.08},           unlock:'stage', need:3, line:'+8% damage · +8% speed'},
+  plague:    {boost:{dmg:.12,hp:20},             unlock:'shards',         line:'+12% damage · +20 HP'},
+  warlord:   {boost:{dmg:.15,hp:30},             unlock:'iap', sku:'skinWarlord', price:'£2.99', line:'+15% damage · +30 HP'},
+  tinker:    {boost:{dmg:.20,hp:40,rate:.08},    unlock:'iap', sku:'skinTinker',  price:'£5.99', line:'+20% damage · +40 HP · +8% fire rate'},
+  juggernaut:{boost:{dmg:.30,hp:80,spd:.10,rate:.12}, unlock:'iap', sku:'skinJugg', price:'£9.99', line:'+30% damage · +80 HP · +10% speed · +12% fire rate'},
+};
+const skinOwned=k=>k==='drifter'||!!(SAVE.skins&&SAVE.skins[k]);
 function drawRigAt(c,key,o){
   const s=o.scale||1, rig=RIGS[key]||RIGS.drifter;
   const aim=o.aim??0, flip=Math.cos(aim)<0?-1:1;
@@ -4077,6 +4114,7 @@ function startBattle(){
   cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr;
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const GS=gearStats();
+  const SK=(SKIN_DEFS[state.design]&&SKIN_DEFS[state.design].boost)||{};
   const EQ={...equippedDef()};
   EQ.dmg=Math.round(EQ.dmg*wLvDmg(EQ.id)*100)/100;         // armory weapon level
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
@@ -4087,11 +4125,11 @@ function startBattle(){
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
        gun:EQ,dual:false,asc:{},mats:{parts:0,cores:0},wDrops:[],
-       radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+GS.dmg/100,
-       spdMul:1+SAVE.rooms.generator.spd*.04+GS.spd/100,
-       rateMul:1+GS.rate/100,
+       radium:false,dmgMul:1+SAVE.rooms.generator.dmg*.05+GS.dmg/100+(SK.dmg||0),
+       spdMul:1+SAVE.rooms.generator.spd*.04+GS.spd/100+(SK.spd||0),
+       rateMul:(1+GS.rate/100)*(1+(SK.rate||0)),
        magnetR:110*(1+GS.mag/100),dmgLv:0,bootLv:0,hpLv:0,magLv:0,
-       hp:100+SAVE.rooms.medbay.hp*20+GS.hp,maxHp:100+SAVE.rooms.medbay.hp*20+GS.hp,
+       hp:100+SAVE.rooms.medbay.hp*20+GS.hp+(SK.hp||0),maxHp:100+SAVE.rooms.medbay.hp*20+GS.hp+(SK.hp||0),
        healAmt:25+SAVE.rooms.medbay.heal*10+GS.heal,
        xp:0,xpNeed:xpNeedFor(1),revives:0,
        wave:0,toSpawn:0,spawnGap:.6,breakT:0,
@@ -4282,22 +4320,40 @@ function renderPreview(cv2,key,scale,gun){
 }
 function buildBarracks(){
   $('dgrid').innerHTML = RIG_ORDER.map(k=>{
-    const locked = k==='plague' && !SAVE.plague;
+    const sd=SKIN_DEFS[k], locked=!skinOwned(k);
+    const unlockTxt = sd.unlock==='shards' ? SAVE.shards+'/80 shards'
+      : sd.unlock==='stage' ? `clear stage ${sd.need-1}`
+      : sd.unlock==='iap' ? sd.price+' · tap to buy' : '';
     return `<button class="wcard${k===state.design?' sel':''}${locked?' locked':''}" id="d-${k}" onclick="pickDesign('${k}')">
        <canvas width="96" height="116"></canvas>
        <b>${RIGS[k].name}</b><span>${RIGS[k].desc}</span>
-       <div class="lv"${locked?' style="color:var(--dim)"':''}>${locked?SAVE.shards+'/80 shards to unlock':(k===state.design?'equipped':'&nbsp;')}</div>
+       <div class="lv boost">${sd.boost?sd.line:'baseline'}</div>
+       <div class="lv"${locked?' style="color:var(--dim)"':''}>${locked?unlockTxt:(k===state.design?'equipped':'tap to equip')}</div>
      </button>`;
   }).join('');
   RIG_ORDER.forEach(k=>renderPreview($('d-'+k).querySelector('canvas'),k,2.2));
 }
 function pickDesign(k){
-  if(k==='plague'&&!SAVE.plague){
-    if(SAVE.shards>=80){
-      SAVE.shards-=80; SAVE.plague=true; save(); renderWallet();
-      toast('PLAGUE unlocked!');
-    }else{
-      toast(`Collect 80 shards to unlock — ${SAVE.shards}/80 (shards drop from Warden Caches)`);
+  const sd=SKIN_DEFS[k]||{};
+  if(!skinOwned(k)){
+    if(sd.unlock==='shards'){
+      if(SAVE.shards>=80){
+        SAVE.shards-=80; SAVE.plague=true; SAVE.skins.plague=1; save(); renderWallet();
+        toast('PLAGUE unlocked!');
+      }else{
+        toast(`Collect 80 shards to unlock — ${SAVE.shards}/80 (shards drop from Warden Caches)`);
+        return;
+      }
+    }else if(sd.unlock==='stage'){
+      if(SAVE.stage>=sd.need){
+        SAVE.skins[k]=1; save();
+        toast(`${RIGS[k].name} unlocked!`);
+      }else{
+        toast(`Clear stage ${sd.need-1} to unlock ${RIGS[k].name}`);
+        return;
+      }
+    }else if(sd.unlock==='iap'){
+      buy(sd.sku);
       return;
     }
   }
