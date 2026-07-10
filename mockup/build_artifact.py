@@ -27,5 +27,12 @@ html = re.sub(r"assets/(\w+)\.webp", lambda m: data_uri(m.group(1)), html)
 title = re.search(r"<title>.*?</title>", html, re.S).group(0)
 style = re.search(r"<style>.*?</style>", html, re.S).group(0)
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
-open(OUT, "w", encoding="utf-8").write(f"{title}\n{style}\n{body}\n")
+
+# The shared test URL runs the REAL economy: disable DEV mode and wipe any
+# save that was inflated by it (once — real progress persists afterwards).
+nodev = ("<script>window.__NO_DEV=true;"
+         "try{if(!localStorage.getItem('ww_dev_wipe_1')){"
+         "localStorage.removeItem('ww_save');"
+         "localStorage.setItem('ww_dev_wipe_1','1');}}catch(e){}</script>")
+open(OUT, "w", encoding="utf-8").write(f"{title}\n{style}\n{nodev}\n{body}\n")
 print(OUT, f"{os.path.getsize(OUT)//1024}KB")
