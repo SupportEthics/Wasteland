@@ -24,8 +24,9 @@ if (!keepDev) {
   if (start === -1 || end === -1) throw new Error('DEV MODE markers not found');
   html = html.slice(0, start) + html.slice(end + '/* ==================== end DEV MODE block ==================== */'.length);
   html = html.replace('devTopUp();                                        // DEV MODE hook — remove for release\n', '');
-  if (/DEV_MODE|devTopUp|dev-badge/.test(html.replace(/#dev-badge[^}]*}/g, ''))) {
-    console.warn('WARNING: dev-mode references remain — check the strip markers');
+  html = html.replace(/\s*\/\* DEV MODE badge — remove with the DEV block before release \*\/\n\s*#dev-badge\{[^}]*\}\n/, '\n');
+  if (/DEV_MODE|devTopUp|dev-badge|999999|TESTING ONLY/.test(html)) {
+    throw new Error('STORE BUILD BLOCKED: dev-mode references remain — check the strip markers');
   }
 }
 
