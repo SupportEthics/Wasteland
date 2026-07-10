@@ -605,6 +605,7 @@
       <button class="card wide" id="sku-forge" onclick="buy('forge')">
         <span class="big"><canvas width="48" height="48" data-ic="parts"></canvas></span><span class="inf"><b>FORGE BUNDLE <span class="tag iap">IAP</span></b><span>40 weapon parts + 8 power cores for the crafting forge</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
       </button>
+      <button class="btn grey" style="margin-top:8px" onclick="Bridge.restorePurchases()">RESTORE PURCHASES<small>required by the App Store — re-applies past purchases</small></button>
       <div class="card" style="margin-top:8px">
         <b style="font-size:12px;letter-spacing:1px">QUICK EXCHANGE</b>
         <span style="display:block;font-size:11px;color:var(--dim);margin:3px 0 6px">turn gems into upgrade currency — rush weapon, gear and room levels</span>
@@ -713,6 +714,37 @@
 const $ = id => document.getElementById(id);
 const state = {design:'drifter', screen:'title', adReason:null, selItem:0, sku:null, room:null, lastLoot:null};
 
+/* ============================================================
+   NATIVE BRIDGE — every platform call goes through here.
+   In the browser these are simulations. The Capacitor build
+   (app/src/native.js) overrides them with AdMob, StoreKit via
+   RevenueCat, Game Center / Play Games, native storage, haptics.
+   ============================================================ */
+const Bridge={
+  rewarded(onDone){                              // simulated rewarded ad
+    $('ad-ov').classList.add('on');
+    let n=5; $('ad-count').textContent=n;
+    const iv=setInterval(()=>{ n--; $('ad-count').textContent=n;
+      if(n<=0){ clearInterval(iv); $('ad-ov').classList.remove('on'); onDone(); } },700);
+  },
+  interstitial(onDone){                          // simulated interstitial
+    Bridge._intDone=onDone;
+    $('int-ov').classList.add('on');
+    $('int-x').classList.remove('ok');
+    setTimeout(()=>$('int-x').classList.add('ok'),2000);
+  },
+  purchase(id,onSuccess){                        // simulated store purchase
+    onSuccess();
+    toast('Purchased (simulated) — '+SKUS[id].n);
+  },
+  restorePurchases(){ toast('Nothing to restore (simulated)'); },
+  lbSubmit(stage){},                             // posted to Game Center / Play Games natively
+  lbLink(kind){},
+  haptic(kind){},
+  saveKV(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  loadKV(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+};
+
 /* ---------- navigation ---------- */
 const NAV = [
   ['shop','cart','SHOP'],['crates','wrench','WORKSHOP'],['home','swords','BASE'],['gear','pistol','ARMORY'],['wardens','bed','BARRACKS']
@@ -770,7 +802,7 @@ const DEFAULT_SAVE={
 };
 let SAVE;
 function loadSave(){
-  try{ SAVE=JSON.parse(localStorage.getItem('ww_save')); }catch(e){ SAVE=null; }
+  try{ SAVE=JSON.parse(Bridge.loadKV('ww_save')); }catch(e){ SAVE=null; }
   if(!SAVE||!SAVE.rooms||!SAVE.items) SAVE=JSON.parse(JSON.stringify(DEFAULT_SAVE));
   if(!SAVE.energyT) SAVE.energyT=Date.now();
   if(!SAVE.stage) SAVE.stage=1;
@@ -788,7 +820,7 @@ function loadSave(){
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
 }
-function save(){ try{ localStorage.setItem('ww_save',JSON.stringify(SAVE)); }catch(e){} }
+function save(){ Bridge.saveKV('ww_save',JSON.stringify(SAVE)); }
 loadSave();
 
 /* ============================================================
@@ -796,7 +828,7 @@ loadSave();
    two devTopUp() calls + #dev-badge) BEFORE STORE SUBMISSION.
    Flip DEV_MODE to false to preview the real economy.
    ============================================================ */
-const DEV_MODE = !window.__NO_DEV;
+const DEV_MODE = !window.__NO_DEV && !window.__NATIVE__;   // native build also strips this block entirely
 function devTopUp(){
   if(!DEV_MODE || !SAVE) return;
   SAVE.coins=999999; SAVE.gems=999999; SAVE.keys=999; SAVE.scrap=99999;
@@ -1576,7 +1608,9 @@ function noiseS(o){
   s2.start(t0);
 }
 const SFX_MIN={shoot:60,radium:80,hit:60,gem:50,hurt:220,kill:60};
+const HAPTIC={hurt:'medium',death:'heavy',boom:'heavy',chest:'light',lvl:'light',evolve:'medium',buy:'light'};
 function sfx(n){
+  if(HAPTIC[n]) Bridge.haptic(HAPTIC[n]);
   if(!AUD.ctx||!SAVE.sound) return;
   const now=performance.now();
   if(SFX_MIN[n]&&now-(AUD.last[n]||0)<SFX_MIN[n]) return;
@@ -1870,6 +1904,7 @@ function updateLBCard(){
 function openLB(){ renderLB(); sfx('ui'); $('lb-ov').classList.add('on'); }
 function lbLink(k){
   SAVE.lbLink=k; save(); renderLB(); sfx('pick');
+  Bridge.lbLink(k);
   toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
 }
 
@@ -4010,6 +4045,7 @@ function endRun(won){
     $('res-sub').textContent+=` · ${'★'.repeat(stars)}${'☆'.repeat(3-stars)}`;
     if(stg===SAVE.stage){
       SAVE.stage++; SAVE.selStage=SAVE.stage;
+      Bridge.lbSubmit(SAVE.stage);
       toast(`STAGE ${stg} CLEARED — Stage ${SAVE.stage} unlocked!`);
     }
   }
@@ -4092,28 +4128,19 @@ function adFlow(reason){
   state.adReason = reason;
   if(SAVE.noads){ grantAd(reason); return; }        // Remove Ads: instant payout
   $('lvl-ov').classList.remove('on');
-  $('ad-ov').classList.add('on');
-  let n=5; $('ad-count').textContent=n;
-  const iv=setInterval(()=>{
-    n--; $('ad-count').textContent=n;
-    if(n<=0){
-      clearInterval(iv); $('ad-ov').classList.remove('on');
-      grantAd(state.adReason);
-    }
-  },700);
+  Bridge.rewarded(()=>grantAd(state.adReason));
 }
 
 /* ---------- interstitial ---------- */
 function claimPlain(){
   if(SAVE.noads){ bankLoot(1); return; }
-  $('int-ov').classList.add('on');
-  $('int-x').classList.remove('ok');
-  setTimeout(()=>$('int-x').classList.add('ok'),2000);
+  Bridge.interstitial(()=>bankLoot(1));
 }
 function closeInterstitial(){
   if(!$('int-x').classList.contains('ok')) return;
   $('int-ov').classList.remove('on');
-  bankLoot(1);
+  const done=Bridge._intDone; Bridge._intDone=null;
+  if(done) done(); else bankLoot(1);
 }
 
 /* ---------- workshop ---------- */
@@ -4152,10 +4179,11 @@ function buy(id){
 function confirmBuy(){
   $('sheet').classList.remove('on');
   const s=SKUS[state.sku]; if(!s) return;
-  if(s.apply) s.apply();
-  if(s.once) SAVE[s.once]=true;
-  save(); renderWallet(); renderShop(); sfx('buy');
-  toast('Purchased (simulated) — '+s.n);
+  Bridge.purchase(state.sku,()=>{
+    if(s.apply) s.apply();
+    if(s.once) SAVE[s.once]=true;
+    save(); renderWallet(); renderShop(); sfx('buy');
+  });
 }
 
 /* ---------- barracks: character design picker ---------- */

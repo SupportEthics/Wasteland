@@ -1,0 +1,19 @@
+{
+  "appId": "co.uk.supportethics.wastelandwarden",
+  "appName": "Wasteland Warden",
+  "webDir": "www",
+  "backgroundColor": "#0d0e12",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0d0e12"
+  },
+  "android": {
+    "backgroundColor": "#0d0e12"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#0d0e12",
+      "launchAutoHide": true
+    }
+  }
+}
