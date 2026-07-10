@@ -3050,7 +3050,8 @@ function fireShot(x,y,f,radium,dmgAdd,plain){
   }
   sfx(radium?'radium':'shoot');
 }
-function foeHpScale(){ return (1+(sim.wave-1)*.14)*(1+(sim.stage-1)*.55); }
+const stageRamp=()=>Math.min(1,.6+.1*(sim.wave-1));   // stage scaling fades in over waves 1-5
+function foeHpScale(){ return (1+(sim.wave-1)*.14)*(1+(sim.stage-1)*.55*stageRamp()); }
 function spawnFoe(){
   const roster=ROSTERS[(sim.stage-1)%ROSTERS.length];
   const allowed=roster.filter(ft=>sim.wave>=ft.minW);
@@ -3066,7 +3067,7 @@ function spawnFoe(){
   const nf={...t,x,y,hp,maxHp:hp,ang:0,seed:rnd(0,7),flash:0,hitCd:0,
     atkCd:rnd(0,.5),elite,big:elite?1.45:1,
     frost:(sim.stage>=7&&pick.k!=='retch'&&pick.k!=='split')?1:0,
-    cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.35))};
+    cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.35*stageRamp()))};
   resolveObstacles(nf,nf.r);
   sim.foes.push(nf);
 }
@@ -3211,7 +3212,7 @@ function hitFoe(f,dmg,big){
       crackDecal(f.x,f.y); sim.shake=Math.max(sim.shake,.3); sfx('boom');
       const pd=Math.hypot(sim.px-f.x,sim.py-f.y);
       if(pd<70 && sim.invulnT<=0 && !sim.dying){
-        sim.hp-=Math.round(12*(1+(sim.stage-1)*.25)); sim.hurtT=.3; sfx('hurt');
+        sim.hp-=Math.round(12*(1+(sim.stage-1)*.25*stageRamp())); sim.hurtT=.3; sfx('hurt');
         if(sim.hp<=0) doDeath();
       }
     }
@@ -3401,16 +3402,17 @@ function afterRevive(){
 
 /* ---------- waves ---------- */
 function startWave(n){
-  const gentle=sim.stage===1&&n<=4;                    // soft first-contact curve
-  sim.wave=n; sim.toSpawn=Math.round((8+Math.round(n*1.8))*(gentle?.6:1));
-  sim.spawnGap=Math.max(.25,(.72-n*.022)*(gentle?1.5:1));
+  const soft=(sim.stage===1&&n<=4)||n<=3;              // every run opens soft…
+  const cut=(sim.stage===1&&n<=4)?.6:1;                // …stage 1 also trims the horde
+  sim.wave=n; sim.toSpawn=Math.round((8+Math.round(n*1.8))*cut);
+  sim.spawnGap=Math.max(.25,(.72-n*.022)*(soft?1.4:1));
   $('wave').textContent=`W ${n}/${WAVES}`;
   const b=$('wavebanner');
   b.textContent=(n%10===0)?`— WAVE ${n} · BOSS —`:`— WAVE ${n} —`;
   b.style.display='block';
   clearTimeout(startWave.bt); startWave.bt=setTimeout(()=>b.style.display='none',1500);
   sfx('wave');
-  const burst=(sim.stage===1&&n<=4)?2:4;
+  const burst=soft?2:4;
   for(let i=0;i<burst&&sim.toSpawn>0;i++){ sim.toSpawn--; spawnFoe(); }   // opening burst
   if(n%10===0) spawnBoss();
 }
@@ -3493,7 +3495,7 @@ function update(dt){
       f.spitT=p.t+2.6;
       const a2=Math.atan2(p.py-f.y,p.px-f.x);
       p.eshots.push({x:f.x,y:f.y-8,vx:Math.cos(a2)*230,vy:Math.sin(a2)*230,
-        life:1.6,dmg:Math.round(8*(1+(p.stage-1)*.35))});
+        life:1.6,dmg:Math.round(8*(1+(p.stage-1)*.35*stageRamp()))});
       sfx('spit');
     }
     if(f.k==='bdrone' && d<280 && !p.dying && p.t>(f.spitT||0)){   // laser bolt
@@ -3501,7 +3503,7 @@ function update(dt){
       const a2=Math.atan2(p.py-f.y,p.px-f.x);
       p.eshots.push({x:f.x+Math.cos(a2)*10,y:f.y-6,laser:1,
         vx:Math.cos(a2)*350,vy:Math.sin(a2)*350,
-        life:1.1,dmg:Math.round(7*(1+(p.stage-1)*.35))});
+        life:1.1,dmg:Math.round(7*(1+(p.stage-1)*.35*stageRamp()))});
       sfx('spit');
     }
     if(f.k==='retch' && d<245 && !p.dying && p.t>(f.spitT||0)){    // projectile vomit
@@ -3510,7 +3512,7 @@ function update(dt){
       for(let vi=0;vi<3;vi++){ const aj=a2+(vi-1)*.14;
         p.eshots.push({x:f.x+Math.cos(a2)*8,y:f.y-4,vomit:1,
           vx:Math.cos(aj)*(180+vi*22),vy:Math.sin(aj)*(180+vi*22),
-          life:1.5,dmg:Math.round(6*(1+(p.stage-1)*.35))}); }
+          life:1.5,dmg:Math.round(6*(1+(p.stage-1)*.35*stageRamp()))}); }
       sfx('spit');
     }
     if(f.boss){
