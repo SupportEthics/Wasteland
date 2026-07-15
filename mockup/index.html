@@ -434,6 +434,19 @@
   .ltile.cur{border-color:var(--gold);background:linear-gradient(160deg,#241d10,var(--panel))}
   .ltile.cur u,.ltile.cur b{color:var(--gold)}
   .ltile:last-child{grid-column:span 2}
+  #pass-bar{height:8px;border-radius:4px;background:#0d0e12;border:1px solid var(--line2);margin:8px 0 10px;overflow:hidden}
+  #pass-fill{display:block;height:100%;background:linear-gradient(90deg,#8a6a1e,var(--gold));width:0}
+  #pass-rows{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+  .prow{display:flex;align-items:center;gap:6px}
+  .prow u{text-decoration:none;font-size:8.5px;color:var(--dim);width:24px;flex-shrink:0}
+  .prow.future{opacity:.5}
+  .pcell{flex:1;display:flex;align-items:center;gap:5px;border:1px solid var(--line2);border-radius:9px;
+    padding:4px 6px;font-size:8px;letter-spacing:.3px;background:var(--panel)}
+  .pcell canvas{width:20px;height:20px;flex-shrink:0}
+  .pcell.prem{border-color:#4a3a14}
+  .pcell.ready{border-color:var(--gold);box-shadow:0 0 8px rgba(232,180,60,.25)}
+  .pcell.done{opacity:.4}
+  .pcell.lock{filter:grayscale(.8);opacity:.65}
   #lb-card,#base-head{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(150deg,#1a1c28,var(--panel))}
   #battle-btn{border-radius:14px}
   /* workshop */
@@ -682,9 +695,9 @@
     <div class="body">
       <div class="sec">FEATURED</div>
       <div class="banner">
-        <b>★ WARDEN'S CONTRACT — SEASON 1</b> <span class="tag iap">IAP</span>
-        <p>8-week pass · free + premium track · exclusive Brute skin, 1,200 gems, 20 keys</p>
-        <button class="btn gold" id="sku-pass" onclick="buy('pass')">UNLOCK · £4.99</button>
+        <b>★ WARDEN'S CONTRACT</b> <span class="tag iap">IAP</span>
+        <p>30-tier seasonal pass · free + premium track · resets monthly</p>
+        <button class="btn gold" id="sku-pass" onclick="openPass()">VIEW SEASON PASS</button>
       </div>
       <button class="card wide" id="sku-noads" onclick="buy('noads')">
         <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
@@ -796,6 +809,16 @@
   <div id="coach"></div>
 
   <!-- leaderboard (SIMULATED — Game Center / Play Games at native build) -->
+  <div class="overlay" id="pass-ov">
+    <div class="ov-title">WARDEN'S CONTRACT</div>
+    <div class="ov-sub" id="pass-sub">season · tier 0/30</div>
+    <div id="pass-bar"><i id="pass-fill"></i></div>
+    <div id="pass-rows"></div>
+    <button class="btn gold" id="pass-claim" onclick="claimPass()">CLAIM ALL AVAILABLE</button>
+    <button class="btn green" id="pass-buy" onclick="buy('pass')">UNLOCK PREMIUM TRACK · £4.99<small>every premium tier, this season</small></button>
+    <button class="btn grey" style="margin-top:6px" onclick="$('pass-ov').classList.remove('on')">CLOSE</button>
+  </div>
+
   <div class="overlay" id="login-ov">
     <div class="ov-title">DAILY SUPPLY DROP</div>
     <div class="ov-sub">report in every day — day 7 is a Warden Cache</div>
@@ -935,6 +958,7 @@ function loadSave(){
   if(!SAVE.endlessBest) SAVE.endlessBest=0;
   if(!SAVE.login) SAVE.login={d:'',n:0};             // d=last claim day, n=next tile 0-6
   if(!SAVE.seen) SAVE.seen=Date.now();
+  if(!SAVE.passT) SAVE.passT={s:'',xp:0,cf:{},cp:{}};
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -998,7 +1022,7 @@ const SKUS={
   skinJugg:{n:'Juggernaut Skin',p:'£9.99',once:'skinJ',apply:()=>{SAVE.skins.juggernaut=1;pickDesign('juggernaut');}},
   noads:{n:'Remove Ads',p:'£7.99',once:'noads'},
   starter:{n:'Starter Bundle',p:'£2.99',once:'starter',apply:()=>{SAVE.gems+=800;SAVE.keys+=5;}},
-  pass:{n:"Warden's Contract (Season 1)",p:'£4.99',once:'pass',apply:()=>{SAVE.gems+=1200;SAVE.keys+=20;}},
+  pass:{n:"Warden's Contract (premium track)",p:'£4.99',once:'pass',apply:()=>{ if(typeof renderPass==='function') renderPass(); }},
 };
 function renderShop(){
   const mark=(id,owned)=>{ const el=$(id); if(!el) return;
@@ -1006,7 +1030,7 @@ function renderShop(){
     if(owned&&!el.dataset.done){ el.dataset.done=1;
       const b=el.querySelector('b'); if(b) b.innerHTML='✓ OWNED — '+b.innerHTML; } };
   mark('sku-noads',SAVE.noads); mark('sku-starter',SAVE.starter);
-  if(SAVE.pass) $('sku-pass').textContent='✓ OWNED';
+  if(typeof passTier==='function') $('sku-pass').textContent=`VIEW SEASON PASS · TIER ${passTier()}/30`;
 }
 
 /* ---------- crates & pity ---------- */
@@ -1201,6 +1225,7 @@ function claimDaily(i){
   const m=DAILIES[i];
   if(SAVE.daily.c[m.k]||(SAVE.daily.p[m.k]||0)<m.goal) return;
   m.give(); SAVE.daily.c[m.k]=true;
+  passXp(40);                                        // dailies feed the season pass
   save(); renderWallet(); renderRadio(); sfx('chest'); toast('Daily reward claimed!');
 }
 function openRadio(){ ensureDaily(); renderRadio(); $('radio-ov').classList.add('on'); }
@@ -2036,6 +2061,62 @@ function lbLink(k){
   SAVE.lbLink=k; save(); renderLB(); sfx('pick');
   Bridge.lbLink(k);
   toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
+}
+
+/* ---------- Warden's Contract: 30-tier seasonal pass ---------- */
+const PASS_TIERS=30, PASS_XP_TIER=100;
+const seasonId=()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); };
+function ensureSeason(){
+  if(SAVE.passT.s!==seasonId()){
+    SAVE.passT={s:seasonId(),xp:0,cf:{},cp:{}};
+    SAVE.pass=false;                                 // premium is per-season
+    save();
+  }
+}
+function passTier(){ ensureSeason(); return Math.min(PASS_TIERS,Math.floor(SAVE.passT.xp/PASS_XP_TIER)); }
+function passXp(n){ ensureSeason(); SAVE.passT.xp=Math.min(PASS_TIERS*PASS_XP_TIER,SAVE.passT.xp+n); }
+function passReward(t,prem){
+  if(!prem){
+    if(t%5===0) return {ic:'key',  t:`${1+t/5} KEYS`,      g:()=>SAVE.keys+=1+t/5};
+    if(t%3===0) return {ic:'scrap',t:`${100+t*15} SCRAP`,  g:()=>SAVE.scrap+=100+t*15};
+    return       {ic:'coin', t:`${250+t*50} COINS`,        g:()=>SAVE.coins+=250+t*50};
+  }
+  if(t===PASS_TIERS) return {ic:'chest',t:'800 GEMS + 3 CORES + 10 SHARDS',
+    g:()=>{SAVE.gems+=800;SAVE.mats.cores+=3;SAVE.shards+=10;}};
+  if(t%10===0) return {ic:'core', t:'1 CORE + 100 GEMS', g:()=>{SAVE.mats.cores+=1;SAVE.gems+=100;}};
+  if(t%5===0)  return {ic:'gem',  t:'150 GEMS',           g:()=>SAVE.gems+=150};
+  if(t%2===0)  return {ic:'parts',t:`${4+Math.ceil(t/2)} PARTS`, g:()=>SAVE.mats.parts+=4+Math.ceil(t/2)};
+  return        {ic:'coin', t:`${500+t*80} COINS`,        g:()=>SAVE.coins+=500+t*80};
+}
+function renderPass(){
+  ensureSeason();
+  const tier=passTier();
+  $('pass-sub').textContent=`season ${SAVE.passT.s} · tier ${tier}/${PASS_TIERS}${SAVE.pass?' · PREMIUM':''}`;
+  $('pass-fill').style.width=Math.min(100,(SAVE.passT.xp%PASS_XP_TIER))+'%';
+  if(tier>=PASS_TIERS) $('pass-fill').style.width='100%';
+  $('pass-rows').innerHTML=Array.from({length:PASS_TIERS},(_,i)=>{
+    const t=i+1, fr=passReward(t,false), pr=passReward(t,true);
+    const open=t<=tier;
+    const fS=SAVE.passT.cf[t]?'done':(open?'ready':'lock');
+    const pS=SAVE.passT.cp[t]?'done':(open&&SAVE.pass?'ready':'lock');
+    return `<div class="prow${open?'':' future'}"><u>T${t}</u>
+      <span class="pcell ${fS}"><canvas width="26" height="26" data-ic="${SAVE.passT.cf[t]?'done':fr.ic}"></canvas>${fr.t}</span>
+      <span class="pcell prem ${pS}"><canvas width="26" height="26" data-ic="${SAVE.passT.cp[t]?'done':pr.ic}"></canvas>${pr.t}</span></div>`;
+  }).join('');
+  paintAll($('pass-rows'));
+  $('pass-buy').style.display=SAVE.pass?'none':'';
+}
+function openPass(){ renderPass(); sfx('ui'); $('pass-ov').classList.add('on'); }
+function claimPass(){
+  ensureSeason();
+  const tier=passTier(); let n=0;
+  for(let t=1;t<=tier;t++){
+    if(!SAVE.passT.cf[t]){ passReward(t,false).g(); SAVE.passT.cf[t]=1; n++; }
+    if(SAVE.pass&&!SAVE.passT.cp[t]){ passReward(t,true).g(); SAVE.passT.cp[t]=1; n++; }
+  }
+  if(!n){ toast('Nothing to claim yet — clear waves to earn pass XP'); return; }
+  save(); renderWallet(); renderPass(); sfx('chest');
+  toast(`${n} pass reward${n>1?'s':''} claimed!`);
 }
 
 /* ---------- retention: login rewards + offline salvage ---------- */
@@ -4307,7 +4388,9 @@ function endRun(won){
     `<div class="loot" style="border:1px solid var(--gold);border-radius:8px;padding:6px 8px"><span><canvas width="36" height="36" data-ic="${WEAPON_DEFS[id].ic}"></canvas> NEW WEAPON — ${WEAPON_DEFS[id].n}</span><b style="color:var(--gold)">FOUND</b></div>`).join('');
   paintAll($('s-results'));
   SAVE.stats.kills+=kills; SAVE.stats.waves+=w;
-  bumpDaily('dkills',kills); bumpDaily('dwaves',w); save();
+  bumpDaily('dkills',kills); bumpDaily('dwaves',w);
+  passXp(w*10);                                      // 10 pass XP per wave survived
+  save();
   sim=null;
   startMusic('hub');
   go('results');
