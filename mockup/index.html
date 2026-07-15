@@ -519,7 +519,7 @@
       <div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div>
       <div class="pill"><canvas width="30" height="30" data-ic="gem"></canvas> <span class="w-gems">0</span><span class="plus" onclick="nav('shop')">+</span></div>
       <div class="spacer"></div>
-      <div class="pill"><canvas width="30" height="30" data-ic="energy"></canvas> <span class="w-energy">5</span>/5 <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
+      <div class="pill"><canvas width="30" height="30" data-ic="energy"></canvas> <span class="w-energy">5</span>/<span class="w-ecap">5</span> <span class="plus" onclick="adFlow('energy')">+</span><span class="tag ad">AD</span></div>
     </div>
     <h2 class="hdr">HAVEN OUTPOST</h2>
     <div class="body">
@@ -702,6 +702,12 @@
       <button class="card wide" id="sku-noads" onclick="buy('noads')">
         <span class="big"><canvas width="48" height="48" data-ic="noads"></canvas></span><span class="inf"><b>REMOVE ADS <span class="tag iap">IAP</span></b><span>No interstitials, ever. Rewarded buttons pay out instantly.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£7.99</span>
       </button>
+      <button class="card wide" id="sku-piggy" onclick="buy('piggy')">
+        <span class="big"><canvas width="48" height="48" data-ic="chest"></canvas></span><span class="inf"><b>RADIUM PIGGY <span class="tag iap">IAP</span></b><span>Every boss you kill stuffs it with gems — <b id="piggy-n">0</b>/200 inside. Crack it open, keep them all.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
+      </button>
+      <button class="card wide" id="sku-club" onclick="buy('club')">
+        <span class="big"><canvas width="48" height="48" data-ic="energy"></canvas></span><span class="inf"><b>WARDEN CLUB <span class="tag iap">IAP</span></b><span>Weekly: +150 gems with every daily drop · energy cap 7 · gold name on the leaderboard.</span></span><span class="price" style="color:var(--gold);font-weight:bold">£4.99/wk</span>
+      </button>
       <div class="sec">BUNDLES</div>
       <button class="card wide" id="sku-starter" onclick="buy('starter')">
         <span class="big"><canvas width="48" height="48" data-ic="pack"></canvas></span><span class="inf"><b>STARTER BUNDLE <span class="tag iap">IAP</span></b><span>800 gems + Rare weapon + 5 keys · one-time · 500% value</span></span><span class="price" style="color:var(--gold);font-weight:bold">£2.99</span>
@@ -809,6 +815,14 @@
   <div id="coach"></div>
 
   <!-- leaderboard (SIMULATED — Game Center / Play Games at native build) -->
+  <div class="overlay" id="offer-ov">
+    <div class="ov-title" id="offer-title">LIMITED OFFER</div>
+    <div class="ov-sub" id="offer-sub"></div>
+    <div id="offer-items"></div>
+    <button class="btn gold" id="offer-buy">BUY</button>
+    <button class="btn grey" style="margin-top:6px" onclick="$('offer-ov').classList.remove('on')">NO THANKS</button>
+  </div>
+
   <div class="overlay" id="pass-ov">
     <div class="ov-title">WARDEN'S CONTRACT</div>
     <div class="ov-sub" id="pass-sub">season · tier 0/30</div>
@@ -959,6 +973,8 @@ function loadSave(){
   if(!SAVE.login) SAVE.login={d:'',n:0};             // d=last claim day, n=next tile 0-6
   if(!SAVE.seen) SAVE.seen=Date.now();
   if(!SAVE.passT) SAVE.passT={s:'',xp:0,cf:{},cp:{}};
+  if(!SAVE.piggy) SAVE.piggy=0;
+  if(!SAVE.offers) SAVE.offers={};
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -993,15 +1009,16 @@ const fmtN=n=>Math.round(n).toLocaleString('en-GB');
 function renderWallet(){
   devTopUp();                                        // DEV MODE hook — remove for release
   const M={coins:SAVE.coins,gems:SAVE.gems,keys:SAVE.keys,scrap:SAVE.scrap,
-    shards:SAVE.shards,energy:SAVE.energy,
+    shards:SAVE.shards,energy:SAVE.energy,ecap:eCap(),
     parts:SAVE.mats?SAVE.mats.parts:0,cores:SAVE.mats?SAVE.mats.cores:0};
   for(const k in M) document.querySelectorAll('.w-'+k).forEach(el=>el.textContent=fmtN(M[k]));
 }
+const eCap=()=>SAVE.club?7:5;                        // Warden Club raises the energy cap
 function regenEnergy(){                              // 1 energy per 45s of real time
   const now=Date.now();
-  if(SAVE.energy>=5){ SAVE.energyT=now; return; }
+  if(SAVE.energy>=eCap()){ SAVE.energyT=now; return; }
   let ch=false;
-  while(SAVE.energy<5 && now-SAVE.energyT>=45000){ SAVE.energy++; SAVE.energyT+=45000; ch=true; }
+  while(SAVE.energy<eCap() && now-SAVE.energyT>=45000){ SAVE.energy++; SAVE.energyT+=45000; ch=true; }
   if(ch) save();
 }
 function spend(cur,amt){
@@ -1023,13 +1040,18 @@ const SKUS={
   noads:{n:'Remove Ads',p:'£7.99',once:'noads'},
   starter:{n:'Starter Bundle',p:'£2.99',once:'starter',apply:()=>{SAVE.gems+=800;SAVE.keys+=5;}},
   pass:{n:"Warden's Contract (premium track)",p:'£4.99',once:'pass',apply:()=>{ if(typeof renderPass==='function') renderPass(); }},
+  piggy:{n:'Crack the Radium Piggy',p:'£2.99',apply:()=>{ SAVE.gems+=SAVE.piggy; toast(`Piggy cracked — +${fmtN(SAVE.piggy)} gems!`); SAVE.piggy=0; }},
+  club:{n:'Warden Club (weekly)',p:'£4.99/wk',once:'club',apply:()=>{ renderWallet(); toast('Warden Club active — +150 gems with every daily drop, energy cap 7'); }},
+  offerV:{n:'Vengeance Pack (80% off)',p:'£1.99',apply:()=>{ SAVE.gems+=600; SAVE.mats.parts+=20; }},
+  offerW:{n:'Wastelander Pack (one-time)',p:'£0.99',once:'offW',apply:()=>{ SAVE.gems+=400; SAVE.keys+=2; SAVE.mats.parts+=10; }},
 };
 function renderShop(){
   const mark=(id,owned)=>{ const el=$(id); if(!el) return;
     el.classList.toggle('empty',owned);
     if(owned&&!el.dataset.done){ el.dataset.done=1;
       const b=el.querySelector('b'); if(b) b.innerHTML='✓ OWNED — '+b.innerHTML; } };
-  mark('sku-noads',SAVE.noads); mark('sku-starter',SAVE.starter);
+  mark('sku-noads',SAVE.noads); mark('sku-starter',SAVE.starter); mark('sku-club',SAVE.club);
+  const pn=$('piggy-n'); if(pn) pn.textContent=fmtN(SAVE.piggy);
   if(typeof passTier==='function') $('sku-pass').textContent=`VIEW SEASON PASS · TIER ${passTier()}/30`;
 }
 
@@ -2036,14 +2058,14 @@ const LB_BOTS=[            // name, stage, lifetime waves, endless best
 ];
 function lbData(){
   const mine={n:(SAVE.lbName||'YOU')+' (you)',stage:Math.max(1,SAVE.stage||1),
-    waves:SAVE.stats.waves||0,eb:SAVE.endlessBest||0,me:1};
+    waves:SAVE.stats.waves||0,eb:SAVE.endlessBest||0,me:1,club:!!SAVE.club};
   const all=LB_BOTS.map(([n,stage,waves,eb])=>({n,stage,waves,eb})).concat([mine]);
   all.sort((a,b)=>b.stage-a.stage||(b.eb||0)-(a.eb||0)||b.waves-a.waves);
   return {all,rank:all.findIndex(e=>e.me)+1};
 }
 function renderLB(){
   const {all,rank}=lbData();
-  const row=(e,i)=>`<div class="lb-row${e.me?' me':''}"><span class="rk">#${i+1}</span><span class="nm">${e.n}</span><span class="st">STAGE ${e.stage}${e.eb?` · W${e.eb}`:''}</span></div>`;
+  const row=(e,i)=>`<div class="lb-row${e.me?' me':''}"><span class="rk">#${i+1}</span><span class="nm"${e.club?' style="color:var(--gold)"':''}>${e.n}${e.club?' ◆':''}</span><span class="st">STAGE ${e.stage}${e.eb?` · W${e.eb}`:''}</span></div>`;
   let h=all.slice(0,10).map(row).join('');
   if(rank>10) h+=`<div class="lb-ellip">···</div>`+row(all[rank-1],rank-1);
   $('lb-rows').innerHTML=h;
@@ -2061,6 +2083,33 @@ function lbLink(k){
   SAVE.lbLink=k; save(); renderLB(); sfx('pick');
   Bridge.lbLink(k);
   toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
+}
+
+/* ---------- triggered offers (shown at emotional beats, never twice) ---------- */
+function showOffer(kind){
+  const def = kind==='v'
+    ? {t:'VENGEANCE PACK', sub:'that boss got lucky — go back armed · 80% OFF, today only',
+       items:[['gem','600 GEMS'],['parts','20 WEAPON PARTS']], sku:'offerV', p:'£1.99'}
+    : {t:'WASTELANDER PACK', sub:'stage 3 cleared — one-time deal for real survivors',
+       items:[['gem','400 GEMS'],['key','2 CRATE KEYS'],['parts','10 WEAPON PARTS']], sku:'offerW', p:'£0.99'};
+  $('offer-title').textContent=def.t;
+  $('offer-sub').textContent=def.sub;
+  $('offer-items').innerHTML=def.items.map(([ic,tx])=>
+    `<div class="loot"><span><canvas width="34" height="34" data-ic="${ic}"></canvas> ${tx}</span><b style="color:var(--gold)">INCLUDED</b></div>`).join('');
+  paintAll($('offer-items'));
+  $('offer-buy').textContent=`${def.t} · ${def.p}`;
+  $('offer-buy').onclick=()=>{ $('offer-ov').classList.remove('on'); buy(def.sku); };
+  $('offer-ov').classList.add('on');
+}
+function maybeOffer(won,wave,stg,endless){
+  if((SAVE.tut||0)<9) return;
+  const today=new Date().toDateString();
+  if(!won && wave%10===0 && wave>=10 && SAVE.offers.vDay!==today){
+    SAVE.offers.vDay=today; save(); setTimeout(()=>showOffer('v'),900); return;
+  }
+  if(won && stg===3 && !SAVE.offW && !SAVE.offers.wSeen){
+    SAVE.offers.wSeen=1; save(); setTimeout(()=>showOffer('w'),900);
+  }
 }
 
 /* ---------- Warden's Contract: 30-tier seasonal pass ---------- */
@@ -2147,6 +2196,7 @@ function claimLogin(){
   if(!loginDue()) return;
   const r=LOGIN_REWARDS[SAVE.login.n];
   r.g();
+  if(SAVE.club){ SAVE.gems+=150; toast('WARDEN CLUB bonus — +150 gems'); }
   SAVE.login={d:new Date().toDateString(), n:(SAVE.login.n+1)%7};
   save(); renderWallet(); sfx('chest');
   $('login-ov').classList.remove('on');
@@ -3548,6 +3598,7 @@ function hitFoe(f,dmg,big){
   addP(f.x,f.y,f.k==='raid'?'#6a1f1f':'#5f7a2f',3,70);
   if(f.hp<=0){
     f.dead=true; kills++; $('kills').textContent=kills;
+    if(f.boss) SAVE.piggy=Math.min(200,(SAVE.piggy||0)+4);      // radium piggy
     sfx(f.k==='bloat'?'pop':'kill');
     const gore=f.k==='raid'?'#4a1414':'#3d4a20';
     addP(f.x,f.y,f.k==='raid'?'#6a1f1f':'#5f7a2f',f.boss?30:10,f.boss?220:120);
@@ -4391,9 +4442,11 @@ function endRun(won){
   bumpDaily('dkills',kills); bumpDaily('dwaves',w);
   passXp(w*10);                                      // 10 pass XP per wave survived
   save();
+  const offerArgs=[won, sim?sim.wave:0, sim?sim.stage:1, !!(sim&&sim.endless)];
   sim=null;
   startMusic('hub');
   go('results');
+  maybeOffer(...offerArgs);
 }
 // test/debug hooks
 window.__sim = () => sim ? {foes:sim.foes.length, shots:sim.shots.length, gems:sim.gems.length,
@@ -4450,7 +4503,7 @@ function grantAd(r){
   if(r==='revive') afterRevive();
   else if(r==='claim2x') bankLoot(2);
   else if(r==='off2x') bankOffline(2);
-  else if(r==='energy'){ SAVE.energy=Math.min(5,SAVE.energy+1); SAVE.energyT=Date.now();
+  else if(r==='energy'){ SAVE.energy=Math.min(eCap(),SAVE.energy+1); SAVE.energyT=Date.now();
     save(); renderWallet(); toast('+1 energy'); }
   else if(r==='crate') freeCrate();
   else if(r==='reroll'){ showDraft(); toast('Choices rerolled'); }
@@ -4502,6 +4555,7 @@ function showReveal(ic,name,r,color){
 /* ---------- shop ---------- */
 function buy(id){
   const s=SKUS[id]; if(!s) return;
+  if(id==='piggy'&&SAVE.piggy<50){ toast(`Piggy holds ${SAVE.piggy} gems — kill bosses to fill it (50 min to crack)`); return; }
   if(s.once&&SAVE[s.once]){ toast('Already owned'); return; }
   state.sku=id;
   $('sheet-item').textContent=s.n; $('sheet-price').textContent=s.p;
