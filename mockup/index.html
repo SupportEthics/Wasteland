@@ -422,6 +422,8 @@
     margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;margin-left:auto;margin-right:auto}
   .stagechip.sel{border-color:var(--gold);background:linear-gradient(160deg,#241d10,var(--panel))}
   .stagechip.sel b,.stagechip.sel u{color:var(--gold)}
+  .stagechip.endless b{color:var(--gold);font-size:17px;line-height:1}
+  .stagechip.endless.lock b{color:var(--dim)}
   #lb-card,#base-head{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(150deg,#1a1c28,var(--panel))}
   #battle-btn{border-radius:14px}
   /* workshop */
@@ -903,6 +905,7 @@ function loadSave(){
   if(!SAVE.daily) SAVE.daily={day:'',p:{},c:{}};
   if(!SAVE.skins) SAVE.skins={};
   if(SAVE.plague) SAVE.skins.plague=1;               // migrate old unlock flag
+  if(!SAVE.endlessBest) SAVE.endlessBest=0;
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -1963,22 +1966,22 @@ function tutAdvance(to){
    Services on Android at the native build. SAVE.lbLink records which
    identity the player chose; scores post as: stage reached, lifetime
    waves as tiebreak. ---------- */
-const LB_BOTS=[
-  ['IronMaw',9,412],['Dust_Queen',9,371],['K0balt',9,298],['Vulture77',8,344],
-  ['HexNail',8,301],['Mirelurker',8,255],['Sable',7,280],['GritSpit',7,214],
-  ['NoMansLand',6,240],['Rustbucket',6,188],['PaleRider',5,171],['Cinders',4,150],
-  ['Wanderer_02',3,96],['TinDog',2,58],['FirstStep',1,12],
+const LB_BOTS=[            // name, stage, lifetime waves, endless best
+  ['IronMaw',9,412,68],['Dust_Queen',9,371,61],['K0balt',9,298,54],['Vulture77',8,344,49],
+  ['HexNail',8,301,44],['Mirelurker',8,255,40],['Sable',7,280,36],['GritSpit',7,214,31],
+  ['NoMansLand',6,240,27],['Rustbucket',6,188,22],['PaleRider',5,171,17],['Cinders',4,150,13],
+  ['Wanderer_02',3,96,8],['TinDog',2,58,4],['FirstStep',1,12,0],
 ];
 function lbData(){
   const mine={n:(SAVE.lbName||'YOU')+' (you)',stage:Math.max(1,SAVE.stage||1),
-    waves:SAVE.stats.waves||0,me:1};
-  const all=LB_BOTS.map(([n,stage,waves])=>({n,stage,waves})).concat([mine]);
-  all.sort((a,b)=>b.stage-a.stage||b.waves-a.waves);
+    waves:SAVE.stats.waves||0,eb:SAVE.endlessBest||0,me:1};
+  const all=LB_BOTS.map(([n,stage,waves,eb])=>({n,stage,waves,eb})).concat([mine]);
+  all.sort((a,b)=>b.stage-a.stage||(b.eb||0)-(a.eb||0)||b.waves-a.waves);
   return {all,rank:all.findIndex(e=>e.me)+1};
 }
 function renderLB(){
   const {all,rank}=lbData();
-  const row=(e,i)=>`<div class="lb-row${e.me?' me':''}"><span class="rk">#${i+1}</span><span class="nm">${e.n}</span><span class="st">STAGE ${e.stage}</span></div>`;
+  const row=(e,i)=>`<div class="lb-row${e.me?' me':''}"><span class="rk">#${i+1}</span><span class="nm">${e.n}</span><span class="st">STAGE ${e.stage}${e.eb?` · W${e.eb}`:''}</span></div>`;
   let h=all.slice(0,10).map(row).join('');
   if(rank>10) h+=`<div class="lb-ellip">···</div>`+row(all[rank-1],rank-1);
   $('lb-rows').innerHTML=h;
@@ -1989,7 +1992,7 @@ function renderLB(){
 }
 function updateLBCard(){
   const el=$('lb-sub'); if(!el) return;
-  el.textContent=`rank #${lbData().rank} of 34,208 · stage ${Math.max(1,SAVE.stage||1)} (simulated)`;
+  el.textContent=`rank #${lbData().rank} of 34,208 · stage ${Math.max(1,SAVE.stage||1)}${SAVE.endlessBest?` · endless W${SAVE.endlessBest}`:''} (simulated)`;
 }
 function openLB(){ renderLB(); sfx('ui'); $('lb-ov').classList.add('on'); }
 function lbLink(k){
@@ -2010,10 +2013,19 @@ function renderStages(){
     const st3=SAVE.stars&&SAVE.stars[n]?`<i class="stars">${'★'.repeat(SAVE.stars[n])}${'☆'.repeat(3-SAVE.stars[n])}</i>`:(locked?'':`<i class="stars dim3">☆☆☆</i>`);
     h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'<canvas width="24" height="24" data-ic="lock"></canvas>':n}</b>${st3}<u>${locked?'LOCKED':stageName(n)}</u></button>`;
   }
+  const elock=(SAVE.stage||1)<2;                       // endless opens after stage 1
+  h=`<button class="stagechip endless${SAVE.selStage==='E'?' sel':''}${elock?' lock':''}" onclick="selStage('E')"><b>&#8734;</b><i class="stars">${SAVE.endlessBest?'BEST W'+SAVE.endlessBest:'SURVIVAL'}</i><u>${elock?'LOCKED':'ENDLESS'}</u></button>`+h;
   row.innerHTML=h; paintAll(row);
-  $('gate-sub').textContent=`STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 energy`;
+  $('gate-sub').textContent = SAVE.selStage==='E'
+    ? `ENDLESS · waves never stop, glory never ends · costs 1 energy`
+    : `STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 energy`;
 }
 function selStage(n){
+  if(n==='E'){
+    if((SAVE.stage||1)<2){ toast('Clear STAGE 1 to unlock ENDLESS'); return; }
+    SAVE.selStage='E'; save(); renderStages();
+    toast('ENDLESS selected — survive as long as you can'); return;
+  }
   if(n>SAVE.stage){ toast(`Clear STAGE ${SAVE.stage} (30 waves) to unlock`); return; }
   SAVE.selStage=n; save(); renderStages();
   toast(`STAGE ${n} — ${stageName(n)} selected`);
@@ -3223,7 +3235,7 @@ function spawnFoe(){
   const hp=Math.ceil(t.hp*foeHpScale())*(elite?4:1);
   const nf={...t,x,y,hp,maxHp:hp,ang:0,seed:rnd(0,7),flash:0,hitCd:0,
     atkCd:rnd(0,.5),elite,big:elite?1.45:1,
-    frost:(sim.stage>=7&&pick.k!=='retch'&&pick.k!=='split')?1:0,
+    frost:((sim.visStage||sim.stage)>=7&&pick.k!=='retch'&&pick.k!=='split')?1:0,
     cdm:Math.round(t.cdm*(elite?2:1)*(1+(sim.stage-1)*.35*stageRamp()))};
   resolveObstacles(nf,nf.r);
   sim.foes.push(nf);
@@ -3255,7 +3267,7 @@ function paintGorges(g,list){                          // bake crevasses into th
   });
 }
 function makeObstacles(){                              // icy stages: rocks + impassable gorges
-  if(sim.stage<7){ sim.obst=null; return; }
+  if((sim.visStage||sim.stage)<7){ sim.obst=null; return; }
   const rocks=[], gorges=[], cx=WORLD/2, cy=WORLD/2;
   for(let i=0;i<9;i++){
     let x,y,tries=0;
@@ -3559,11 +3571,12 @@ function afterRevive(){
 
 /* ---------- waves ---------- */
 function startWave(n){
+  if(sim.endless) sim.stage=1+Math.floor((n-1)/10);    // endless: stage climbs every 10 waves, forever
   const soft=(sim.stage===1&&n<=4)||n<=3;              // every run opens soft…
   const cut=(sim.stage===1&&n<=4)?.6:1;                // …stage 1 also trims the horde
   sim.wave=n; sim.toSpawn=Math.round((8+Math.round(n*1.8))*cut);
   sim.spawnGap=Math.max(.25,(.72-n*.022)*(soft?1.4:1));
-  $('wave').textContent=`W ${n}/${WAVES}`;
+  $('wave').textContent=sim.endless?`W ${n} · \u221E`:`W ${n}/${WAVES}`;
   const b=$('wavebanner');
   b.textContent=(n%10===0)?`— WAVE ${n} · BOSS —`:`— WAVE ${n} —`;
   b.style.display='block';
@@ -3608,7 +3621,7 @@ function update(dt){
       p.milestones.push(p.wave);
       toast(`Wave ${p.wave} reward secured!`);
     }
-    if(p.wave>=WAVES){ endRun(true); return; }
+    if(!p.endless&&p.wave>=WAVES){ endRun(true); return; }
     if(!p.breakT) p.breakT=p.t+1.4;
     else if(p.t>=p.breakT){ p.breakT=0; startWave(p.wave+1); }
   }
@@ -4119,8 +4132,9 @@ function startBattle(){
   EQ.dmg=Math.round(EQ.dmg*wLvDmg(EQ.id)*100)/100;         // armory weapon level
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
        flash:0,hurtT:0,invulnT:0,camx:0,camy:0,shake:0,orbA:0,
-       stage:SAVE.selStage, milestones:[],
-       ground:makeGround(SAVE.selStage),
+       stage:(SAVE.selStage==='E'?1:SAVE.selStage), endless:SAVE.selStage==='E',
+       visStage:(SAVE.selStage==='E'?Math.min(SAVE.stage||1,9):SAVE.selStage), milestones:[],
+       ground:makeGround(SAVE.selStage==='E'?Math.min(SAVE.stage||1,9):SAVE.selStage),
        foes:[],shots:[],eshots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
@@ -4139,7 +4153,7 @@ function startBattle(){
   $('ult').classList.remove('cd'); $('ult-n').textContent='';
   $('bossbar').style.display='none';
   startWave(1);
-  startMusic(SAVE.selStage);
+  startMusic(sim.visStage);
   cancelAnimationFrame(raf); lastTs=performance.now();
   raf=requestAnimationFrame(frame);
 }
@@ -4154,6 +4168,15 @@ function endRun(won){
   $('res-sub').textContent = won
     ? `all ${WAVES} waves of ${stageName(sim?sim.stage:1)} cleared · ${kills} kills · ${fmtT(sim?sim.t:0)}`
     : `fell on wave ${sim?sim.wave:0} · ${kills} kills · ${fmtT(sim?sim.t:0)}`;
+  if(sim&&sim.endless){
+    const nb=sim.wave>(SAVE.endlessBest||0);
+    if(nb){ SAVE.endlessBest=sim.wave; Bridge.lbSubmit(1000+sim.wave); }
+    $('res-title').textContent='ENDLESS RUN OVER';
+    $('res-title').style.color='var(--gold)';
+    $('res-sub').textContent=`endless — fell on wave ${sim.wave} · ${kills} kills · ${fmtT(sim.t)}`+
+      (nb?' · NEW BEST!':` · best W${SAVE.endlessBest}`);
+    updateLBCard();
+  }
   const w=sim?sim.wave:0, stg=sim?sim.stage:1, stgMul=1+(stg-1)*.3;
   state.lastLoot={coins:Math.round((40*w+kills*2)*stgMul), scrap:Math.round((8*w+Math.floor(kills/3))*stgMul),
     keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0),
