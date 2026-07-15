@@ -71,6 +71,25 @@ Bridge.saveKV = (k, v) => {
 };
 // loadKV stays synchronous via localStorage; Preferences hydrates it above.
 
+/* ---------- analytics + push (fill in real SDKs before launch) ----------
+   Bridge.logEvent: swap the console call for Firebase Analytics
+   (@capacitor-firebase/analytics) once google-services files land.   */
+import { LocalNotifications } from '@capacitor/local-notifications';
+Bridge.logEvent = (name, params) => { try { console.log('[analytics]', name, params || {}); } catch (e) {} };
+const PUSH_IDS = { energy: 71001 };
+Bridge.schedulePush = async (id, secs, title, body) => {
+  try {
+    const nid = PUSH_IDS[id] || 71999;
+    await LocalNotifications.cancel({ notifications: [{ id: nid }] });
+    if (secs <= 0) return;
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') { await LocalNotifications.requestPermissions(); }
+    await LocalNotifications.schedule({ notifications: [{
+      id: nid, title, body, schedule: { at: new Date(Date.now() + secs * 1000) },
+    }] });
+  } catch (e) {}
+};
+
 /* ---------- rewarded ads ---------- */
 Bridge.rewarded = async (onDone) => {
   let rewarded = false;
@@ -108,8 +127,10 @@ Bridge.interstitial = async (onDone) => {
 const PRODUCT_IDS = {
   gems500: 'ww.gems.500', gems2800: 'ww.gems.2800', gems12000: 'ww.gems.12000',
   keys10: 'ww.keys.10', noads: 'ww.noads', starter: 'ww.starter',
-  pass: 'ww.pass.s1', forge: 'ww.forge.bundle',
+  pass: 'ww.pass.season', forge: 'ww.forge.bundle',
   skinWarlord: 'ww.skin.warlord', skinTinker: 'ww.skin.tinker', skinJugg: 'ww.skin.juggernaut',
+  piggy: 'ww.piggy.crack', offerV: 'ww.offer.vengeance', offerW: 'ww.offer.wastelander',
+  club: 'ww.club.weekly',                            // auto-renewing subscription in the stores
 };
 Bridge.purchase = async (id, onSuccess) => {
   try {

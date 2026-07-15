@@ -30,7 +30,7 @@ body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 
 # The shared test URL runs the REAL economy: disable DEV mode and wipe any
 # save that was inflated by it (once — real progress persists afterwards).
-nodev = ("<script>window.__NO_DEV=true;"
+nodev = ("<script>window.__NO_DEV=true;window.__rushAlways=true;"
          "try{if(!localStorage.getItem('ww_dev_wipe_1')){"
          "localStorage.removeItem('ww_save');"
          "localStorage.setItem('ww_dev_wipe_1','1');}}catch(e){}</script>")

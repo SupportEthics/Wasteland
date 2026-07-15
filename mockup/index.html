@@ -447,6 +447,15 @@
   .pcell.ready{border-color:var(--gold);box-shadow:0 0 8px rgba(232,180,60,.25)}
   .pcell.done{opacity:.4}
   .pcell.lock{filter:grayscale(.8);opacity:.65}
+  #drone-gift{position:absolute;z-index:40;top:34%;left:-70px;width:58px;height:58px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#2a2e3a,#14161e);border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(232,180,60,.35)}
+  #drone-gift.fly{animation:droneFly 14s linear forwards}
+  @keyframes droneFly{
+    0%{left:-70px;top:34%} 25%{top:30%} 50%{top:37%} 75%{top:31%}
+    100%{left:calc(100% + 20px);top:35%}}
+  .stagechip.rush b{color:var(--red);font-size:12px;letter-spacing:1px}
+  .stagechip.rush{border-color:#5a2a1a}
   #lb-card,#base-head{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(150deg,#1a1c28,var(--panel))}
   #battle-btn{border-radius:14px}
   /* workshop */
@@ -514,6 +523,7 @@
   </div>
 
   <!-- BASE HUB -->
+  <button id="drone-gift" onclick="tapDrone()" style="display:none"><canvas width="44" height="44" data-ic="drone"></canvas></button>
   <div class="screen" id="s-home">
     <div class="topbar">
       <div class="pill"><canvas width="30" height="30" data-ic="coin"></canvas> <span class="w-coins">0</span></div>
@@ -530,6 +540,10 @@
       </button>
       <div class="sec">SELECT STAGE</div>
       <div id="stagerow"></div>
+      <button class="card" id="chain-card" onclick="adFlow('chain')" style="width:100%;margin-bottom:10px;display:flex;align-items:center;gap:11px">
+        <span class="well gold"><canvas width="34" height="34" data-ic="tv"></canvas></span>
+        <span><b>SALVAGE RUN <span class="tag ad">AD</span></b><span id="chain-sub" style="display:block;font-size:11px;color:var(--dim)">watch 3 today — prizes grow</span></span>
+      </button>
       <button class="card" id="lb-card" onclick="openLB()" style="width:100%;margin-bottom:10px;display:flex;align-items:center;gap:11px">
         <span class="well gold"><canvas width="44" height="44" data-ic="trophy"></canvas></span>
         <span><b>GLOBAL LEADERBOARD</b><span id="lb-sub" style="display:block;font-size:11px;color:var(--dim)">rank —</span></span>
@@ -872,6 +886,8 @@ const state = {design:'drifter', screen:'title', adReason:null, selItem:0, sku:n
    RevenueCat, Game Center / Play Games, native storage, haptics.
    ============================================================ */
 const Bridge={
+  logEvent(name,params){},                       // Firebase Analytics at native build
+  schedulePush(id,secs,title,body){},            // LocalNotifications at native build
   rewarded(onDone){                              // simulated rewarded ad
     $('ad-ov').classList.add('on');
     let n=5; $('ad-count').textContent=n;
@@ -917,6 +933,7 @@ function go(name){
   if(name==='crates'&&typeof renderForge==='function') renderForge();
   if(name==='shop'&&typeof renderExchange==='function') renderExchange();
   if(name==='home'&&typeof updateLBCard==='function') updateLBCard();
+  if(name==='home'&&typeof renderChain==='function') renderChain();
   if(name==='gear'&&(SAVE.tut||0)===3&&typeof tutAdvance==='function') tutAdvance(9);
   if(typeof updateTut==='function') updateTut();
   markNav();
@@ -975,6 +992,8 @@ function loadSave(){
   if(!SAVE.passT) SAVE.passT={s:'',xp:0,cf:{},cp:{}};
   if(!SAVE.piggy) SAVE.piggy=0;
   if(!SAVE.offers) SAVE.offers={};
+  if(!SAVE.chain) SAVE.chain={d:'',n:0};
+  if(!SAVE.rushBest) SAVE.rushBest=0;
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
@@ -998,6 +1017,7 @@ function devTopUp(){
     SAVE.weapons=['pistol','smg','shotgun','rifle','tesla','rail'];
 }
 devTopUp();
+if(DEV_MODE) window.__rushAlways=true;               // weekend modes always on while testing
 if(DEV_MODE){ addEventListener('DOMContentLoaded',()=>{
   const b=document.createElement('div'); b.id='dev-badge'; b.textContent='DEV';
   b.title='Unlimited resources for testing — remove before release';
@@ -2085,6 +2105,57 @@ function lbLink(k){
   toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
 }
 
+/* ---------- ad inventory: supply drone + salvage-run chain ---------- */
+const CHAIN_REWARDS=[
+  {t:'300 COINS', g:()=>SAVE.coins+=300},
+  {t:'25 GEMS',   g:()=>SAVE.gems+=25},
+  {t:'1 KEY + 5 PARTS', g:()=>{SAVE.keys+=1;SAVE.mats.parts+=5;}},
+];
+function ensureChain(){
+  const d=new Date().toDateString();
+  if(SAVE.chain.d!==d){ SAVE.chain={d,n:0}; }
+}
+function renderChain(){
+  ensureChain();
+  const el=$('chain-sub'); if(!el) return;
+  el.textContent = SAVE.chain.n>=3 ? 'all 3 claimed — more tomorrow'
+    : `${SAVE.chain.n}/3 today · next: ${CHAIN_REWARDS[SAVE.chain.n].t}`;
+}
+function grantChain(){
+  ensureChain();
+  if(SAVE.chain.n>=3){ toast('Salvage run done for today — back tomorrow'); return; }
+  const r=CHAIN_REWARDS[SAVE.chain.n];
+  r.g(); SAVE.chain.n++;
+  save(); renderWallet(); renderChain(); sfx('chest');
+  toast(`Salvage run ${SAVE.chain.n}/3 — ${r.t}`);
+}
+
+let droneLast=Date.now(), droneLive=false;
+function spawnSupplyDrone(){
+  if(droneLive||state.screen!=='home'||(SAVE.tut||0)<9) return;
+  droneLive=true; droneLast=Date.now();
+  const el=$('drone-gift');
+  el.style.display='';
+  paintIcon(el.querySelector('canvas'),'drone');
+  el.classList.remove('fly'); void el.offsetWidth; el.classList.add('fly');
+  clearTimeout(spawnSupplyDrone.tt);
+  spawnSupplyDrone.tt=setTimeout(()=>{ el.style.display='none'; droneLive=false; },14000);
+}
+function tapDrone(){
+  $('drone-gift').style.display='none'; droneLive=false;
+  clearTimeout(spawnSupplyDrone.tt);
+  adFlow('drone');
+}
+function grantDrone(){
+  const r=Math.random(), stg=SAVE.stage||1;
+  let msg;
+  if(r<.5){ const a=200+80*stg; SAVE.coins+=a; msg=`+${fmtN(a)} coins`; }
+  else if(r<.85){ SAVE.gems+=20; msg='+20 gems'; }
+  else { SAVE.mats.parts+=3; msg='+3 weapon parts'; }
+  save(); renderWallet(); sfx('chest'); toast(`Supply drone salvaged — ${msg}`);
+}
+setInterval(()=>{ if(Date.now()-droneLast>150000) spawnSupplyDrone(); },10000);
+
 /* ---------- triggered offers (shown at emotional beats, never twice) ---------- */
 function showOffer(kind){
   const def = kind==='v'
@@ -2115,6 +2186,8 @@ function maybeOffer(won,wave,stg,endless){
 /* ---------- Warden's Contract: 30-tier seasonal pass ---------- */
 const PASS_TIERS=30, PASS_XP_TIER=100;
 const seasonId=()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); };
+const rushOpen=()=>{ const d=new Date().getDay();
+  return d===0||d===5||d===6||!!window.__rushAlways; };
 function ensureSeason(){
   if(SAVE.passT.s!==seasonId()){
     SAVE.passT={s:seasonId(),xp:0,cf:{},cp:{}};
@@ -2246,13 +2319,23 @@ function renderStages(){
     h+=`<button class="stagechip${n===SAVE.selStage?' sel':''}${locked?' lock':''}" onclick="selStage(${n})"><b>${locked?'<canvas width="24" height="24" data-ic="lock"></canvas>':n}</b>${st3}<u>${locked?'LOCKED':stageName(n)}</u></button>`;
   }
   const elock=(SAVE.stage||1)<2;                       // endless opens after stage 1
+  if(rushOpen())
+    h=`<button class="stagechip endless rush${SAVE.selStage==='R'?' sel':''}${elock?' lock':''}" onclick="selStage('R')"><b>BR</b><i class="stars">${SAVE.rushBest?'BEST B'+SAVE.rushBest:'WEEKEND'}</i><u>${elock?'LOCKED':'BOSS RUSH'}</u></button>`+h;
   h=`<button class="stagechip endless${SAVE.selStage==='E'?' sel':''}${elock?' lock':''}" onclick="selStage('E')"><b>&#8734;</b><i class="stars">${SAVE.endlessBest?'BEST W'+SAVE.endlessBest:'SURVIVAL'}</i><u>${elock?'LOCKED':'ENDLESS'}</u></button>`+h;
   row.innerHTML=h; paintAll(row);
   $('gate-sub').textContent = SAVE.selStage==='E'
     ? `ENDLESS · waves never stop, glory never ends · costs 1 energy`
+    : SAVE.selStage==='R'
+    ? `BOSS RUSH · a boss every wave, shards rain · weekend only · costs 1 energy`
     : `STAGE ${SAVE.selStage} · ${stageName(SAVE.selStage)} · 30 waves · costs 1 energy`;
 }
 function selStage(n){
+  if(n==='R'){
+    if(!rushOpen()){ toast('BOSS RUSH opens Friday to Sunday'); return; }
+    if((SAVE.stage||1)<2){ toast('Clear STAGE 1 to unlock BOSS RUSH'); return; }
+    SAVE.selStage='R'; save(); renderStages();
+    toast('BOSS RUSH — a boss every wave. Good luck.'); return;
+  }
   if(n==='E'){
     if((SAVE.stage||1)<2){ toast('Clear STAGE 1 to unlock ENDLESS'); return; }
     SAVE.selStage='E'; save(); renderStages();
@@ -3804,20 +3887,22 @@ function afterRevive(){
 
 /* ---------- waves ---------- */
 function startWave(n){
-  if(sim.endless) sim.stage=1+Math.floor((n-1)/10);    // endless: stage climbs every 10 waves, forever
+  if(sim.rush) sim.stage=1+Math.floor((n-1)/3);        // boss rush: climbs every 3 bosses
+  else if(sim.endless) sim.stage=1+Math.floor((n-1)/10);   // endless: stage climbs every 10 waves
   const soft=(sim.stage===1&&n<=4)||n<=3;              // every run opens soft…
   const cut=(sim.stage===1&&n<=4)?.6:1;                // …stage 1 also trims the horde
   sim.wave=n; sim.toSpawn=Math.round((8+Math.round(n*1.8))*cut);
   sim.spawnGap=Math.max(.25,(.72-n*.022)*(soft?1.4:1));
-  $('wave').textContent=sim.endless?`W ${n} · \u221E`:`W ${n}/${WAVES}`;
+  $('wave').textContent=sim.rush?`BOSS ${n}`:(sim.endless?`W ${n} · \u221E`:`W ${n}/${WAVES}`);
   const b=$('wavebanner');
   b.textContent=(n%10===0)?`— WAVE ${n} · BOSS —`:`— WAVE ${n} —`;
   b.style.display='block';
   clearTimeout(startWave.bt); startWave.bt=setTimeout(()=>b.style.display='none',1500);
   sfx('wave');
+  if(sim.rush){ sim.toSpawn=Math.min(sim.toSpawn,4); }   // rush: light escort only
   const burst=soft?2:4;
   for(let i=0;i<burst&&sim.toSpawn>0;i++){ sim.toSpawn--; spawnFoe(); }   // opening burst
-  if(n%10===0) spawnBoss();
+  if(sim.rush||n%10===0) spawnBoss();
 }
 
 function update(dt){
@@ -4348,6 +4433,8 @@ function startBattle(){
   regenEnergy();
   if(SAVE.energy<1){ toast('Out of energy — watch an ad or wait for regen'); return; }
   SAVE.energy--; SAVE.energyT=Date.now(); save(); renderWallet();
+  Bridge.logEvent('run_start',{stage:String(SAVE.selStage)});
+  Bridge.schedulePush('energy',(eCap()-SAVE.energy)*45,'Energy restored','Your wardens are rested — dive back into the wastes');
   kills=0; lvl=1;
   if((SAVE.tut||0)===0){ SAVE.tut=1; save(); } coachHide();
   $('wslots').innerHTML=''; addChip(equippedDef().ic); addChip('bat');
@@ -4365,9 +4452,10 @@ function startBattle(){
   EQ.dmg=Math.round(EQ.dmg*wLvDmg(EQ.id)*100)/100;         // armory weapon level
   sim={t:0,px:WORLD/2,py:WORLD/2,vx:0,vy:0,aim:-Math.PI/2,feet:0,moving:false,
        flash:0,hurtT:0,invulnT:0,camx:0,camy:0,shake:0,orbA:0,
-       stage:(SAVE.selStage==='E'?1:SAVE.selStage), endless:SAVE.selStage==='E',
-       visStage:(SAVE.selStage==='E'?Math.min(SAVE.stage||1,9):SAVE.selStage), milestones:[],
-       ground:makeGround(SAVE.selStage==='E'?Math.min(SAVE.stage||1,9):SAVE.selStage),
+       stage:(typeof SAVE.selStage!=='number'?1:SAVE.selStage),
+       endless:SAVE.selStage==='E'||SAVE.selStage==='R', rush:SAVE.selStage==='R',
+       visStage:(typeof SAVE.selStage!=='number'?Math.min(SAVE.stage||1,9):SAVE.selStage), milestones:[],
+       ground:makeGround(typeof SAVE.selStage!=='number'?Math.min(SAVE.stage||1,9):SAVE.selStage),
        foes:[],shots:[],eshots:[],gems:[],zones:[],molos:[],parts:[],rings:[],nums:[],deaths:[],dying:0,
        w:{pistol:{lv:1,last:0},orbit:{lv:1},molotov:{lv:0,last:0},
           drone:{lv:0,ang:0,last:0,x:0,y:0},shock:{lv:0,last:0},scope:0},
@@ -4401,7 +4489,14 @@ function endRun(won){
   $('res-sub').textContent = won
     ? `all ${WAVES} waves of ${stageName(sim?sim.stage:1)} cleared · ${kills} kills · ${fmtT(sim?sim.t:0)}`
     : `fell on wave ${sim?sim.wave:0} · ${kills} kills · ${fmtT(sim?sim.t:0)}`;
-  if(sim&&sim.endless){
+  if(sim&&sim.rush){
+    const nb=sim.wave>(SAVE.rushBest||0);
+    if(nb) SAVE.rushBest=sim.wave;
+    $('res-title').textContent='BOSS RUSH OVER';
+    $('res-title').style.color='var(--gold)';
+    $('res-sub').textContent=`boss rush — fell at boss ${sim.wave} · ${kills} kills · ${fmtT(sim.t)}`+
+      (nb?' · NEW BEST!':` · best B${SAVE.rushBest}`);
+  } else if(sim&&sim.endless){
     const nb=sim.wave>(SAVE.endlessBest||0);
     if(nb){ SAVE.endlessBest=sim.wave; Bridge.lbSubmit(1000+sim.wave); }
     $('res-title').textContent='ENDLESS RUN OVER';
@@ -4412,7 +4507,8 @@ function endRun(won){
   }
   const w=sim?sim.wave:0, stg=sim?sim.stage:1, stgMul=1+(stg-1)*.3;
   state.lastLoot={coins:Math.round((40*w+kills*2)*stgMul), scrap:Math.round((8*w+Math.floor(kills/3))*stgMul),
-    keys:(w>=10?1:0)+(won?1:0), shards: won?6:(w>=5?2:0),
+    keys:(w>=10?1:0)+(won?1:0),
+    shards:(won?6:(w>=5?2:0))+((sim&&sim.rush)?Math.min(40,w*2):0),   // rush rains shards
     parts:sim?sim.mats.parts:0, cores:sim?sim.mats.cores:0, weapons:sim?[...sim.wDrops]:[]};
   state.chests=[10,20,30].map(mw=>({w:mw, rw:chestReward(mw/10,stg), claimed:false,
     earned:(sim?sim.milestones:[]).includes(mw)}));
@@ -4442,6 +4538,7 @@ function endRun(won){
   bumpDaily('dkills',kills); bumpDaily('dwaves',w);
   passXp(w*10);                                      // 10 pass XP per wave survived
   save();
+  Bridge.logEvent('run_end',{wave:sim?sim.wave:0,won:won?1:0});
   const offerArgs=[won, sim?sim.wave:0, sim?sim.stage:1, !!(sim&&sim.endless)];
   sim=null;
   startMusic('hub');
@@ -4503,12 +4600,15 @@ function grantAd(r){
   if(r==='revive') afterRevive();
   else if(r==='claim2x') bankLoot(2);
   else if(r==='off2x') bankOffline(2);
+  else if(r==='chain') grantChain();
+  else if(r==='drone') grantDrone();
   else if(r==='energy'){ SAVE.energy=Math.min(eCap(),SAVE.energy+1); SAVE.energyT=Date.now();
     save(); renderWallet(); toast('+1 energy'); }
   else if(r==='crate') freeCrate();
   else if(r==='reroll'){ showDraft(); toast('Choices rerolled'); }
 }
 function adFlow(reason){
+  Bridge.logEvent('ad_rewarded',{reason});
   state.adReason = reason;
   if(SAVE.noads){ grantAd(reason); return; }        // Remove Ads: instant payout
   $('lvl-ov').classList.remove('on');
@@ -4564,6 +4664,7 @@ function buy(id){
 function confirmBuy(){
   $('sheet').classList.remove('on');
   const s=SKUS[state.sku]; if(!s) return;
+  Bridge.logEvent('iap_attempt',{sku:state.sku});
   Bridge.purchase(state.sku,()=>{
     if(s.apply) s.apply();
     if(s.once) SAVE[s.once]=true;

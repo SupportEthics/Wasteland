@@ -12,6 +12,7 @@
     "@capacitor/core": "^6.1.0",
     "@capacitor/haptics": "^6.0.0",
     "@capacitor/preferences": "^6.0.0",
+    "@capacitor/local-notifications": "^6.0.0",
     "@capacitor-community/admob": "^6.0.0",
     "@revenuecat/purchases-capacitor": "^9.0.0",
     "@openforge/capacitor-game-connect": "^5.0.0"
