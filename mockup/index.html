@@ -424,6 +424,16 @@
   .stagechip.sel b,.stagechip.sel u{color:var(--gold)}
   .stagechip.endless b{color:var(--gold);font-size:17px;line-height:1}
   .stagechip.endless.lock b{color:var(--dim)}
+  #login-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 12px}
+  .ltile{border:1.5px solid var(--line2);border-radius:11px;padding:7px 3px;display:flex;flex-direction:column;
+    align-items:center;gap:4px;background:var(--panel)}
+  .ltile u{text-decoration:none;font-size:7.5px;color:var(--dim);letter-spacing:.6px}
+  .ltile b{font-size:7.5px;letter-spacing:.3px;text-align:center}
+  .ltile canvas{width:30px;height:30px}
+  .ltile.done{opacity:.45}
+  .ltile.cur{border-color:var(--gold);background:linear-gradient(160deg,#241d10,var(--panel))}
+  .ltile.cur u,.ltile.cur b{color:var(--gold)}
+  .ltile:last-child{grid-column:span 2}
   #lb-card,#base-head{border-radius:14px;border:1px solid var(--line2);background:linear-gradient(150deg,#1a1c28,var(--panel))}
   #battle-btn{border-radius:14px}
   /* workshop */
@@ -484,7 +494,7 @@
 <div id="phone">
 
   <!-- TITLE -->
-  <div class="screen on" id="s-title" onclick="audioInit();go('home');toast('Welcome back, Warden')">
+  <div class="screen on" id="s-title" onclick="audioInit();go('home');homeArrival()">
     <div class="art px"></div><div class="fade"></div>
     <div class="tap">— TAP TO SURVIVE —</div>
     <div class="ver">Interactive concept mock-up · v0.4 chibi art pass · not a real game (yet)</div>
@@ -786,6 +796,23 @@
   <div id="coach"></div>
 
   <!-- leaderboard (SIMULATED — Game Center / Play Games at native build) -->
+  <div class="overlay" id="login-ov">
+    <div class="ov-title">DAILY SUPPLY DROP</div>
+    <div class="ov-sub">report in every day — day 7 is a Warden Cache</div>
+    <div id="login-grid"></div>
+    <button class="btn gold" id="login-claim" onclick="claimLogin()">CLAIM TODAY'S DROP</button>
+    <button class="btn grey" style="margin-top:6px" onclick="$('login-ov').classList.remove('on')">LATER</button>
+  </div>
+
+  <div class="overlay" id="off-ov">
+    <div class="ov-title">OFFLINE SALVAGE</div>
+    <div class="ov-sub" id="off-sub">your wardens kept scavenging while you were away</div>
+    <div class="loot" style="margin:10px 0 4px"><span><canvas width="34" height="34" data-ic="coin"></canvas> COINS</span><b id="off-coins">0</b></div>
+    <div class="loot"><span><canvas width="34" height="34" data-ic="scrap"></canvas> SCRAP</span><b id="off-scrap">0</b></div>
+    <button class="btn gold" style="margin-top:12px" onclick="adFlow('off2x')"><canvas class="bic" width="28" height="28" data-ic="tv"></canvas> CLAIM ×2 <span class="tag ad">AD</span><small>double the haul — one 30s ad</small></button>
+    <button class="btn grey" style="margin-top:6px" onclick="bankOffline(1)">CLAIM</button>
+  </div>
+
   <div class="overlay" id="lb-ov">
     <div class="ov-title">GLOBAL LEADERBOARD</div>
     <div class="ov-sub">furthest stage reached · season 1 · 34,208 wardens (simulated)</div>
@@ -906,11 +933,13 @@ function loadSave(){
   if(!SAVE.skins) SAVE.skins={};
   if(SAVE.plague) SAVE.skins.plague=1;               // migrate old unlock flag
   if(!SAVE.endlessBest) SAVE.endlessBest=0;
+  if(!SAVE.login) SAVE.login={d:'',n:0};             // d=last claim day, n=next tile 0-6
+  if(!SAVE.seen) SAVE.seen=Date.now();
   const ICMAP={'Radium Blaster':'radium','Spiked Duster':'duster','Scrap Gasmask':'gasmask',
     'Runner Boots':'boots','Rag Gloves':'gloves','Bone Charm':'charm','Nail Bat':'bat','Tin Plate':'plate'};
   SAVE.items.forEach(it=>{ if(!it.ic) it.ic=ICMAP[it.n]||'plate'; });
 }
-function save(){ Bridge.saveKV('ww_save',JSON.stringify(SAVE)); }
+function save(){ SAVE.seen=Date.now(); Bridge.saveKV('ww_save',JSON.stringify(SAVE)); }
 loadSave();
 
 /* ============================================================
@@ -2007,6 +2036,70 @@ function lbLink(k){
   SAVE.lbLink=k; save(); renderLB(); sfx('pick');
   Bridge.lbLink(k);
   toast(`Linked to ${k==='gc'?'Game Center':'Play Games'} — scores will sync (simulated)`);
+}
+
+/* ---------- retention: login rewards + offline salvage ---------- */
+const LOGIN_REWARDS=[
+  {ic:'coin', t:'400 COINS',  g:()=>SAVE.coins+=400},
+  {ic:'gem',  t:'60 GEMS',    g:()=>SAVE.gems+=60},
+  {ic:'key',  t:'3 KEYS',     g:()=>SAVE.keys+=3},
+  {ic:'scrap',t:'150 SCRAP',  g:()=>SAVE.scrap+=150},
+  {ic:'parts',t:'8 PARTS',    g:()=>SAVE.mats.parts+=8},
+  {ic:'core', t:'1 CORE',     g:()=>SAVE.mats.cores+=1},
+  {ic:'chest',t:'WARDEN CACHE',g:()=>{SAVE.gems+=250;SAVE.keys+=2;SAVE.mats.cores+=1;}},
+];
+function loginDue(){ return SAVE.login.d!==new Date().toDateString(); }
+function renderLogin(){
+  $('login-grid').innerHTML=LOGIN_REWARDS.map((r,i)=>{
+    const done=i<SAVE.login.n, cur=i===SAVE.login.n;
+    return `<div class="ltile${done?' done':''}${cur?' cur':''}"><u>DAY ${i+1}</u>
+      <canvas width="40" height="40" data-ic="${done?'done':r.ic}"></canvas><b>${r.t}</b></div>`;
+  }).join('');
+  paintAll($('login-grid'));
+  $('login-claim').style.display=loginDue()?'':'none';
+}
+function maybeLogin(){
+  if((SAVE.tut||0)<9||!loginDue()) return false;
+  renderLogin(); $('login-ov').classList.add('on'); return true;
+}
+function claimLogin(){
+  if(!loginDue()) return;
+  const r=LOGIN_REWARDS[SAVE.login.n];
+  r.g();
+  SAVE.login={d:new Date().toDateString(), n:(SAVE.login.n+1)%7};
+  save(); renderWallet(); sfx('chest');
+  $('login-ov').classList.remove('on');
+  toast(`Supply drop claimed — ${r.t}`);
+}
+
+let pendingOffline=calcOffline((Date.now()-(SAVE.seen||Date.now()))/1000);  // uses the on-disk seen time — runs before the first save() of this session
+function calcOffline(secs){
+  secs=Math.min(secs,8*3600);                        // 8 h cap
+  if(secs<600) return null;                          // 10 min floor
+  const cpm=4+3*((SAVE.stage||1)-1);                 // coins per minute scales with progress
+  const coins=Math.round(secs/60*cpm);
+  return {coins, scrap:Math.round(coins/8), secs};
+}
+function bankOffline(m){
+  if(!pendingOffline) return;
+  SAVE.coins+=pendingOffline.coins*m; SAVE.scrap+=pendingOffline.scrap*m;
+  toast(`Salvage banked${m>1?' ×2':''} — +${fmtN(pendingOffline.coins*m)} coins`);
+  pendingOffline=null; save(); renderWallet(); sfx('coin');
+  $('off-ov').classList.remove('on');
+  maybeLogin();
+}
+function maybeOffline(){
+  if((SAVE.tut||0)<9||!pendingOffline) return false;
+  $('off-coins').textContent=fmtN(pendingOffline.coins);
+  $('off-scrap').textContent=fmtN(pendingOffline.scrap);
+  $('off-sub').textContent=`away ${Math.round(pendingOffline.secs/60)} min — your wardens kept scavenging`;
+  paintAll($('off-ov'));
+  $('off-ov').classList.add('on'); return true;
+}
+function homeArrival(){
+  if(maybeOffline()) return;
+  if(maybeLogin()) return;
+  toast('Welcome back, Warden');
 }
 
 /* ---------- stages ---------- */
@@ -4273,6 +4366,7 @@ battleEl.addEventListener('pointercancel',joyEnd);
 function grantAd(r){
   if(r==='revive') afterRevive();
   else if(r==='claim2x') bankLoot(2);
+  else if(r==='off2x') bankOffline(2);
   else if(r==='energy'){ SAVE.energy=Math.min(5,SAVE.energy+1); SAVE.energyT=Date.now();
     save(); renderWallet(); toast('+1 energy'); }
   else if(r==='crate') freeCrate();
